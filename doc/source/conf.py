@@ -37,12 +37,14 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'plugin_libsgm'
+project = 'pandora_plugin_libsgm'
 copyright = '2020, CNES'
 author = 'CNES'
 
 # The full version, including alpha/beta/rc tags
-release = 'V1.A'
+# not useful at the moment :  see  https://gitlab.cnes.fr/OutilsCommuns/CorrelateurChaine3D/pandora/issues/124
+# release = '0.2.0'
+# version = '0.2.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -55,8 +57,12 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autodoc',
     'sphinx_rtd_theme',
-    'sphinx.ext.imgmath'
+    'sphinx.ext.imgmath',
+    'autoapi.extension'
 ]
+
+autoapi_dirs = ['../../pandora_plugin_libsgm']
+autoapi_root = 'api_reference'
 
 imgmath_font_size = 12
 imgmath_dvipng_args = ['-gamma', '1.5', '-D', '110', '-bg', 'Transparent']
