@@ -40,9 +40,8 @@ requirements = ['numpy',
                 'nose2',
                 'json-checker',
                 'rasterio',
-                'libsgm==0.2.1rc',
-                'pandora==0.2.0']
-
+                'libsgm==0.2.1',
+                'pandora==0.2.1']
 
 def readme():
     with open("README.md", "r", "utf-8") as f:
@@ -53,6 +52,10 @@ setup(name='pandora_plugin_libsgm',
       version='x.y.z',
       description='Pandora plugin to optimize the cost volume with the LigSGM library',
       long_description=readme(),
+      url='https://github.com/CNES/Pandora_plugin_libsgm',
+      author='CNES',
+      author_email='myriam.cournet@cnes.fr',
+      license='Apache License 2.0',
       packages=find_packages(),
       install_requires=requirements,
       entry_points="""
