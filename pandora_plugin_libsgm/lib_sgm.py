@@ -118,9 +118,14 @@ class SGM(optimization.AbstractOptimization):
 
         # Resize pandora image : image size and cost volume size must be equal
         offset = int(cv.attrs['offset_row_col'])
-        img_ref_crop = img_ref['im'].data[offset: -offset, offset: -offset]
+        if offset == 0 :
+            img_ref_crop = img_ref['im'].data
+            img_sec_crop = img_sec['im'].data
+        else :
+            img_ref_crop = img_ref['im'].data[offset: -offset, offset: -offset]
+            img_sec_crop = img_sec['im'].data[offset: -offset, offset: -offset]
+
         img_ref_crop = np.ascontiguousarray(img_ref_crop, dtype=np.float32)
-        img_sec_crop = img_sec['im'].data[offset: -offset, offset: -offset]
         img_sec_crop = np.ascontiguousarray(img_sec_crop, dtype=np.float32)
 
         # Compute penalities
