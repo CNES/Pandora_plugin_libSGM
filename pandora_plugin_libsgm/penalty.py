@@ -98,24 +98,3 @@ class AbstractPenalty(object):
         :return: P1 and P2 penalities
         :rtype: tuple(numpy array, numpy array)
         """
-
-    def check_p2(self, cv):
-        """
-        Check if the penalty P2 is adapted to a measure, thanks to a range of values
-
-        :param cv: the cost volume
-        :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row, col, disp)
-        """
-        # for Census method: 15 <= P2 <= 120
-        p2_min_census = 15
-        p2_max_census = 120
-        cmax_census = 25
-
-        # Calculate the range of values for the cost_volume measure
-        p2_min = cv.attrs['cmax'] * p2_min_census / cmax_census
-        p2_max = cv.attrs['cmax'] * p2_max_census / cmax_census
-
-        # Check if P2 is inside its range
-        if self._p2 < p2_min or self._p2 > p2_max:
-            logging.warning("P2 parameter is outside the recommended interval related to the measure selected:" +
-                            " [%s, %s]", p2_min, p2_max)

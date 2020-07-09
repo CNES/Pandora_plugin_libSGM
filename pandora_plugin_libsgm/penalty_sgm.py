@@ -131,8 +131,6 @@ class SgmPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalities
         :rtype: tuple(numpy array, numpy array)
         """
-        # Check if P2 is inside its range of values
-        self.check_p2(cv)
 
         # Calculation of the invalid value according to the chosen P2 estimation method
         if self._p2_method == "constant":
