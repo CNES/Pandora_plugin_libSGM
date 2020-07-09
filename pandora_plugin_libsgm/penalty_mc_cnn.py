@@ -129,8 +129,6 @@ class MccnnPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalities
         :rtype: tuple(numpy array, numpy array)
         """
-        # Check if P2 is inside its range of values
-        self.check_p2(cv)
 
         # Calculation of the invalid value
         p2_max = max(self._p2, self._p2/self._q2, self._p2/self._p1)
