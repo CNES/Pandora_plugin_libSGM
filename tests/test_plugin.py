@@ -36,15 +36,18 @@ class TestPlugin(unittest.TestCase):
     """
     TestPlugin class allows to test pandora + plugin_libsgm
     """
+
     def setUp(self):
         """
         Method called to prepare the test fixture
 
         """
-        self.ref = pandora.read_img('tests/ref.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                          'valid_pixels': 0, 'no_data': 1}, mask=None)
-        self.sec = pandora.read_img('tests/sec.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                          'valid_pixels': 0, 'no_data': 1}, mask=None)
+        self.ref = pandora.read_img('tests/ref.png', no_data=np.nan,
+                                    cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
+                                         'valid_pixels': 0, 'no_data': 1}, mask=None)
+        self.sec = pandora.read_img('tests/sec.png', no_data=np.nan,
+                                    cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
+                                         'valid_pixels': 0, 'no_data': 1}, mask=None)
         self.disp_ref = rasterio.open('tests/disp_ref.tif').read(1)
         self.disp_sec = rasterio.open('tests/disp_sec.tif').read(1)
         self.occlusion = rasterio.open('tests/occl.png').read(1)
@@ -125,7 +128,8 @@ class TestPlugin(unittest.TestCase):
             raise AssertionError
 
         # Compares the calculated reference disparity map with the ground truth
-        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15,
+        # raise an error
         if self.error(ref['disparity_map'].data, self.disp_ref, 2) > 0.15:
             raise AssertionError
 
@@ -144,7 +148,8 @@ class TestPlugin(unittest.TestCase):
             raise AssertionError
 
         # Compares the calculated secondary disparity map with the ground truth
-        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15,
+        # raise an error
         if self.error(-1 * sec['disparity_map'].data, self.disp_sec, 2) > 0.15:
             raise AssertionError
 
@@ -178,7 +183,8 @@ class TestPlugin(unittest.TestCase):
             raise AssertionError
 
         # Compares the calculated reference disparity map with the ground truth
-        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15,
+        # raise an error
         if self.error(ref['disparity_map'].data, self.disp_ref, 2) > 0.15:
             raise AssertionError
 
@@ -197,7 +203,8 @@ class TestPlugin(unittest.TestCase):
             raise AssertionError
 
         # Compares the calculated secondary disparity map with the ground truth
-        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15,
+        # raise an error
         if self.error(-1 * sec['disparity_map'].data, self.disp_sec, 2) > 0.15:
             raise AssertionError
 
@@ -230,7 +237,8 @@ class TestPlugin(unittest.TestCase):
             raise AssertionError
 
         # Compares the calculated reference disparity map with the ground truth
-        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15,
+        # raise an error
         if self.error(ref['disparity_map'].data, self.disp_ref, 2) > 0.15:
             raise AssertionError
 
@@ -240,7 +248,8 @@ class TestPlugin(unittest.TestCase):
             raise AssertionError
 
         # Compares the calculated secondary disparity map with the ground truth
-        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15,
+        # raise an error
         if self.error(-1 * sec['disparity_map'].data, self.disp_sec, 2) > 0.15:
             raise AssertionError
 
@@ -251,7 +260,8 @@ class TestPlugin(unittest.TestCase):
 
         # Prepare the configuration
         user_cfg = pandora.read_config_file('conf/sgm_zncc.json')
-        cfg = pandora.JSON_checker.update_conf(pandora.JSON_checker.default_short_configuration, user_cfg)
+        cfg = pandora.JSON_checker.update_conf(pandora.JSON_checker.default_short_configuration,
+                                               user_cfg)
         cfg['input']['img_ref'] = "tests/ref.png"
         cfg['input']['img_sec'] = "tests/sec.png"
         cfg['input']['disp_min'] = -60
@@ -284,7 +294,8 @@ class TestPlugin(unittest.TestCase):
 
         # Prepare the configuration
         user_cfg = pandora.read_config_file('conf/sgm.json')
-        cfg = pandora.JSON_checker.update_conf(pandora.JSON_checker.default_short_configuration, user_cfg)
+        cfg = pandora.JSON_checker.update_conf(pandora.JSON_checker.default_short_configuration,
+                                               user_cfg)
         cfg['stereo']['window_size'] = 3
         cfg['optimization']['min_cost_paths'] = True
 
@@ -300,25 +311,25 @@ class TestPlugin(unittest.TestCase):
                          [1, 1, 1, 4, 3],
                          [1, 1, 1, 1, 1]), dtype=np.float32)
         ref = xr.Dataset({'im': (['row', 'col'], data)},
-                              coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])})
+                         coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])})
 
         data = np.array(([1, 1, 1, 2, 2],
                          [1, 1, 1, 4, 2],
                          [1, 1, 1, 4, 4],
                          [1, 1, 1, 1, 1]), dtype=np.float32)
         sec = xr.Dataset({'im': (['row', 'col'], data)},
-                              coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])})
+                         coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])})
 
         # Computes the cost volume dataset
         cv = stereo_.compute_cost_volume(img_ref=ref, img_sec=sec, disp_min=-2, disp_max=2,
-                                                    **{'valid_pixels': 0, 'no_data': 1})
+                                         **{'valid_pixels': 0, 'no_data': 1})
 
         # Disparities which give a minimum local cost, in indices
         disp_path = np.array([[[1, 3, 2, 3, 1, 3, 3, 2],
                                [0, 1, 1, 4, 2, 2, 3, 1],
                                [2, 4, 2, 4, 3, 0, 3, 3]],
-                              [[ 3, 3, 2, 3, 1, 0, 1, 3],
-                               [ 2, 1, 1, 3, 1, 3, 1, 2],
+                              [[3, 3, 2, 3, 1, 0, 1, 3],
+                               [2, 1, 1, 3, 1, 3, 1, 2],
                                [0, 0, 0, 0, 0, 0, 0, 0]]], dtype=np.float32)
 
         invalid_disp = np.isnan(cv['cost_volume'].data)
@@ -328,9 +339,9 @@ class TestPlugin(unittest.TestCase):
         gt_disp = np.array([[2, 3, 0],
                             [1, 4, 8]], dtype=np.float32)
 
-        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
+        # Check if the calculated confidence_measure is equal to the ground truth (same shape and
+        # all elements equals)
         np.testing.assert_array_equal(cv_updated['confidence_measure'].data[:, :, -1], gt_disp)
-
 
 
 if __name__ == '__main__':

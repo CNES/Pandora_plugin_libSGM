@@ -50,7 +50,8 @@ class SGM(optimization.AbstractOptimization):
 
     def __init__(self, **cfg):
         """
-        :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value, 'beta': value, 'gamma": value,
+        :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value,
+        'beta': value, 'gamma": value,
                                             'p2_method': value}
         :type cfg: dict
         """
@@ -58,11 +59,13 @@ class SGM(optimization.AbstractOptimization):
         self._overcounting = self.cfg['overcounting']
         self._min_cost_paths = self.cfg['min_cost_paths']
         self._directions = self._DIRECTIONS
-        self._penalty = penalty.AbstractPenalty(self._directions, ** self.cfg)
+        self._penalty = penalty.AbstractPenalty(self._directions, **self.cfg)
 
-    def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
+    def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[
+        str, Union[str, int, float, bool]]:
         """
-        Add default values to the dictionary if there are missing elements and check if the dictionary is correct
+        Add default values to the dictionary if there are missing elements and check if the
+        dictionary is correct
 
         :param cfg: optimization configuration
         :type cfg: dict
@@ -118,10 +121,10 @@ class SGM(optimization.AbstractOptimization):
 
         # Resize pandora image : image size and cost volume size must be equal
         offset = int(cv.attrs['offset_row_col'])
-        if offset == 0 :
+        if offset == 0:
             img_ref_crop = img_ref['im'].data
             img_sec_crop = img_sec['im'].data
-        else :
+        else:
             img_ref_crop = img_ref['im'].data[offset: -offset, offset: -offset]
             img_sec_crop = img_sec['im'].data[offset: -offset, offset: -offset]
 
@@ -129,7 +132,8 @@ class SGM(optimization.AbstractOptimization):
         img_sec_crop = np.ascontiguousarray(img_sec_crop, dtype=np.float32)
 
         # Compute penalities
-        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_ref_crop, img_sec_crop)
+        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_ref_crop,
+                                                                      img_sec_crop)
 
         # If the cost volume is calculated with the census measure and the invalid value <= 255,
         # the cost volume is converted to unint8 to optimize the memory
@@ -138,7 +142,8 @@ class SGM(optimization.AbstractOptimization):
             invalid_value = int(invalid_value)
             cv['cost_volume'].data = cv['cost_volume'].data.astype(np.uint8)
 
-        p1_mat, p2_mat = p1_mat.astype(cv['cost_volume'].data.dtype.type), p2_mat.astype(cv['cost_volume'].data.dtype.type)
+        p1_mat, p2_mat = p1_mat.astype(cv['cost_volume'].data.dtype.type), p2_mat.astype(
+            cv['cost_volume'].data.dtype.type)
 
         # Conversion of invalid cost (= np.nan), to invalid_value
         cv['cost_volume'].data[invalid_disp] = invalid_value
@@ -146,7 +151,8 @@ class SGM(optimization.AbstractOptimization):
 
         # LibSGM library takes as input a numpy array, and output a numpy array
         cost_volumes_out = sgm_wrapper.sgm_api(cv['cost_volume'].data, p1_mat, p2_mat,
-                                               np.array(self._directions).astype(np.int32), invalid_value,
+                                               np.array(self._directions).astype(np.int32),
+                                               invalid_value,
                                                self._min_cost_paths, self._overcounting)
 
         cv['cost_volume'].data = cost_volumes_out["cv"]
@@ -171,9 +177,11 @@ class SGM(optimization.AbstractOptimization):
 
         return cv
 
-    def number_of_paths(self, cv: xr.Dataset, disp_paths: np.ndarray, invalid_disp: np.ndarray) -> xr.Dataset:
+    def number_of_paths(self, cv: xr.Dataset, disp_paths: np.ndarray,
+                        invalid_disp: np.ndarray) -> xr.Dataset:
         """
-        Update the confidence measure by adding the number of disp indicator, which gives the number (between 0 and 8)
+        Update the confidence measure by adding the number of disp indicator, which gives the
+        number (between 0 and 8)
         of local disparities equal to the ones which return the global minimal costs
 
         :param cv: the original cost volume dataset
@@ -201,7 +209,7 @@ class SGM(optimization.AbstractOptimization):
 
         # Add a new indicator to the confidence measure DataArray
         row, col, nb_indicator = cv['confidence_measure'].shape
-        conf_measure = np.zeros((row, col, nb_indicator+1), dtype=np.float32)
+        conf_measure = np.zeros((row, col, nb_indicator + 1), dtype=np.float32)
         conf_measure[:, :, :-1] = cv['confidence_measure'].data
 
         indicator = np.copy(cv.coords['indicator'])
@@ -212,7 +220,8 @@ class SGM(optimization.AbstractOptimization):
         cv = cv.assign_coords(indicator=indicator)
         cv['confidence_measure'] = xr.DataArray(data=conf_measure, dims=['row', 'col', 'indicator'])
 
-        # Allocate the number of paths given the same disparity as the one which has calculated the min cost
+        # Allocate the number of paths given the same disparity as the one which has calculated
+        # the min cost
         for d in range(disp_paths.shape[2]):
             pos_y, pos_x = np.where(disp_paths[:, :, d] == disp_map)
             cv['confidence_measure'].data[pos_y, pos_x, -1] += 1
