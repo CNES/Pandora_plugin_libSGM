@@ -171,7 +171,8 @@ class SGM(optimization.AbstractOptimization):
 
         return cv
 
-    def number_of_paths(self, cv: xr.Dataset, disp_paths: np.ndarray, invalid_disp: np.ndarray) -> xr.Dataset:
+    def number_of_disp(self, cv: xr.Dataset, disp_paths: np.ndarray, invalid_disp: np.ndarray) -> \
+            xr.Dataset:
         """
         Update the confidence measure by adding the number of disp indicator, which gives the number (between 0 and 8)
         of local disparities equal to the ones which return the global minimal costs

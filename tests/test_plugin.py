@@ -322,7 +322,7 @@ class TestPlugin(unittest.TestCase):
                                [0, 0, 0, 0, 0, 0, 0, 0]]], dtype=np.float32)
 
         invalid_disp = np.isnan(cv['cost_volume'].data)
-        cv_updated = optimization_.number_of_paths(cv, disp_path, invalid_disp)
+        cv_updated = optimization_.number_of_disp(cv, disp_path, invalid_disp)
 
         # Ground truth calculated with disp_path
         gt_disp = np.array([[2, 3, 0],
