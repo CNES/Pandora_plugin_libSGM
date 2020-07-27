@@ -20,18 +20,17 @@
 # limitations under the License.
 #
 """
-This module contains the required libraries and softwares allowing to execute the software,
-and setup elements to configure and identify the software.
+This module contains the required libraries and softwares allowing to execute the software, and setup elements to configure and identify the software. 
 """
 
 from setuptools import setup, find_packages
 from codecs import open
 import os
 
+
 cmdclass = {}
 try:
     from sphinx.setup_command import BuildDoc
-
     cmdclass['build_sphinx'] = BuildDoc
 except ImportError:
     print('WARNING: sphinx not available. Doc cannot be built')
@@ -43,7 +42,6 @@ requirements = ['numpy',
                 'rasterio',
                 'libsgm==0.2.1',
                 'pandora==0.2.1']
-
 
 def readme():
     with open("README.md", "r", "utf-8") as f:

@@ -20,8 +20,7 @@
 # limitations under the License.
 #
 """
-This module provides class and functions to compute penalties used to optimize the cost volume
-using the LibSGM library
+This module provides class and functions to compute penalties used to optimize the cost volume using the LibSGM library
 """
 
 from pandora_plugin_libsgm import penalty
@@ -50,8 +49,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
     def __init__(self, directions, **cfg):
         """
-        :param cfg: optional configuration, {'P1': value, 'P2': value, 'Q1': value, 'Q2': value,
-        'D": value,
+        :param cfg: optional configuration, {'P1': value, 'P2': value, 'Q1': value, 'Q2': value, 'D": value,
                                             'V': value}
         :type cfg: dict
         """
@@ -66,11 +64,9 @@ class MccnnPenalty(penalty.AbstractPenalty):
         self._min_cost_paths = self.cfg['min_cost_paths']
         self._directions = directions
 
-    def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[
-        str, Union[str, int, float, bool]]:
+    def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
         """
-        Add default values to the dictionary if there are missing elements and check if the
-        dictionary is correct
+        Add default values to the dictionary if there are missing elements and check if the dictionary is correct
 
         :param cfg: optimization configuration
         :type cfg: dict
@@ -125,8 +121,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
         Compute penalty
 
         :param cv: the cost volume
-        :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row,
-                  col, disp)
+        :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row, col, disp)
         :param img_ref: reference  image
         :type img_ref: numpy array
         :param img_sec: secondary image
@@ -136,13 +131,12 @@ class MccnnPenalty(penalty.AbstractPenalty):
         """
 
         # Calculation of the invalid value
-        p2_max = max(self._p2, self._p2 / self._q2, self._p2 / self._p1)
+        p2_max = max(self._p2, self._p2/self._q2, self._p2/self._p1)
         invalid_value = float(cv.attrs['cmax'] + p2_max + 1)
 
         # Compute penalties
-        p1_mask, p2_mask = self.mc_cnn_penalty_function(img_ref, img_sec, self._p1, self._p2,
-                                                        self._q1, self._q2,
-                                                        self._d, self._v, self._directions)
+        p1_mask, p2_mask = self.mc_cnn_penalty_function(img_ref, img_sec, self._p1, self._p2, self._q1, self._q2,
+                                                      self._d, self._v, self._directions)
 
         return invalid_value, p1_mask, p2_mask
 
@@ -160,13 +154,12 @@ class MccnnPenalty(penalty.AbstractPenalty):
         """
         mat1 = img_ref[max(direction[0], 0): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
                max(direction[1], 0): min(img_ref.shape[1] + direction[1], img_ref.shape[1])]
-        mat2 = img_ref[
-               max(-direction[0], 0): min(img_ref.shape[0] - direction[0], img_ref.shape[0]),
+        mat2 = img_ref[max(-direction[0], 0): min(img_ref.shape[0] - direction[0], img_ref.shape[0]),
                max(-direction[1], 0): min(img_ref.shape[1] - direction[1], img_ref.shape[1])]
 
         return np.abs(mat1 - mat2)
 
-    def mc_cnn_penalty_function(self, img_ref, img_sec, p1, p2, q1, q2, d, v, directions) -> \
+    def mc_cnn_penalty_function(self, img_ref, img_sec, p1, p2, q1, q2, d, v, directions) ->\
             Tuple[np.ndarray, np.ndarray]:
         """
         Compute mc_cnn penalty
@@ -192,10 +185,8 @@ class MccnnPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
-        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)],
-                               dtype=np.float32)
-        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)],
-                               dtype=np.float32)
+        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
+        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
 
         for i in range(len(directions)):
             direction = directions[i]
@@ -215,11 +206,9 @@ class MccnnPenalty(penalty.AbstractPenalty):
             final_p2 = final_p2 + msk3 * (p2 / q1) * np.ones(abs_gradient_ref.shape)
 
             p1_mask[max(0, direction[0]): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
-            max(0, direction[1]): min(img_ref.shape[1] + direction[1], img_ref.shape[1]),
-            i] = final_p1
+                    max(0, direction[1]): min(img_ref.shape[1] + direction[1], img_ref.shape[1]), i] = final_p1
             p2_mask[max(0, direction[0]): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
-            max(0, direction[1]): min(img_ref.shape[1] + direction[1], img_ref.shape[1]),
-            i] = final_p2
+                    max(0, direction[1]): min(img_ref.shape[1] + direction[1], img_ref.shape[1]), i] = final_p2
 
             if i in [1, 5]:
                 p1_mask[:, :, i] = p1_mask[:, :, i] / v

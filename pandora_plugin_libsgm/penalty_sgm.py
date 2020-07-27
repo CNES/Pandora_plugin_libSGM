@@ -20,8 +20,7 @@
 # limitations under the License.
 #
 """
-This module provides class and functions to compute penalties used to optimize the cost volume
-using the LibSGM library
+This module provides class and functions to compute penalties used to optimize the cost volume using the LibSGM library
 """
 
 from pandora_plugin_libsgm import penalty
@@ -52,8 +51,7 @@ class SgmPenalty(penalty.AbstractPenalty):
 
     def __init__(self, directions, **cfg):
         """
-        :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value,
-        'beta': value, 'gamma": value,
+        :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value, 'beta': value, 'gamma": value,
                                             'p2_method': value}
         :type cfg: dict
         """
@@ -68,11 +66,9 @@ class SgmPenalty(penalty.AbstractPenalty):
         self._min_cost_paths = self.cfg['min_cost_paths']
         self._directions = directions
 
-    def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[
-        str, Union[str, int, float, bool]]:
+    def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
         """
-        Add default values to the dictionary if there are missing elements and check if the
-        dictionary is correct
+        Add default values to the dictionary if there are missing elements and check if the dictionary is correct
 
         :param cfg: optimization configuration
         :type cfg: dict
@@ -106,8 +102,7 @@ class SgmPenalty(penalty.AbstractPenalty):
             "alpha": And(Or(int, float), lambda x: x >= 0),
             "beta": And(Or(int, float), lambda x: x > 0),
             "gamma": And(Or(int, float), lambda x: x > 0),
-            "p2_method": And(str, lambda x: is_method(x, ['constant', 'negativeGradient',
-                                                          'inverseGradient'])),
+            "p2_method": And(str, lambda x: is_method(x, ['constant', 'negativeGradient', 'inverseGradient'])),
             "overcounting": bool,
             "min_cost_paths": bool
         }
@@ -128,8 +123,7 @@ class SgmPenalty(penalty.AbstractPenalty):
         Compute penalty
 
         :param cv: the cost volume
-        :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row,
-                  col, disp)
+        :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row, col, disp)
         :param img_ref: reference  image
         :type img_ref: numpy array
         :param img_sec: secondary image
@@ -147,22 +141,20 @@ class SgmPenalty(penalty.AbstractPenalty):
             invalid_value = float(cv.attrs['cmax'] + self._gamma + (self._alpha / self._beta) + 1)
 
         # Compute penalties
-        if self._p2_method == "negativeGradient":
-            p1_mask, p2_mask = self.negative_penalty_function(img_ref, self._p1, self._p2,
-                                                              self._directions,
+        if self._p2_method =="negativeGradient":
+            p1_mask, p2_mask = self.negative_penalty_function(img_ref, self._p1, self._p2, self._directions,
                                                               self._alpha, self._gamma)
 
         elif self._p2_method == "inverseGradient":
-            p1_mask, p2_mask = self.inverse_penalty_function(img_ref, self._p1, self._p2,
-                                                             self._directions, self._alpha,
+            p1_mask, p2_mask = self.inverse_penalty_function(img_ref, self._p1, self._p2, self._directions, self._alpha,
                                                              self._beta, self._gamma)
 
         else:
             # Default p2_method is constant
-            p1_mask, p2_mask = self.constant_penalty_function(img_ref, self._p1, self._p2,
-                                                              self._directions)
+            p1_mask, p2_mask = self.constant_penalty_function(img_ref, self._p1, self._p2, self._directions)
 
         return invalid_value, p1_mask, p2_mask
+
 
     @staticmethod
     def compute_gradient(img_ref, direction) -> np.ndarray:
@@ -178,14 +170,12 @@ class SgmPenalty(penalty.AbstractPenalty):
         """
         mat1 = img_ref[max(direction[0], 0): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
                max(direction[1], 0): min(img_ref.shape[1] + direction[1], img_ref.shape[1])]
-        mat2 = img_ref[
-               max(-direction[0], 0): min(img_ref.shape[0] - direction[0], img_ref.shape[0]),
+        mat2 = img_ref[max(-direction[0], 0): min(img_ref.shape[0] - direction[0], img_ref.shape[0]),
                max(-direction[1], 0): min(img_ref.shape[1] - direction[1], img_ref.shape[1])]
 
         return np.abs(mat1 - mat2)
 
-    def negative_penalty_function(self, img_ref, p1, p2, directions, alpha, gamma) -> Tuple[
-        np.ndarray, np.ndarray]:
+    def negative_penalty_function(self, img_ref, p1, p2, directions, alpha, gamma) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute negative penalty
 
@@ -204,16 +194,14 @@ class SgmPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
-        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)],
-                               dtype=np.float32)
-        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)],
-                               dtype=np.float32)
+        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
+        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
 
         for i in range(len(directions)):
             direction = directions[i]
             abs_gradient = self.compute_gradient(img_ref[:, :], direction)
             p2_mask[max(0, direction[0]): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
-            max(0, direction[1]): min(img_ref.shape[1] + direction[1], img_ref.shape[1]), i] = \
+                max(0, direction[1]): min(img_ref.shape[1] + direction[1], img_ref.shape[1]), i] =\
                 - alpha * abs_gradient + gamma
         # if p2 < defaultP2 then p2
         msk = p2_mask < p2
@@ -242,17 +230,15 @@ class SgmPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
-        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)],
-                               dtype=np.float32)
-        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)],
-                               dtype=np.float32)
+        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
+        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
 
         for i in range(len(directions)):
             d = directions[i]
             abs_gradient = self.compute_gradient(img_ref[:, :], d)
             p2_mask[max(0, d[0]): min(img_ref.shape[0] + d[0], img_ref.shape[0]),
-            max(0, d[1]): min(img_ref.shape[1] + d[1], img_ref.shape[1]), i] = \
-                alpha / (abs_gradient + beta) + gamma
+                max(0, d[1]): min(img_ref.shape[1] + d[1], img_ref.shape[1]), i] = \
+                alpha/(abs_gradient+beta) + gamma
         # if p2 < defaultP2 then p2
         msk = p2_mask < p2
         p2_mask = p2 * msk + p2_mask * (1 - msk)
@@ -274,8 +260,6 @@ class SgmPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
-        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)],
-                               dtype=np.float32)
-        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)],
-                               dtype=np.float32)
+        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
+        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
         return p1_mask, p2_mask
