@@ -144,17 +144,17 @@ class SgmPenalty(penalty.AbstractPenalty):
         if self._p2_method =="negativeGradient":
             p1_mask, p2_mask = self.negative_penalty_function(img_ref, self._p1, self._p2, self._directions,
                                                               self._alpha, self._gamma)
-            return invalid_value, p1_mask, p2_mask
 
         elif self._p2_method == "inverseGradient":
             p1_mask, p2_mask = self.inverse_penalty_function(img_ref, self._p1, self._p2, self._directions, self._alpha,
                                                              self._beta, self._gamma)
-            return invalid_value, p1_mask, p2_mask
 
         else:
             # Default p2_method is constant
             p1_mask, p2_mask = self.constant_penalty_function(img_ref, self._p1, self._p2, self._directions)
-            return invalid_value, p1_mask, p2_mask
+
+        return invalid_value, p1_mask, p2_mask
+
 
     @staticmethod
     def compute_gradient(img_ref, direction) -> np.ndarray:

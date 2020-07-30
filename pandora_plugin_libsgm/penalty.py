@@ -31,6 +31,9 @@ import numpy as np
 
 
 class AbstractPenalty(object):
+    """
+    Penalty abstract class
+    """
     __metaclass__ = ABCMeta
 
     penalty_methods_avail = {}
