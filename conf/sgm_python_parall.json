@@ -1,0 +1,31 @@
+{
+  "stereo" : {
+    "stereo_method": "census",
+    "window_size": 5,
+    "subpix": 1
+  },
+  "aggregation" : {
+    "aggregation_method": "none"
+  },
+  "optimization" : {
+    "optimization_method": "sgm",
+    "sgm_version": "python_libsgm_parall",
+    "P1": 8,
+    "P2": 32,
+    "p2_method": "constant",
+    "overcounting": false,
+    "penalty_method": "sgm_penalty"
+  },
+  "refinement": {
+    "refinement_method": "vfit"
+  },
+ "filter" : {
+   "filter_method": "median",
+   "filter_size": 3
+  },
+  "validation" : {
+    "validation_method": "cross_checking",
+    "cross_checking_threshold": 1,
+    "right_left_mode": "accurate"
+  }
+}
