@@ -40,7 +40,7 @@ requirements = ['numpy',
                 'nose2',
                 'json-checker',
                 'rasterio',
-                'libsgm==0.2.1',
+                'libsgm==0.3.0',
                 'pandora==0.2.1']
 
 def readme():

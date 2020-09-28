@@ -26,6 +26,8 @@ This module provides functions to optimize the cost volume using the LibSGM libr
 import numpy as np
 import xarray as xr
 from typing import Dict, Union
+from pkg_resources import iter_entry_points
+import copy
 
 from pandora.JSON_checker import is_method
 from pandora.optimization import optimization
@@ -43,6 +45,7 @@ class SGM(optimization.AbstractOptimization):
 
     """
     # Default configuration, do not change these values
+    _SGM_VERSION = "c++"
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
     _PENALTY_METHOD = "sgm_penalty"
@@ -55,10 +58,16 @@ class SGM(optimization.AbstractOptimization):
         :type cfg: dict
         """
         self.cfg = self.check_conf(**cfg)
+        self._sgm_version = self.cfg['sgm_version']
         self._overcounting = self.cfg['overcounting']
         self._min_cost_paths = self.cfg['min_cost_paths']
         self._directions = self._DIRECTIONS
         self._penalty = penalty.AbstractPenalty(self._directions, ** self.cfg)
+
+        # Get Python versions of LibSGM
+        self._method = []
+        for entry_point in iter_entry_points(group='libsgm', name=self._sgm_version):
+            self._method.append(entry_point.load())
 
     def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
         """
@@ -70,6 +79,8 @@ class SGM(optimization.AbstractOptimization):
         :rtype cfg: dict
         """
         # Give the default value if the required element is not in the configuration
+        if 'sgm_version' not in cfg:
+            cfg['sgm_version'] = self._SGM_VERSION
         if 'overcounting' not in cfg:
             cfg['overcounting'] = self._OVERCOUNTING
         if 'min_cost_paths' not in cfg:
@@ -131,23 +142,29 @@ class SGM(optimization.AbstractOptimization):
         # Compute penalities
         invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_ref_crop, img_sec_crop)
 
-        # If the cost volume is calculated with the census measure and the invalid value <= 255,
-        # the cost volume is converted to unint8 to optimize the memory
-        # Invalid value must not exceed the maximum value of uint8 type (255)
-        if cv.attrs['measure'] == "census" and invalid_value <= 255:
-            invalid_value = int(invalid_value)
-            cv['cost_volume'].data = cv['cost_volume'].data.astype(np.uint8)
+        if self._sgm_version == "c++":
+            # If the cost volume is calculated with the census measure and the invalid value <= 255,
+            # the cost volume is converted to unint8 to optimize the memory
+            # Invalid value must not exceed the maximum value of uint8 type (255)
+            if cv.attrs['measure'] == "census" and invalid_value <= 255:
+                invalid_value = int(invalid_value)
+                cv['cost_volume'].data = cv['cost_volume'].data.astype(np.uint8)
 
-        p1_mat, p2_mat = p1_mat.astype(cv['cost_volume'].data.dtype.type), p2_mat.astype(cv['cost_volume'].data.dtype.type)
+            p1_mat, p2_mat = p1_mat.astype(cv['cost_volume'].data.dtype.type), p2_mat.astype(cv['cost_volume'].data.dtype.type)
 
-        # Conversion of invalid cost (= np.nan), to invalid_value
-        cv['cost_volume'].data[invalid_disp] = invalid_value
-        cv['cost_volume'].data = np.ascontiguousarray(cv['cost_volume'].data)
+            # Conversion of invalid cost (= np.nan), to invalid_value
+            cv['cost_volume'].data[invalid_disp] = invalid_value
+            cv['cost_volume'].data = np.ascontiguousarray(cv['cost_volume'].data)
 
-        # LibSGM library takes as input a numpy array, and output a numpy array
-        cost_volumes_out = sgm_wrapper.sgm_api(cv['cost_volume'].data, p1_mat, p2_mat,
-                                               np.array(self._directions).astype(np.int32), invalid_value,
-                                               self._min_cost_paths, self._overcounting)
+            # LibSGM library takes as input a numpy array, and output a numpy array
+            cost_volumes_out = sgm_wrapper.sgm_api(cv['cost_volume'].data, p1_mat, p2_mat,
+                                                   np.array(self._directions).astype(np.int32), invalid_value,
+                                                   self._min_cost_paths, self._overcounting)
+
+        else:
+            run_sgm = self._method[0]
+            cost_volumes_out = run_sgm(cv['cost_volume'].data, p1_mat, p2_mat, self._directions,
+                                       cost_paths=self._min_cost_paths, overcounting=self._overcounting)
 
         cv['cost_volume'].data = cost_volumes_out["cv"]
 
@@ -159,8 +176,15 @@ class SGM(optimization.AbstractOptimization):
         if cv.attrs['type_measure'] == "max":
             cv['cost_volume'].data *= -1
 
-        cv['cost_volume'].data[invalid_disp] = np.nan
+        if self._sgm_version == "c++":
+            cv['cost_volume'].data[invalid_disp] = np.nan
         cv.attrs['optimization'] = 'sgm'
+
+        # add lr cost volumes if they exist
+        for i in range(32):
+            if 'cv_' + repr(i) in cost_volumes_out:
+                cv['cost_volume' + repr(i)] = copy.deepcopy(cv['cost_volume'])
+                cv['cost_volume' + repr(i)].data = copy.deepcopy(cost_volumes_out['cv_' + repr(i)])
 
         # Remove temporary values
         del img_ref_crop, img_sec_crop, p1_mat, p2_mat, invalid_disp

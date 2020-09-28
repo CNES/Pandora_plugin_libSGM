@@ -36,6 +36,7 @@ class TestPenalitySGM(unittest.TestCase):
 
         """
         self.cfg = {
+            "sgm_version" : "c++",
             "optimization_method": "sgm",
             "P1": 8,
             "P2": 10,

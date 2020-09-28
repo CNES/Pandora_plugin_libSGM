@@ -95,6 +95,7 @@ class SgmPenalty(penalty.AbstractPenalty):
 
         p1_value = cfg['P1']
         schema = {
+            "sgm_version" : And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
             "optimization_method": And(str, lambda x: is_method(x, ['sgm'])),
             "penalty_method": And(str, lambda x: is_method(x, ['sgm_penalty'])),
             "P1": And(Or(int, float), lambda x: x > 0),
