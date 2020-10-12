@@ -216,13 +216,13 @@ class SGM(optimization.AbstractOptimization):
                 - cost_volume 3D xarray.DataArray (row, col, disp)
                 - confidence_measure 3D xarray.DataArray (row, col, indicator)
         """
-        # Compute the disparity given the minimum cost volume for each pixel
-        disp_map = cv['cost_volume'].fillna(np.inf).argmin(dim='disp')
 
-        # Invalid values of the disparity map
-        invalid_mc = np.sum(invalid_disp, axis=2)
-        invalid_pixel = np.where(invalid_mc == len(cv.coords['disp']))
-        disp_map[invalid_pixel] = -9999
+        # Compute the disparity given the minimum cost volume for each pixel
+        cv['cost_volume'].data[invalid_disp] = np.inf
+        disp_map = argmin_split(cv)
+        invalid_mc = np.min(invalid_disp, axis=2)
+        invalid_pixel = np.where(invalid_mc == True)
+        disp_map[invalid_pixel] = np.nan
 
         # Add a new indicator to the confidence measure DataArray
         row, col, nb_indicator = cv['confidence_measure'].shape
@@ -242,4 +242,44 @@ class SGM(optimization.AbstractOptimization):
             pos_y, pos_x = np.where(disp_paths[:, :, d] == disp_map)
             cv['confidence_measure'].data[pos_y, pos_x, -1] += 1
 
+        del invalid_mc
+        del disp_map
+
         return cv
+
+def argmin_split(cost_volume: xr.Dataset) -> np.ndarray:
+    """
+    Find the indices of the minimum values for a 3D DataArray, along axis 2.
+    Memory consumption is reduced by splitting the 3D Array.
+
+    Different from the argmax_split function of Pandora.Disparity because it returns numpy array argmin indexes
+    and not relative indexes (relative: according to [dmin,dmax] range)
+
+    :param cost_volume: the cost volume dataset
+    :type cost_volume: xarray.Dataset
+    :return: the disparities for which the cost volume values are the smallest
+    :rtype: np.ndarray
+    """
+    ny, nx, nd = cost_volume['cost_volume'].shape
+    disp = np.zeros((ny, nx), dtype=np.float32)
+
+    # Numpy argmin is making a copy of the cost volume.
+    # To reduce memory, numpy argmin is applied on a small part of the cost volume.
+    # The cost volume is split (along the row axis) into multiple sub-arrays with a step of 100
+    cv_chunked_y = np.array_split(cost_volume['cost_volume'].data, np.arange(100, ny, 100), axis=0)
+
+    y_begin = 0
+
+    for y in range(len(cv_chunked_y)):
+        # To reduce memory, the cost volume is split (along the col axis) into multiple sub-arrays with a step of 100
+        cv_chunked_x = np.array_split(cv_chunked_y[y], np.arange(100, nx, 100), axis=1)
+        x_begin = 0
+        for x in range(len(cv_chunked_x)):
+
+            disp[y_begin:y_begin + cv_chunked_y[y].shape[0], x_begin: x_begin + cv_chunked_x[x].shape[1]] = \
+                np.argmin(cv_chunked_x[x], axis=2)
+            x_begin += cv_chunked_x[x].shape[1]
+
+        y_begin += cv_chunked_y[y].shape[0]
+
+    return disp
