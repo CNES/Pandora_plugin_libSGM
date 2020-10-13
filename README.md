@@ -112,7 +112,8 @@ with the config.json file :
     "optimization_method": "sgm",
     "P1": 8,
     "P2": 32,
-    "penalty_method": "sgm_penalty"
+    "penalty_method": "sgm_penalty",
+    "sgm_version": "c++"
   },
   "refinement": {
     "refinement_method": "vfit"
@@ -128,6 +129,22 @@ with the config.json file :
   }
 }
 ```
+
+### c++ or python
+
+You can choose which version of libsgm to use, by setting the `sgm_version` parameter in the configuration file.
+The default version used is the c++ version.
+
+If you want to use the basic python version, set :
+```
+"sgm_version": "python_libsgm"
+```
+
+If you want to use the parallelized python version, set :
+```
+"sgm_version": "python_libsgm_parall"
+```
+
 
 **Developper mode**
 
