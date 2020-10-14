@@ -30,6 +30,7 @@ import xarray as xr
 
 import pandora
 from pandora import stereo, optimization
+from pandora.state_machine import PandoraMachine
 
 
 class TestPlugin(unittest.TestCase):
@@ -102,22 +103,14 @@ class TestPlugin(unittest.TestCase):
         """
         user_cfg = pandora.read_config_file('conf/sgm.json')
 
-        # Load validation plugin
-        validation_ = pandora.validation.AbstractValidation(**user_cfg["validation"])
-
-        # Build the default configuration
-        cfg = pandora.JSON_checker.default_short_configuration
-        cfg_validation = {'validation': validation_.cfg}
-        cfg = pandora.JSON_checker.update_conf(cfg, cfg_validation)
-
-        # Update the configuration with default values
-        cfg = pandora.JSON_checker.update_conf(cfg, user_cfg)
-
         # Import pandora plugins
         pandora.import_plugin()
 
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
         # Run the pandora pipeline
-        ref, sec = pandora.run(self.ref, self.sec, -60, 0, cfg)
+        ref, sec = pandora.run(pandora_machine, self.ref, self.sec, -60, 0, user_cfg)
 
         # Compares the calculated reference disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -155,22 +148,14 @@ class TestPlugin(unittest.TestCase):
         """
         user_cfg = pandora.read_config_file('conf/sgm.json')
 
-        # Load validation plugin
-        validation_ = pandora.validation.AbstractValidation(**user_cfg["validation"])
-
-        # Build the default configuration
-        cfg = pandora.JSON_checker.default_short_configuration
-        cfg_validation = {'validation': validation_.cfg}
-        cfg = pandora.JSON_checker.update_conf(cfg, cfg_validation)
-
-        # Update the configuration with default values
-        cfg = pandora.JSON_checker.update_conf(cfg, user_cfg)
-
         # Import pandora plugins
         pandora.import_plugin()
 
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
         # Run the pandora pipeline
-        ref, sec = pandora.run(self.ref, self.sec, -60, -1, cfg)
+        ref, sec = pandora.run(pandora_machine, self.ref, self.sec, -60, -1, user_cfg)
 
         # Compares the calculated reference disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -208,21 +193,13 @@ class TestPlugin(unittest.TestCase):
         """
         user_cfg = pandora.read_config_file('conf/sgm.json')
 
-        # Load validation plugin
-        validation_ = pandora.validation.AbstractValidation(**user_cfg["validation"])
-
-        # Build the default configuration
-        cfg = pandora.JSON_checker.default_short_configuration
-        cfg_validation = {'validation': validation_.cfg}
-        cfg = pandora.JSON_checker.update_conf(cfg, cfg_validation)
-
-        # Update the configuration with default values
-        cfg = pandora.JSON_checker.update_conf(cfg, user_cfg)
-
         # Import pandora plugins
         pandora.import_plugin()
 
-        sec, ref = pandora.run(self.sec, self.ref, 1, 60, cfg)
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        sec, ref = pandora.run(pandora_machine, self.sec, self.ref, 1, 60, user_cfg)
 
         # Compares the calculated reference disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -251,20 +228,15 @@ class TestPlugin(unittest.TestCase):
 
         # Prepare the configuration
         user_cfg = pandora.read_config_file('conf/sgm_zncc.json')
-        cfg = pandora.JSON_checker.update_conf(pandora.JSON_checker.default_short_configuration, user_cfg)
-        cfg['input']['img_ref'] = "tests/ref.png"
-        cfg['input']['img_sec'] = "tests/sec.png"
-        cfg['input']['disp_min'] = -60
-        cfg['input']['disp_max'] = 0
 
         # Import pandora plugins
         pandora.import_plugin()
 
-        # Check the configuration
-        cfg = pandora.check_conf(cfg)
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        ref, sec = pandora.run(self.ref, self.sec, -60, 0, cfg)
+        ref, sec = pandora.run(pandora_machine, self.ref, self.sec, -60, 0, user_cfg)
 
         # Compares the calculated reference disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
@@ -284,13 +256,12 @@ class TestPlugin(unittest.TestCase):
 
         # Prepare the configuration
         user_cfg = pandora.read_config_file('conf/sgm.json')
-        cfg = pandora.JSON_checker.update_conf(pandora.JSON_checker.default_short_configuration, user_cfg)
-        cfg['stereo']['window_size'] = 3
-        cfg['optimization']['min_cost_paths'] = True
+        user_cfg['pipeline']['stereo']['window_size'] = 3
+        user_cfg['pipeline']['optimization']['min_cost_paths'] = True
 
         # Load plugins
-        stereo_ = stereo.AbstractStereo(**cfg['stereo'])
-        optimization_ = optimization.AbstractOptimization(**cfg['optimization'])
+        stereo_ = stereo.AbstractStereo(**user_cfg['pipeline']['stereo'])
+        optimization_ = optimization.AbstractOptimization(**user_cfg['pipeline']['optimization'])
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -300,18 +271,19 @@ class TestPlugin(unittest.TestCase):
                          [1, 1, 1, 4, 3],
                          [1, 1, 1, 1, 1]), dtype=np.float32)
         ref = xr.Dataset({'im': (['row', 'col'], data)},
-                              coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])})
+                         coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])},
+                         attrs={'no_data_img': 0, 'valid_pixels': 0, 'no_data_mask': 1})
 
         data = np.array(([1, 1, 1, 2, 2],
                          [1, 1, 1, 4, 2],
                          [1, 1, 1, 4, 4],
                          [1, 1, 1, 1, 1]), dtype=np.float32)
         sec = xr.Dataset({'im': (['row', 'col'], data)},
-                              coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])})
+                         coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])},
+                         attrs={'no_data_img': 0, 'valid_pixels': 0, 'no_data_mask': 1})
 
         # Computes the cost volume dataset
-        cv = stereo_.compute_cost_volume(img_ref=ref, img_sec=sec, disp_min=-2, disp_max=2,
-                                                    **{'valid_pixels': 0, 'no_data': 1})
+        cv = stereo_.compute_cost_volume(img_left=ref, img_right=sec, disp_min=-2, disp_max=2)
 
         # Disparities which give a minimum local cost, in indices
         disp_path = np.array([[[1, 3, 2, 3, 1, 3, 3, 2],
@@ -330,7 +302,6 @@ class TestPlugin(unittest.TestCase):
 
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated['confidence_measure'].data[:, :, -1], gt_disp)
-
 
 
 if __name__ == '__main__':
