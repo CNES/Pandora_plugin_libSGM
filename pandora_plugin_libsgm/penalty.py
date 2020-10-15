@@ -88,16 +88,16 @@ class AbstractPenalty(object):
         print('Penalty method description')
 
     @abstractmethod
-    def compute_penalty(self, cv, img_ref, img_sec) -> Tuple[float, np.ndarray, np.ndarray]:
+    def compute_penalty(self, cv, img_left, img_right) -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
 
         :param cv: the cost volume
         :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row, col, disp)
-        :param img_ref: reference  image
-        :type img_ref: numpy array
-        :param img_sec: secondary image
-        :type img_sec: numpy array
+        :param img_left: left  image
+        :type img_left: numpy array
+        :param img_right: right image
+        :type img_right: numpy array
         :return: P1 and P2 penalities
         :rtype: tuple(numpy array, numpy array)
         """

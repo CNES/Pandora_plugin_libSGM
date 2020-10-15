@@ -42,16 +42,16 @@ class TestPlugin(unittest.TestCase):
         Method called to prepare the test fixture
 
         """
-        self.ref = pandora.read_img('tests/ref.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
+        self.left = pandora.read_img('tests/left.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
                                                                           'valid_pixels': 0, 'no_data': 1}, mask=None)
-        self.sec = pandora.read_img('tests/sec.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
+        self.right = pandora.read_img('tests/right.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
                                                                           'valid_pixels': 0, 'no_data': 1}, mask=None)
-        self.disp_ref = rasterio.open('tests/disp_ref.tif').read(1)
-        self.disp_sec = rasterio.open('tests/disp_sec.tif').read(1)
+        self.disp_left = rasterio.open('tests/disp_left.tif').read(1)
+        self.disp_right = rasterio.open('tests/disp_right.tif').read(1)
         self.occlusion = rasterio.open('tests/occl.png').read(1)
 
-        self.disp_ref_zncc = rasterio.open('tests/disp_ref_zncc.tif').read(1)
-        self.disp_sec_zncc = rasterio.open('tests/disp_sec_zncc.tif').read(1)
+        self.disp_left_zncc = rasterio.open('tests/disp_left_zncc.tif').read(1)
+        self.disp_right_zncc = rasterio.open('tests/disp_right_zncc.tif').read(1)
 
     def error(self, data, gt, threshold, unknown_disparity=0):
         """
@@ -110,35 +110,35 @@ class TestPlugin(unittest.TestCase):
         pandora.import_plugin()
 
         # Run the pandora pipeline
-        ref, sec = pandora.run(pandora_machine, self.ref, self.sec, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg)
 
-        # Compares the calculated reference disparity map with the ground truth
+        # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(ref['disparity_map'].data, self.disp_ref, 1) > 0.20:
+        if self.error(left['disparity_map'].data, self.disp_left, 1) > 0.20:
             raise AssertionError
 
-        # Compares the calculated reference disparity map with the ground truth
+        # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(ref['disparity_map'].data, self.disp_ref, 2) > 0.15:
+        if self.error(left['disparity_map'].data, self.disp_left, 2) > 0.15:
             raise AssertionError
 
-        # Check the reference validity mask cross checking ( bit 8 and 9 )
+        # Check the left validity mask cross checking ( bit 8 and 9 )
         # Compares the calculated validity mask with the ground truth ( occlusion mask )
-        occlusion = np.ones((ref['validity_mask'].shape[0], ref['validity_mask'].shape[1]))
-        occlusion[ref['validity_mask'].data >= 512] = 0
+        occlusion = np.ones((left['validity_mask'].shape[0], left['validity_mask'].shape[1]))
+        occlusion[left['validity_mask'].data >= 512] = 0
 
         # If the percentage of errors is > 0.15, raise an error
         if self.error_mask(occlusion, self.occlusion) > 0.15:
             raise AssertionError
 
-        # Compares the calculated secondary disparity map with the ground truth
+        # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(-1 * sec['disparity_map'].data, self.disp_sec, 1) > 0.20:
+        if self.error(-1 * right['disparity_map'].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
-        # Compares the calculated secondary disparity map with the ground truth
+        # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(-1 * sec['disparity_map'].data, self.disp_sec, 2) > 0.15:
+        if self.error(-1 * right['disparity_map'].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_negative_disparities(self):
@@ -155,35 +155,35 @@ class TestPlugin(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        ref, sec = pandora.run(pandora_machine, self.ref, self.sec, -60, -1, user_cfg)
+        left, right = pandora.run(pandora_machine, self.left, self.right, -60, -1, user_cfg)
 
-        # Compares the calculated reference disparity map with the ground truth
+        # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(ref['disparity_map'].data, self.disp_ref, 1) > 0.20:
+        if self.error(left['disparity_map'].data, self.disp_left, 1) > 0.20:
             raise AssertionError
 
-        # Compares the calculated reference disparity map with the ground truth
+        # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(ref['disparity_map'].data, self.disp_ref, 2) > 0.15:
+        if self.error(left['disparity_map'].data, self.disp_left, 2) > 0.15:
             raise AssertionError
 
-        # Check the reference validity mask cross checking ( bit 8 and 9 )
+        # Check the left validity mask cross checking ( bit 8 and 9 )
         # Compares the calculated validity mask with the ground truth ( occlusion mask )
-        occlusion = np.ones((ref['validity_mask'].shape[0], ref['validity_mask'].shape[1]))
-        occlusion[ref['validity_mask'].data >= 512] = 0
+        occlusion = np.ones((left['validity_mask'].shape[0], left['validity_mask'].shape[1]))
+        occlusion[left['validity_mask'].data >= 512] = 0
 
         # If the percentage of errors is > 0.15, raise an error
         if self.error_mask(occlusion, self.occlusion) > 0.15:
             raise AssertionError
 
-        # Compares the calculated secondary disparity map with the ground truth
+        # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(-1 * sec['disparity_map'].data, self.disp_sec, 1) > 0.20:
+        if self.error(-1 * right['disparity_map'].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
-        # Compares the calculated secondary disparity map with the ground truth
+        # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(-1 * sec['disparity_map'].data, self.disp_sec, 2) > 0.15:
+        if self.error(-1 * right['disparity_map'].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_positive_disparities(self):
@@ -199,26 +199,26 @@ class TestPlugin(unittest.TestCase):
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        sec, ref = pandora.run(pandora_machine, self.sec, self.ref, 1, 60, user_cfg)
+        right, left = pandora.run(pandora_machine, self.right, self.left, 1, 60, user_cfg)
 
-        # Compares the calculated reference disparity map with the ground truth
+        # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(ref['disparity_map'].data, self.disp_ref, 1) > 0.20:
+        if self.error(left['disparity_map'].data, self.disp_left, 1) > 0.20:
             raise AssertionError
 
-        # Compares the calculated reference disparity map with the ground truth
+        # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(ref['disparity_map'].data, self.disp_ref, 2) > 0.15:
+        if self.error(left['disparity_map'].data, self.disp_left, 2) > 0.15:
             raise AssertionError
 
-        # Compares the calculated secondary disparity map with the ground truth
+        # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(-1 * sec['disparity_map'].data, self.disp_sec, 1) > 0.20:
+        if self.error(-1 * right['disparity_map'].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
-        # Compares the calculated secondary disparity map with the ground truth
+        # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(-1 * sec['disparity_map'].data, self.disp_sec, 2) > 0.15:
+        if self.error(-1 * right['disparity_map'].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_zncc(self):
@@ -236,15 +236,15 @@ class TestPlugin(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        ref, sec = pandora.run(pandora_machine, self.ref, self.sec, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg)
 
-        # Compares the calculated reference disparity map with the ground truth
+        # Compares the calculated left disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
-        np.testing.assert_allclose(ref['disparity_map'].data, self.disp_ref_zncc, rtol=1e-04)
+        np.testing.assert_allclose(left['disparity_map'].data, self.disp_left_zncc, rtol=1e-04)
 
-        # Compares the calculated secondary disparity map with the ground truth
+        # Compares the calculated right disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
-        np.testing.assert_allclose(sec['disparity_map'].data, self.disp_sec_zncc, rtol=1e-04)
+        np.testing.assert_allclose(right['disparity_map'].data, self.disp_right_zncc, rtol=1e-04)
 
 
 if __name__ == '__main__':

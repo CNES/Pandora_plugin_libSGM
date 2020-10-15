@@ -119,16 +119,16 @@ class SgmPenalty(penalty.AbstractPenalty):
         """
         print('Penalty method description')
 
-    def compute_penalty(self, cv, img_ref, img_sec) -> Tuple[float, np.ndarray, np.ndarray]:
+    def compute_penalty(self, cv, img_left, img_right) -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
 
         :param cv: the cost volume
         :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row, col, disp)
-        :param img_ref: reference  image
-        :type img_ref: numpy array
-        :param img_sec: secondary image
-        :type img_sec: numpy array
+        :param img_left: left  image
+        :type img_left: numpy array
+        :param img_right: right image
+        :type img_right: numpy array
         :return: P1 and P2 penalities
         :rtype: tuple(numpy array, numpy array)
         """
@@ -143,45 +143,45 @@ class SgmPenalty(penalty.AbstractPenalty):
 
         # Compute penalties
         if self._p2_method =="negativeGradient":
-            p1_mask, p2_mask = self.negative_penalty_function(img_ref, self._p1, self._p2, self._directions,
+            p1_mask, p2_mask = self.negative_penalty_function(img_left, self._p1, self._p2, self._directions,
                                                               self._alpha, self._gamma)
 
         elif self._p2_method == "inverseGradient":
-            p1_mask, p2_mask = self.inverse_penalty_function(img_ref, self._p1, self._p2, self._directions, self._alpha,
+            p1_mask, p2_mask = self.inverse_penalty_function(img_left, self._p1, self._p2, self._directions, self._alpha,
                                                              self._beta, self._gamma)
 
         else:
             # Default p2_method is constant
-            p1_mask, p2_mask = self.constant_penalty_function(img_ref, self._p1, self._p2, self._directions)
+            p1_mask, p2_mask = self.constant_penalty_function(img_left, self._p1, self._p2, self._directions)
 
         return invalid_value, p1_mask, p2_mask
 
 
     @staticmethod
-    def compute_gradient(img_ref, direction) -> np.ndarray:
+    def compute_gradient(img, direction) -> np.ndarray:
         """
-        Compute inverse penalty
+        Compute image gradient
 
-        :param img_ref: reference  image
-        :type img_ref: numpy array of shape(n,m)
+        :param img: image
+        :type img: numpy array of shape(n,m)
         :param direction: directions to
         :type direction: list of [x offset, y offset]
         :return: Gradient
         :rtype: numpy array of shape(n-dir[0], m-dir[1])
         """
-        mat1 = img_ref[max(direction[0], 0): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
-               max(direction[1], 0): min(img_ref.shape[1] + direction[1], img_ref.shape[1])]
-        mat2 = img_ref[max(-direction[0], 0): min(img_ref.shape[0] - direction[0], img_ref.shape[0]),
-               max(-direction[1], 0): min(img_ref.shape[1] - direction[1], img_ref.shape[1])]
+        mat1 = img[max(direction[0], 0): min(img.shape[0] + direction[0], img.shape[0]),
+               max(direction[1], 0): min(img.shape[1] + direction[1], img.shape[1])]
+        mat2 = img[max(-direction[0], 0): min(img.shape[0] - direction[0], img.shape[0]),
+               max(-direction[1], 0): min(img.shape[1] - direction[1], img.shape[1])]
 
         return np.abs(mat1 - mat2)
 
-    def negative_penalty_function(self, img_ref, p1, p2, directions, alpha, gamma) -> Tuple[np.ndarray, np.ndarray]:
+    def negative_penalty_function(self, img_left, p1, p2, directions, alpha, gamma) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute negative penalty
 
-        :param img_ref: reference  image
-        :type img_ref: numpy array
+        :param img_left: left  image
+        :type img_left: numpy array
         :param p1: default P1 penalty
         :type p1: int or float
         :param p2: default P2 penalty
@@ -195,27 +195,27 @@ class SgmPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
-        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
-        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
+        p1_mask = p1 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
+        p2_mask = p2 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
 
         for i in range(len(directions)):
             direction = directions[i]
-            abs_gradient = self.compute_gradient(img_ref[:, :], direction)
-            p2_mask[max(0, direction[0]): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
-                max(0, direction[1]): min(img_ref.shape[1] + direction[1], img_ref.shape[1]), i] =\
+            abs_gradient = self.compute_gradient(img_left[:, :], direction)
+            p2_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
+                max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] =\
                 - alpha * abs_gradient + gamma
         # if p2 < defaultP2 then p2
         msk = p2_mask < p2
         p2_mask = p2 * msk + p2_mask * (1 - msk)
         return p1_mask, p2_mask
 
-    def inverse_penalty_function(self, img_ref, p1, p2, directions, alpha, beta, gamma) -> \
+    def inverse_penalty_function(self, img_left, p1, p2, directions, alpha, beta, gamma) -> \
             Tuple[np.ndarray, np.ndarray]:
         """
         Compute inverse penalty
 
-        :param img_ref: reference  image
-        :type img_ref: numpy array
+        :param img_left: left  image
+        :type img_left: numpy array
         :param p1: P1 penalty
         :type p1: int or float
         :param p2: P2 penalty
@@ -231,14 +231,14 @@ class SgmPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
-        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
-        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
+        p1_mask = p1 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
+        p2_mask = p2 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
 
         for i in range(len(directions)):
             d = directions[i]
-            abs_gradient = self.compute_gradient(img_ref[:, :], d)
-            p2_mask[max(0, d[0]): min(img_ref.shape[0] + d[0], img_ref.shape[0]),
-                max(0, d[1]): min(img_ref.shape[1] + d[1], img_ref.shape[1]), i] = \
+            abs_gradient = self.compute_gradient(img_left[:, :], d)
+            p2_mask[max(0, d[0]): min(img_left.shape[0] + d[0], img_left.shape[0]),
+                max(0, d[1]): min(img_left.shape[1] + d[1], img_left.shape[1]), i] = \
                 alpha/(abs_gradient+beta) + gamma
         # if p2 < defaultP2 then p2
         msk = p2_mask < p2
@@ -246,12 +246,12 @@ class SgmPenalty(penalty.AbstractPenalty):
         return p1_mask, p2_mask
 
     @staticmethod
-    def constant_penalty_function(img_ref, p1, p2, directions) -> Tuple[np.ndarray, np.ndarray]:
+    def constant_penalty_function(img_left, p1, p2, directions) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute constant penalty
 
-        :param img_ref: reference  image
-        :type img_ref: numpy array
+        :param img_left: left  image
+        :type img_left: numpy array
         :param p1: P1 penalty
         :type p1: int or float
         :param p2: P2 penalty
@@ -261,6 +261,6 @@ class SgmPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
-        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
-        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
+        p1_mask = p1 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
+        p2_mask = p2 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
         return p1_mask, p2_mask
