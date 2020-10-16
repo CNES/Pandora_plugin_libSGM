@@ -41,7 +41,7 @@ requirements = ['numpy',
                 'json-checker',
                 'rasterio',
                 'libsgm==0.3.0',
-                'pandora==0.3.0']
+                'pandora>=0.3.0']
 
 def readme():
     with open("README.md", "r", "utf-8") as f:
