@@ -23,12 +23,13 @@
 This module provides class and functions to compute penalties used to optimize the cost volume using the LibSGM library
 """
 
-from pandora_plugin_libsgm import penalty
-import numpy as np
-import logging
-from json_checker import Checker, And, Or
 from typing import Dict, Union, Tuple
+
+import numpy as np
+from json_checker import Checker, And, Or
 from pandora.JSON_checker import is_method
+
+from pandora_plugin_libsgm import penalty
 
 
 @penalty.AbstractPenalty.register_subclass('sgm_penalty')
@@ -95,7 +96,7 @@ class SgmPenalty(penalty.AbstractPenalty):
 
         p1_value = cfg['P1']
         schema = {
-            "sgm_version" : And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
+            "sgm_version": And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
             "optimization_method": And(str, lambda x: is_method(x, ['sgm'])),
             "penalty_method": And(str, lambda x: is_method(x, ['sgm_penalty'])),
             "P1": And(Or(int, float), lambda x: x > 0),
@@ -142,12 +143,13 @@ class SgmPenalty(penalty.AbstractPenalty):
             invalid_value = float(cv.attrs['cmax'] + self._gamma + (self._alpha / self._beta) + 1)
 
         # Compute penalties
-        if self._p2_method =="negativeGradient":
+        if self._p2_method == "negativeGradient":
             p1_mask, p2_mask = self.negative_penalty_function(img_left, self._p1, self._p2, self._directions,
                                                               self._alpha, self._gamma)
 
         elif self._p2_method == "inverseGradient":
-            p1_mask, p2_mask = self.inverse_penalty_function(img_left, self._p1, self._p2, self._directions, self._alpha,
+            p1_mask, p2_mask = self.inverse_penalty_function(img_left, self._p1, self._p2, self._directions,
+                                                             self._alpha,
                                                              self._beta, self._gamma)
 
         else:
@@ -155,7 +157,6 @@ class SgmPenalty(penalty.AbstractPenalty):
             p1_mask, p2_mask = self.constant_penalty_function(img_left, self._p1, self._p2, self._directions)
 
         return invalid_value, p1_mask, p2_mask
-
 
     @staticmethod
     def compute_gradient(img, direction) -> np.ndarray:
@@ -202,7 +203,7 @@ class SgmPenalty(penalty.AbstractPenalty):
             direction = directions[i]
             abs_gradient = self.compute_gradient(img_left[:, :], direction)
             p2_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
-                max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] =\
+            max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = \
                 - alpha * abs_gradient + gamma
         # if p2 < defaultP2 then p2
         msk = p2_mask < p2
@@ -238,8 +239,8 @@ class SgmPenalty(penalty.AbstractPenalty):
             d = directions[i]
             abs_gradient = self.compute_gradient(img_left[:, :], d)
             p2_mask[max(0, d[0]): min(img_left.shape[0] + d[0], img_left.shape[0]),
-                max(0, d[1]): min(img_left.shape[1] + d[1], img_left.shape[1]), i] = \
-                alpha/(abs_gradient+beta) + gamma
+            max(0, d[1]): min(img_left.shape[1] + d[1], img_left.shape[1]), i] = \
+                alpha / (abs_gradient + beta) + gamma
         # if p2 < defaultP2 then p2
         msk = p2_mask < p2
         p2_mask = p2 * msk + p2_mask * (1 - msk)

@@ -23,18 +23,16 @@
 This module provides functions to optimize the cost volume using the LibSGM library
 """
 
+import copy
+from typing import Dict, Union
+
 import numpy as np
 import xarray as xr
-from typing import Dict, Union
-from pkg_resources import iter_entry_points
-import copy
-
-from pandora.JSON_checker import is_method
-from pandora.optimization import optimization
 from libSGM import sgm_wrapper
+from pandora.optimization import optimization
+from pkg_resources import iter_entry_points
+
 from pandora_plugin_libsgm import penalty
-from pandora_plugin_libsgm import penalty_sgm
-from pandora_plugin_libsgm import penalty_mc_cnn
 
 
 @optimization.AbstractOptimization.register_subclass('sgm')
@@ -62,7 +60,7 @@ class SGM(optimization.AbstractOptimization):
         self._overcounting = self.cfg['overcounting']
         self._min_cost_paths = self.cfg['min_cost_paths']
         self._directions = self._DIRECTIONS
-        self._penalty = penalty.AbstractPenalty(self._directions, ** self.cfg)
+        self._penalty = penalty.AbstractPenalty(self._directions, **self.cfg)
 
         # Get Python versions of LibSGM
         self._method = []
@@ -129,10 +127,10 @@ class SGM(optimization.AbstractOptimization):
 
         # Resize pandora image : image size and cost volume size must be equal
         offset = int(cv.attrs['offset_row_col'])
-        if offset == 0 :
+        if offset == 0:
             img_left_crop = img_left['im'].data
             img_right_crop = img_right['im'].data
-        else :
+        else:
             img_left_crop = img_left['im'].data[offset: -offset, offset: -offset]
             img_right_crop = img_right['im'].data[offset: -offset, offset: -offset]
 
@@ -150,7 +148,8 @@ class SGM(optimization.AbstractOptimization):
                 invalid_value = int(invalid_value)
                 cv['cost_volume'].data = cv['cost_volume'].data.astype(np.uint8)
 
-            p1_mat, p2_mat = p1_mat.astype(cv['cost_volume'].data.dtype.type), p2_mat.astype(cv['cost_volume'].data.dtype.type)
+            p1_mat, p2_mat = p1_mat.astype(cv['cost_volume'].data.dtype.type), p2_mat.astype(
+                cv['cost_volume'].data.dtype.type)
 
             # Conversion of invalid cost (= np.nan), to invalid_value
             cv['cost_volume'].data[invalid_disp] = invalid_value
@@ -226,7 +225,7 @@ class SGM(optimization.AbstractOptimization):
 
         # Add a new indicator to the confidence measure DataArray
         row, col, nb_indicator = cv['confidence_measure'].shape
-        conf_measure = np.zeros((row, col, nb_indicator+1), dtype=np.float32)
+        conf_measure = np.zeros((row, col, nb_indicator + 1), dtype=np.float32)
         conf_measure[:, :, :-1] = cv['confidence_measure'].data
 
         indicator = np.copy(cv.coords['indicator'])
@@ -246,6 +245,7 @@ class SGM(optimization.AbstractOptimization):
         del disp_map
 
         return cv
+
 
 def argmin_split(cost_volume: xr.Dataset) -> np.ndarray:
     """
@@ -275,7 +275,6 @@ def argmin_split(cost_volume: xr.Dataset) -> np.ndarray:
         cv_chunked_x = np.array_split(cv_chunked_y[y], np.arange(100, nx, 100), axis=1)
         x_begin = 0
         for x in range(len(cv_chunked_x)):
-
             disp[y_begin:y_begin + cv_chunked_y[y].shape[0], x_begin: x_begin + cv_chunked_x[x].shape[1]] = \
                 np.argmin(cv_chunked_x[x], axis=2)
             x_begin += cv_chunked_x[x].shape[1]

@@ -23,11 +23,13 @@
 This module provides class and functions to compute penalties used to optimize the cost volume using the LibSGM library
 """
 
-from pandora_plugin_libsgm import penalty
-from json_checker import Checker, And, Or
 from typing import Dict, Union, Tuple
-from pandora.JSON_checker import is_method
+
 import numpy as np
+from json_checker import Checker, And, Or
+from pandora.JSON_checker import is_method
+
+from pandora_plugin_libsgm import penalty
 
 
 @penalty.AbstractPenalty.register_subclass('mc_cnn_penalty')
@@ -132,12 +134,12 @@ class MccnnPenalty(penalty.AbstractPenalty):
         """
 
         # Calculation of the invalid value
-        p2_max = max(self._p2, self._p2/self._q2, self._p2/self._p1)
+        p2_max = max(self._p2, self._p2 / self._q2, self._p2 / self._p1)
         invalid_value = float(cv.attrs['cmax'] + p2_max + 1)
 
         # Compute penalties
         p1_mask, p2_mask = self.mc_cnn_penalty_function(img_left, img_right, self._p1, self._p2, self._q1, self._q2,
-                                                      self._d, self._v, self._directions)
+                                                        self._d, self._v, self._directions)
 
         return invalid_value, p1_mask, p2_mask
 
@@ -160,7 +162,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
         return np.abs(mat1 - mat2)
 
-    def mc_cnn_penalty_function(self, img_left, img_right, p1, p2, q1, q2, d, v, directions) ->\
+    def mc_cnn_penalty_function(self, img_left, img_right, p1, p2, q1, q2, d, v, directions) -> \
             Tuple[np.ndarray, np.ndarray]:
         """
         Compute mc_cnn penalty
@@ -207,9 +209,9 @@ class MccnnPenalty(penalty.AbstractPenalty):
             final_p2 = final_p2 + msk3 * (p2 / q1) * np.ones(abs_gradient_left.shape)
 
             p1_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
-                    max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p1
+            max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p1
             p2_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
-                    max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p2
+            max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p2
 
             if i in [1, 5]:
                 p1_mask[:, :, i] = p1_mask[:, :, i] / v

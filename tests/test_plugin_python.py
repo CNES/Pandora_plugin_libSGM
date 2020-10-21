@@ -26,10 +26,8 @@ This module provides functions to test Pandora + plugin_LibSGM
 import rasterio
 import unittest
 import numpy as np
-import xarray as xr
 
 import pandora
-from pandora import stereo, optimization
 from pandora.state_machine import PandoraMachine
 
 
@@ -37,15 +35,17 @@ class TestPlugin(unittest.TestCase):
     """
     TestPlugin class allows to test pandora + plugin_libsgm
     """
+
     def setUp(self):
         """
         Method called to prepare the test fixture
 
         """
         self.left = pandora.read_img('tests/left.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                          'valid_pixels': 0, 'no_data': 1}, mask=None)
+                                                                            'valid_pixels': 0, 'no_data': 1}, mask=None)
         self.right = pandora.read_img('tests/right.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                          'valid_pixels': 0, 'no_data': 1}, mask=None)
+                                                                              'valid_pixels': 0, 'no_data': 1},
+                                      mask=None)
         self.disp_left = rasterio.open('tests/disp_left.tif').read(1)
         self.disp_right = rasterio.open('tests/disp_right.tif').read(1)
         self.occlusion = rasterio.open('tests/occl.png').read(1)

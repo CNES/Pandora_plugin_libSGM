@@ -23,10 +23,11 @@
 This module provides class and functions to compute penalties used to optimize the cost volume using the LibSGM library
 """
 
-import sys
 import logging
+import sys
 from abc import ABCMeta, abstractmethod
 from typing import Tuple
+
 import numpy as np
 
 
@@ -58,7 +59,8 @@ class AbstractPenalty(object):
                 if type(cfg['penalty_method']) is unicode:
                     # creating a plugin from registered short name given as unicode (py2 & 3 compatibility)
                     try:
-                        return super(AbstractPenalty, cls).__new__(cls.penality_methods_avail[cfg['penalty_method'].encode('utf-8')])
+                        return super(AbstractPenalty, cls).__new__(
+                            cls.penality_methods_avail[cfg['penalty_method'].encode('utf-8')])
                     except KeyError:
                         logging.error("No penalty method named {} supported".format(cfg['penalty_method']))
                         sys.exit(1)
@@ -73,6 +75,7 @@ class AbstractPenalty(object):
         :param short_name: the subclass to be registered
         :type short_name: string
         """
+
         def decorator(subclass):
             cls.penalty_methods_avail[short_name] = subclass
             return subclass
