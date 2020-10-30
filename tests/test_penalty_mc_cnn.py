@@ -20,16 +20,18 @@
 # limitations under the License.
 #
 
-from pandora_plugin_libsgm import penalty_mc_cnn
-import numpy as np
 import unittest
-import logging
+
+import numpy as np
+
+from pandora_plugin_libsgm import penalty_mc_cnn
 
 
 class TestPenalitySGM(unittest.TestCase):
     """
     TestPenalitySGM class allows to test penality_sgm
     """
+
     def setUp(self):
         """
         Method called to prepare the configuration
@@ -51,7 +53,7 @@ class TestPenalitySGM(unittest.TestCase):
 
         self._directions = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
 
-        self.penalty = penalty_mc_cnn.MccnnPenalty(self._directions, ** self.cfg)
+        self.penalty = penalty_mc_cnn.MccnnPenalty(self._directions, **self.cfg)
 
     def test_gradient(self):
         """
@@ -60,13 +62,13 @@ class TestPenalitySGM(unittest.TestCase):
         """
 
         img_left = np.array([[1, 2, 3],
-                            [4, 5, 6],
-                            [7, 8, 9]])
+                             [4, 5, 6],
+                             [7, 8, 9]])
         # TEST 1
         img_wanted = np.array([[3, 3, 3],
                                [3, 3, 3]])
 
-        dir = [1,0]
+        dir = [1, 0]
         computed_gradient = self.penalty.compute_gradient(img_left, dir)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
@@ -124,61 +126,61 @@ class TestPenalitySGM(unittest.TestCase):
         Q2 = 6
 
         img_right = np.array([[1, 6, 11, 16, 21],
-                            [2,7,12,17,22],
-                            [3,8,13,18,23],
-                            [4,9,14,19,24],
-                            [5,10,15,20,25]])
+                              [2, 7, 12, 17, 22],
+                              [3, 8, 13, 18, 23],
+                              [4, 9, 14, 19, 24],
+                              [5, 10, 15, 20, 25]])
 
         img_left = np.array([[1, 2, 3, 4, 5],
-                            [6, 7, 8, 9, 10],
-                            [11, 12, 13, 14, 15],
-                            [16, 17, 18, 19, 20],
-                            [21, 22, 23, 24, 25]])
+                             [6, 7, 8, 9, 10],
+                             [11, 12, 13, 14, 15],
+                             [16, 17, 18, 19, 20],
+                             [21, 22, 23, 24, 25]])
 
-        p1_wanted_0 = np.array([[3,3,3,3,3],
-                            [3/5,3/5,3/5,3/5,3/5],
-                            [3/5,3/5,3/5,3/5,3/5],
-                            [3/5,3/5,3/5,3/5,3/5],
-                            [3/5,3/5,3/5,3/5,3/5]], dtype=np.float32)
+        p1_wanted_0 = np.array([[3, 3, 3, 3, 3],
+                                [3 / 5, 3 / 5, 3 / 5, 3 / 5, 3 / 5],
+                                [3 / 5, 3 / 5, 3 / 5, 3 / 5, 3 / 5],
+                                [3 / 5, 3 / 5, 3 / 5, 3 / 5, 3 / 5],
+                                [3 / 5, 3 / 5, 3 / 5, 3 / 5, 3 / 5]], dtype=np.float32)
 
-        p2_wanted_0 = np.array([[4,4,4,4,4],
-                            [4/5,4/5,4/5,4/5,4/5],
-                            [4/5,4/5,4/5,4/5,4/5],
-                            [4/5,4/5,4/5,4/5,4/5],
-                            [4/5,4/5,4/5,4/5,4/5]], dtype=np.float32)
+        p2_wanted_0 = np.array([[4, 4, 4, 4, 4],
+                                [4 / 5, 4 / 5, 4 / 5, 4 / 5, 4 / 5],
+                                [4 / 5, 4 / 5, 4 / 5, 4 / 5, 4 / 5],
+                                [4 / 5, 4 / 5, 4 / 5, 4 / 5, 4 / 5],
+                                [4 / 5, 4 / 5, 4 / 5, 4 / 5, 4 / 5]], dtype=np.float32)
 
         # divide by V on direction in [1,5]
-        p1_wanted_1 = np.array([[3/2,3/2,3/2,3/2,3/2],
-                                [3/2,3/2,3/2,3/2,3/2],
-                                [3/2,3/2,3/2,3/2,3/2],
-                                [3/2,3/2,3/2,3/2,3/2],
-                                [3/2,3/2,3/2,3/2,3/2]], dtype=np.float32)
+        p1_wanted_1 = np.array([[3 / 2, 3 / 2, 3 / 2, 3 / 2, 3 / 2],
+                                [3 / 2, 3 / 2, 3 / 2, 3 / 2, 3 / 2],
+                                [3 / 2, 3 / 2, 3 / 2, 3 / 2, 3 / 2],
+                                [3 / 2, 3 / 2, 3 / 2, 3 / 2, 3 / 2],
+                                [3 / 2, 3 / 2, 3 / 2, 3 / 2, 3 / 2]], dtype=np.float32)
 
-        p2_wanted_1 = np.array([[4,4,4,4,4],
-                                [4,4,4,4,4],
-                                [4,4,4,4,4],
-                                [4,4,4,4,4],
-                                [4,4,4,4,4]])
+        p2_wanted_1 = np.array([[4, 4, 4, 4, 4],
+                                [4, 4, 4, 4, 4],
+                                [4, 4, 4, 4, 4],
+                                [4, 4, 4, 4, 4],
+                                [4, 4, 4, 4, 4]])
 
-        p1_wanted_2 = np.array([[3,3,3,3,3],
-                                [3, 3/(5*6), 3/(5*6), 3/(5*6), 3/(5*6)],
-                                [3, 3/(5*6), 3/(5*6), 3/(5*6), 3/(5*6)],
-                                [3, 3/(5*6), 3/(5*6), 3/(5*6), 3/(5*6)],
-                                [3, 3/(5*6), 3/(5*6), 3/(5*6), 3/(5*6)]], dtype=np.float32)
+        p1_wanted_2 = np.array([[3, 3, 3, 3, 3],
+                                [3, 3 / (5 * 6), 3 / (5 * 6), 3 / (5 * 6), 3 / (5 * 6)],
+                                [3, 3 / (5 * 6), 3 / (5 * 6), 3 / (5 * 6), 3 / (5 * 6)],
+                                [3, 3 / (5 * 6), 3 / (5 * 6), 3 / (5 * 6), 3 / (5 * 6)],
+                                [3, 3 / (5 * 6), 3 / (5 * 6), 3 / (5 * 6), 3 / (5 * 6)]], dtype=np.float32)
 
-        p2_wanted_2 = np.array([[4,4,4,4,4],
-                                [4, 4/(5*6), 4/(5*6), 4/(5*6), 4/(5*6)],
-                                [4, 4/(5*6), 4/(5*6), 4/(5*6), 4/(5*6)],
-                                [4, 4/(5*6), 4/(5*6), 4/(5*6), 4/(5*6)],
-                                [4, 4/(5*6), 4/(5*6), 4/(5*6), 4/(5*6)]], dtype=np.float32)
+        p2_wanted_2 = np.array([[4, 4, 4, 4, 4],
+                                [4, 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6)],
+                                [4, 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6)],
+                                [4, 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6)],
+                                [4, 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6)]], dtype=np.float32)
 
         directions = [[1, 0], [-1, 1], [1, 1]]
         computed_p1, computed_p2 = self.penalty.mc_cnn_penalty_function(img_left, img_right, default_P1, default_P2, Q1,
                                                                         Q2, D, V, directions)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
-        np.testing.assert_array_equal(computed_p1[:,:,0], p1_wanted_0)
-        np.testing.assert_array_equal(computed_p2[:,:,0], p2_wanted_0)
-        np.testing.assert_array_equal(computed_p1[:,:,1], p1_wanted_1)
-        np.testing.assert_array_equal(computed_p2[:,:,1], p2_wanted_1)
-        np.testing.assert_array_equal(computed_p1[:,:,2], p1_wanted_2)
-        np.testing.assert_array_equal(computed_p2[:,:,2], p2_wanted_2)
+        np.testing.assert_array_equal(computed_p1[:, :, 0], p1_wanted_0)
+        np.testing.assert_array_equal(computed_p2[:, :, 0], p2_wanted_0)
+        np.testing.assert_array_equal(computed_p1[:, :, 1], p1_wanted_1)
+        np.testing.assert_array_equal(computed_p2[:, :, 1], p2_wanted_1)
+        np.testing.assert_array_equal(computed_p1[:, :, 2], p1_wanted_2)
+        np.testing.assert_array_equal(computed_p2[:, :, 2], p2_wanted_2)

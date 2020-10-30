@@ -23,12 +23,12 @@
 This module provides functions to test Pandora + plugin_LibSGM 
 """
 
-import rasterio
 import unittest
-import numpy as np
-import xarray as xr
 
+import numpy as np
 import pandora
+import rasterio
+import xarray as xr
 from pandora import stereo, optimization
 from pandora.state_machine import PandoraMachine
 
@@ -37,15 +37,17 @@ class TestPlugin(unittest.TestCase):
     """
     TestPlugin class allows to test pandora + plugin_libsgm
     """
+
     def setUp(self):
         """
         Method called to prepare the test fixture
 
         """
         self.left = pandora.read_img('tests/left.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                          'valid_pixels': 0, 'no_data': 1}, mask=None)
+                                                                            'valid_pixels': 0, 'no_data': 1}, mask=None)
         self.right = pandora.read_img('tests/right.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                          'valid_pixels': 0, 'no_data': 1}, mask=None)
+                                                                              'valid_pixels': 0, 'no_data': 1},
+                                      mask=None)
         self.disp_left = rasterio.open('tests/disp_left.tif').read(1)
         self.disp_right = rasterio.open('tests/disp_right.tif').read(1)
         self.occlusion = rasterio.open('tests/occl.png').read(1)
@@ -271,16 +273,16 @@ class TestPlugin(unittest.TestCase):
                          [1, 1, 1, 4, 3],
                          [1, 1, 1, 1, 1]), dtype=np.float32)
         left = xr.Dataset({'im': (['row', 'col'], data)},
-                         coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])},
-                         attrs={'no_data_img': 0, 'valid_pixels': 0, 'no_data_mask': 1})
+                          coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])},
+                          attrs={'no_data_img': 0, 'valid_pixels': 0, 'no_data_mask': 1})
 
         data = np.array(([1, 1, 1, 2, 2],
                          [1, 1, 1, 4, 2],
                          [1, 1, 1, 4, 4],
                          [1, 1, 1, 1, 1]), dtype=np.float32)
         right = xr.Dataset({'im': (['row', 'col'], data)},
-                         coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])},
-                         attrs={'no_data_img': 0, 'valid_pixels': 0, 'no_data_mask': 1})
+                           coords={'row': np.arange(data.shape[0]), 'col': np.arange(data.shape[1])},
+                           attrs={'no_data_img': 0, 'valid_pixels': 0, 'no_data_mask': 1})
 
         # Computes the cost volume dataset
         cv = stereo_.compute_cost_volume(img_left=left, img_right=right, disp_min=-2, disp_max=2)
@@ -289,8 +291,8 @@ class TestPlugin(unittest.TestCase):
         disp_path = np.array([[[1, 3, 2, 3, 1, 3, 3, 2],
                                [0, 1, 1, 4, 2, 2, 3, 1],
                                [2, 4, 2, 4, 3, 0, 3, 3]],
-                              [[ 3, 3, 2, 3, 1, 0, 1, 3],
-                               [ 2, 1, 1, 3, 1, 3, 1, 2],
+                              [[3, 3, 2, 3, 1, 0, 1, 3],
+                               [2, 1, 1, 3, 1, 3, 1, 2],
                                [0, 0, 0, 0, 0, 0, 0, 0]]], dtype=np.float32)
 
         invalid_disp = np.isnan(cv['cost_volume'].data)
