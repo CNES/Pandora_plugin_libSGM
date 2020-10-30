@@ -117,16 +117,16 @@ class MccnnPenalty(penalty.AbstractPenalty):
         """
         print('Penalty method description')
 
-    def compute_penalty(self, cv, img_ref, img_sec) -> Tuple[float, np.ndarray, np.ndarray]:
+    def compute_penalty(self, cv, img_left, img_right) -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
 
         :param cv: the cost volume
         :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row, col, disp)
-        :param img_ref: reference  image
-        :type img_ref: numpy array
-        :param img_sec: secondary image
-        :type img_sec: numpy array
+        :param img_left: left  image
+        :type img_left: numpy array
+        :param img_right: right image
+        :type img_right: numpy array
         :return: P1 and P2 penalities
         :rtype: tuple(numpy array, numpy array)
         """
@@ -136,39 +136,39 @@ class MccnnPenalty(penalty.AbstractPenalty):
         invalid_value = float(cv.attrs['cmax'] + p2_max + 1)
 
         # Compute penalties
-        p1_mask, p2_mask = self.mc_cnn_penalty_function(img_ref, img_sec, self._p1, self._p2, self._q1, self._q2,
+        p1_mask, p2_mask = self.mc_cnn_penalty_function(img_left, img_right, self._p1, self._p2, self._q1, self._q2,
                                                       self._d, self._v, self._directions)
 
         return invalid_value, p1_mask, p2_mask
 
     @staticmethod
-    def compute_gradient(img_ref, direction) -> np.ndarray:
+    def compute_gradient(img, direction) -> np.ndarray:
         """
-        Compute inverse penality
+        Compute image gradient
 
-        :param img_ref: reference  image
-        :type img_ref: numpy array of shape(n,m)
+        :param img: image
+        :type img: numpy array of shape(n,m)
         :param direction: directions to
         :type direction: list of [x offset, y offset]
         :return: Gradient
         :rtype: numpy array of shape(n-dir[0], m-dir[1])
         """
-        mat1 = img_ref[max(direction[0], 0): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
-               max(direction[1], 0): min(img_ref.shape[1] + direction[1], img_ref.shape[1])]
-        mat2 = img_ref[max(-direction[0], 0): min(img_ref.shape[0] - direction[0], img_ref.shape[0]),
-               max(-direction[1], 0): min(img_ref.shape[1] - direction[1], img_ref.shape[1])]
+        mat1 = img[max(direction[0], 0): min(img.shape[0] + direction[0], img.shape[0]),
+               max(direction[1], 0): min(img.shape[1] + direction[1], img.shape[1])]
+        mat2 = img[max(-direction[0], 0): min(img.shape[0] - direction[0], img.shape[0]),
+               max(-direction[1], 0): min(img.shape[1] - direction[1], img.shape[1])]
 
         return np.abs(mat1 - mat2)
 
-    def mc_cnn_penalty_function(self, img_ref, img_sec, p1, p2, q1, q2, d, v, directions) ->\
+    def mc_cnn_penalty_function(self, img_left, img_right, p1, p2, q1, q2, d, v, directions) ->\
             Tuple[np.ndarray, np.ndarray]:
         """
         Compute mc_cnn penalty
 
-        :param img_ref: reference  image
-        :type img_ref: numpy array
-        :param img_sec: secondary  image
-        :type img_sec: numpy array
+        :param img_left: left  image
+        :type img_left: numpy array
+        :param img_right: right  image
+        :type img_right: numpy array
         :param p1:  P1 penalty
         :type p1: int or float
         :param p2: default P2 penalty
@@ -186,30 +186,30 @@ class MccnnPenalty(penalty.AbstractPenalty):
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
-        p1_mask = p1 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
-        p2_mask = p2 * np.ones([img_ref.shape[0], img_ref.shape[1], len(directions)], dtype=np.float32)
+        p1_mask = p1 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
+        p2_mask = p2 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
 
         for i in range(len(directions)):
             direction = directions[i]
-            abs_gradient_ref = self.compute_gradient(img_ref[:, :], direction)
-            abs_gradient_sec = self.compute_gradient(img_sec[:, :], direction)
+            abs_gradient_left = self.compute_gradient(img_left[:, :], direction)
+            abs_gradient_right = self.compute_gradient(img_right[:, :], direction)
             # if(D1<sgm_D && D2<sgm_D)
-            msk1 = (abs_gradient_ref < d) * (abs_gradient_sec < d)
-            final_p1 = msk1 * p1 * np.ones(abs_gradient_ref.shape)
-            final_p2 = msk1 * p2 * np.ones(abs_gradient_ref.shape)
+            msk1 = (abs_gradient_left < d) * (abs_gradient_right < d)
+            final_p1 = msk1 * p1 * np.ones(abs_gradient_left.shape)
+            final_p2 = msk1 * p2 * np.ones(abs_gradient_left.shape)
             # if(D1 > sgm_D && D2 > sgm_D)
-            msk2 = (abs_gradient_ref > d) * (abs_gradient_sec > d)
-            final_p1 = final_p1 + msk2 * (p1 / (q1 * q2)) * np.ones(abs_gradient_ref.shape)
-            final_p2 = final_p2 + msk2 * (p2 / (q1 * q2)) * np.ones(abs_gradient_ref.shape)
+            msk2 = (abs_gradient_left > d) * (abs_gradient_right > d)
+            final_p1 = final_p1 + msk2 * (p1 / (q1 * q2)) * np.ones(abs_gradient_left.shape)
+            final_p2 = final_p2 + msk2 * (p2 / (q1 * q2)) * np.ones(abs_gradient_left.shape)
             # else
             msk3 = (1 - msk1) * (1 - msk2)
-            final_p1 = final_p1 + msk3 * (p1 / q1) * np.ones(abs_gradient_ref.shape)
-            final_p2 = final_p2 + msk3 * (p2 / q1) * np.ones(abs_gradient_ref.shape)
+            final_p1 = final_p1 + msk3 * (p1 / q1) * np.ones(abs_gradient_left.shape)
+            final_p2 = final_p2 + msk3 * (p2 / q1) * np.ones(abs_gradient_left.shape)
 
-            p1_mask[max(0, direction[0]): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
-                    max(0, direction[1]): min(img_ref.shape[1] + direction[1], img_ref.shape[1]), i] = final_p1
-            p2_mask[max(0, direction[0]): min(img_ref.shape[0] + direction[0], img_ref.shape[0]),
-                    max(0, direction[1]): min(img_ref.shape[1] + direction[1], img_ref.shape[1]), i] = final_p2
+            p1_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
+                    max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p1
+            p2_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
+                    max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p2
 
             if i in [1, 5]:
                 p1_mask[:, :, i] = p1_mask[:, :, i] / v

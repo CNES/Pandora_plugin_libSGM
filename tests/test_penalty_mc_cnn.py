@@ -59,7 +59,7 @@ class TestPenalitySGM(unittest.TestCase):
 
         """
 
-        img_ref = np.array([[1, 2, 3],
+        img_left = np.array([[1, 2, 3],
                             [4, 5, 6],
                             [7, 8, 9]])
         # TEST 1
@@ -67,7 +67,7 @@ class TestPenalitySGM(unittest.TestCase):
                                [3, 3, 3]])
 
         dir = [1,0]
-        computed_gradient = self.penalty.compute_gradient(img_ref, dir)
+        computed_gradient = self.penalty.compute_gradient(img_left, dir)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -77,7 +77,7 @@ class TestPenalitySGM(unittest.TestCase):
                                [1, 1]])
 
         dir = [0, 1]
-        computed_gradient = self.penalty.compute_gradient(img_ref, dir)
+        computed_gradient = self.penalty.compute_gradient(img_left, dir)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -86,7 +86,7 @@ class TestPenalitySGM(unittest.TestCase):
                                [4, 4]])
 
         dir = [1, 1]
-        computed_gradient = self.penalty.compute_gradient(img_ref, dir)
+        computed_gradient = self.penalty.compute_gradient(img_left, dir)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -95,7 +95,7 @@ class TestPenalitySGM(unittest.TestCase):
                                [4, 4]])
 
         dir = [-1, -1]
-        computed_gradient = self.penalty.compute_gradient(img_ref, dir)
+        computed_gradient = self.penalty.compute_gradient(img_left, dir)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -104,7 +104,7 @@ class TestPenalitySGM(unittest.TestCase):
                                [2, 2]])
 
         dir = [-1, 1]
-        computed_gradient = self.penalty.compute_gradient(img_ref, dir)
+        computed_gradient = self.penalty.compute_gradient(img_left, dir)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -123,13 +123,13 @@ class TestPenalitySGM(unittest.TestCase):
         Q1 = 5
         Q2 = 6
 
-        img_sec = np.array([[1, 6, 11, 16, 21],
+        img_right = np.array([[1, 6, 11, 16, 21],
                             [2,7,12,17,22],
                             [3,8,13,18,23],
                             [4,9,14,19,24],
                             [5,10,15,20,25]])
 
-        img_ref = np.array([[1, 2, 3, 4, 5],
+        img_left = np.array([[1, 2, 3, 4, 5],
                             [6, 7, 8, 9, 10],
                             [11, 12, 13, 14, 15],
                             [16, 17, 18, 19, 20],
@@ -173,7 +173,7 @@ class TestPenalitySGM(unittest.TestCase):
                                 [4, 4/(5*6), 4/(5*6), 4/(5*6), 4/(5*6)]], dtype=np.float32)
 
         directions = [[1, 0], [-1, 1], [1, 1]]
-        computed_p1, computed_p2 = self.penalty.mc_cnn_penalty_function(img_ref, img_sec, default_P1, default_P2, Q1,
+        computed_p1, computed_p2 = self.penalty.mc_cnn_penalty_function(img_left, img_right, default_P1, default_P2, Q1,
                                                                         Q2, D, V, directions)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_p1[:,:,0], p1_wanted_0)

@@ -96,7 +96,7 @@ class SGM(optimization.AbstractOptimization):
         """
         print('Optimization with SGM')
 
-    def optimize_cv(self, cv: xr.Dataset, img_ref: xr.Dataset, img_sec: xr.Dataset) -> xr.Dataset:
+    def optimize_cv(self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset) -> xr.Dataset:
         """
         Optimizes the cost volume with the SGM method
 
@@ -105,13 +105,13 @@ class SGM(optimization.AbstractOptimization):
             xarray.Dataset, with the data variables:
                 - cost_volume 3D xarray.DataArray (row, col, disp)
                 - confidence_measure 3D xarray.DataArray (row, col, indicator)
-        :param img_ref: reference Dataset image
-        :type img_ref:
+        :param img_left: left Dataset image
+        :type img_left:
             xarray.Dataset containing :
                 - im : 2D (row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
-        :param img_sec: secondary Dataset image
-        :type img_sec:
+        :param img_right: right Dataset image
+        :type img_right:
             xarray.Dataset containing :
                 - im : 2D (row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
@@ -130,17 +130,17 @@ class SGM(optimization.AbstractOptimization):
         # Resize pandora image : image size and cost volume size must be equal
         offset = int(cv.attrs['offset_row_col'])
         if offset == 0 :
-            img_ref_crop = img_ref['im'].data
-            img_sec_crop = img_sec['im'].data
+            img_left_crop = img_left['im'].data
+            img_right_crop = img_right['im'].data
         else :
-            img_ref_crop = img_ref['im'].data[offset: -offset, offset: -offset]
-            img_sec_crop = img_sec['im'].data[offset: -offset, offset: -offset]
+            img_left_crop = img_left['im'].data[offset: -offset, offset: -offset]
+            img_right_crop = img_right['im'].data[offset: -offset, offset: -offset]
 
-        img_ref_crop = np.ascontiguousarray(img_ref_crop, dtype=np.float32)
-        img_sec_crop = np.ascontiguousarray(img_sec_crop, dtype=np.float32)
+        img_left_crop = np.ascontiguousarray(img_left_crop, dtype=np.float32)
+        img_right_crop = np.ascontiguousarray(img_right_crop, dtype=np.float32)
 
         # Compute penalities
-        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_ref_crop, img_sec_crop)
+        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left_crop, img_right_crop)
 
         if self._sgm_version == "c++":
             # If the cost volume is calculated with the census measure and the invalid value <= 255,
@@ -187,7 +187,7 @@ class SGM(optimization.AbstractOptimization):
                 cv['cost_volume' + repr(i)].data = copy.deepcopy(cost_volumes_out['cv_' + repr(i)])
 
         # Remove temporary values
-        del img_ref_crop, img_sec_crop, p1_mat, p2_mat, invalid_disp
+        del img_left_crop, img_right_crop, p1_mat, p2_mat, invalid_disp
 
         # Maximal cost of the cost volume after optimization
         cmax = invalid_value - 1
