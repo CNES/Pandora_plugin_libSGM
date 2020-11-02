@@ -2,11 +2,13 @@
 
 ## Unreleased
 
+## 0.4.0 (November 2020)
+
 ### Added
 
 ### Changed
 
-- Update depency to Pandora 0.3.0 version. 
+- Update dependency to Pandora 0.3.0 version.
 
 ### Fixed
 
