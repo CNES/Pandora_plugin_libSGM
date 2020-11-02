@@ -27,7 +27,7 @@ from typing import Dict, Union, Tuple
 
 import numpy as np
 from json_checker import Checker, And, Or
-from pandora.JSON_checker import is_method
+from pandora.common import is_method
 
 from pandora_plugin_libsgm.penalty import penalty
 
