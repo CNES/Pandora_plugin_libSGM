@@ -29,7 +29,7 @@ import numpy as np
 from json_checker import Checker, And, Or
 from pandora.JSON_checker import is_method
 
-from pandora_plugin_libsgm import penalty
+from pandora_plugin_libsgm.penalty import penalty
 
 
 @penalty.AbstractPenalty.register_subclass('mc_cnn_penalty')

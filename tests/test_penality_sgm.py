@@ -24,7 +24,7 @@ import unittest
 
 import numpy as np
 
-from pandora_plugin_libsgm import penalty_sgm
+from pandora_plugin_libsgm.penalty import penalty_sgm
 
 
 class TestPenalitySGM(unittest.TestCase):
