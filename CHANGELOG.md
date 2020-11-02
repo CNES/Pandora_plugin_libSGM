@@ -5,6 +5,7 @@
 ### Changed
 
 - Update dependency to libSGM 0.3.1 version (disable parallel python implementation of SGM)
+- Update depency to Pandora 0.4.0 version.
 
 ### Fixed
 
