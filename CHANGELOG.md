@@ -17,6 +17,6 @@
 ### Fixed
 
 -  min_cost_paths calculation: fix creation of temporary disparity map to avoid dangerous DataArray manipulation. [#43] 
-
+- Penalties registration : fix the import of penalties [#46]
 
 
