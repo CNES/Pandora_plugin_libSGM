@@ -6,6 +6,10 @@
 
 - Update dependency to libSGM 0.3.1 version (disable parallel python implementation of SGM)
 
+### Fixed
+
+- Penalties registration : fix the import of penalties [#46]
+
 ## 0.4.0 (November 2020)
 
 ### Added
@@ -16,7 +20,6 @@
 
 ### Fixed
 
--  min_cost_paths calculation: fix creation of temporary disparity map to avoid dangerous DataArray manipulation. [#43] 
-- Penalties registration : fix the import of penalties [#46]
+-  min_cost_paths calculation: fix creation of temporary disparity map to avoid dangerous DataArray manipulation. [#43]
 
 
