@@ -40,7 +40,7 @@ requirements = ['numpy',
                 'nose2',
                 'json-checker',
                 'rasterio',
-                'libsgm==0.3.0',
+                'libsgm==0.3.1',
                 'pandora>=0.3.0']
 
 
