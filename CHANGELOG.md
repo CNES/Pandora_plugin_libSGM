@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Update dependency to libSGM 0.3.1 version (disable parallel python implementation of SGM)
+
 ## 0.4.0 (November 2020)
 
 ### Added
