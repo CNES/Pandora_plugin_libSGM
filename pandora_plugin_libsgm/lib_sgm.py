@@ -125,20 +125,14 @@ class SGM(optimization.AbstractOptimization):
         if cv.attrs['type_measure'] == "max":
             cv['cost_volume'].data *= -1
 
-        # Resize pandora image : image size and cost volume size must be equal
-        offset = int(cv.attrs['offset_row_col'])
-        if offset == 0:
-            img_left_crop = img_left['im'].data
-            img_right_crop = img_right['im'].data
-        else:
-            img_left_crop = img_left['im'].data[offset: -offset, offset: -offset]
-            img_right_crop = img_right['im'].data[offset: -offset, offset: -offset]
+        img_left_full = img_left['im'].data
+        img_right_full = img_right['im'].data
 
-        img_left_crop = np.ascontiguousarray(img_left_crop, dtype=np.float32)
-        img_right_crop = np.ascontiguousarray(img_right_crop, dtype=np.float32)
+        img_left_full = np.ascontiguousarray(img_left_full, dtype=np.float32)
+        img_right_full = np.ascontiguousarray(img_right_full, dtype=np.float32)
 
         # Compute penalities
-        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left_crop, img_right_crop)
+        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left_full, img_right_full)
 
         if self._sgm_version == "c++":
             # If the cost volume is calculated with the census measure and the invalid value <= 255,
@@ -186,7 +180,7 @@ class SGM(optimization.AbstractOptimization):
                 cv['cost_volume' + repr(i)].data = copy.deepcopy(cost_volumes_out['cv_' + repr(i)])
 
         # Remove temporary values
-        del img_left_crop, img_right_crop, p1_mat, p2_mat, invalid_disp
+        del img_left_full, img_right_full, p1_mat, p2_mat, invalid_disp
 
         # Maximal cost of the cost volume after optimization
         cmax = invalid_value - 1
@@ -220,7 +214,7 @@ class SGM(optimization.AbstractOptimization):
         cv['cost_volume'].data[invalid_disp] = np.inf
         disp_map = argmin_split(cv)
         invalid_mc = np.min(invalid_disp, axis=2)
-        invalid_pixel = np.where(invalid_mc == True)
+        invalid_pixel = np.where(invalid_mc)
         disp_map[invalid_pixel] = np.nan
 
         # Add a new indicator to the confidence measure DataArray
@@ -240,6 +234,7 @@ class SGM(optimization.AbstractOptimization):
         for d in range(disp_paths.shape[2]):
             pos_y, pos_x = np.where(disp_paths[:, :, d] == disp_map)
             cv['confidence_measure'].data[pos_y, pos_x, -1] += 1
+        cv['confidence_measure'].data[:, :, -1][invalid_pixel] = np.nan
 
         del invalid_mc
         del disp_map

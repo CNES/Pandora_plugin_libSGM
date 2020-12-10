@@ -43,11 +43,8 @@ class TestPlugin(unittest.TestCase):
         Method called to prepare the test fixture
 
         """
-        self.left = pandora.read_img('tests/left.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                            'valid_pixels': 0, 'no_data': 1}, mask=None)
-        self.right = pandora.read_img('tests/right.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                              'valid_pixels': 0, 'no_data': 1},
-                                      mask=None)
+        self.left = pandora.read_img('tests/left.png', no_data=np.nan, mask=None)
+        self.right = pandora.read_img('tests/right.png', no_data=np.nan, mask=None)
         self.disp_left = rasterio.open('tests/disp_left.tif').read(1)
         self.disp_right = rasterio.open('tests/disp_right.tif').read(1)
         self.occlusion = rasterio.open('tests/occl.png').read(1)
@@ -112,7 +109,7 @@ class TestPlugin(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg['pipeline'])
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -157,7 +154,7 @@ class TestPlugin(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left, self.right, -60, -1, user_cfg)
+        left, right = pandora.run(pandora_machine, self.left, self.right, -60, -1, user_cfg['pipeline'])
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -201,7 +198,7 @@ class TestPlugin(unittest.TestCase):
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        right, left = pandora.run(pandora_machine, self.right, self.left, 1, 60, user_cfg)
+        right, left = pandora.run(pandora_machine, self.right, self.left, 1, 60, user_cfg['pipeline'])
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -238,12 +235,12 @@ class TestPlugin(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg['pipeline'])
 
         # Compares the calculated left disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
 
-        if self.strict_error(left['disparity_map'].data, self.disp_left_zncc) > 0:
+        if self.strict_error(left['disparity_map'].data[61:-61, 61:-61], self.disp_left_zncc[61:-61, 61:-61]) > 0:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
@@ -288,19 +285,36 @@ class TestPlugin(unittest.TestCase):
         cv = stereo_.compute_cost_volume(img_left=left, img_right=right, disp_min=-2, disp_max=2)
 
         # Disparities which give a minimum local cost, in indices
-        disp_path = np.array([[[1, 3, 2, 3, 1, 3, 3, 2],
+        disp_path = np.array([[[0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0]],
+                              [[0, 0, 0, 0, 0, 0, 0, 0],
+                               [1, 3, 2, 3, 1, 3, 3, 2],
                                [0, 1, 1, 4, 2, 2, 3, 1],
-                               [2, 4, 2, 4, 3, 0, 3, 3]],
-                              [[3, 3, 2, 3, 1, 0, 1, 3],
+                               [2, 4, 2, 4, 3, 0, 3, 3],
+                               [0, 0, 0, 0, 0, 0, 0, 0]],
+                              [[0, 0, 0, 0, 0, 0, 0, 0],
+                               [3, 3, 2, 3, 1, 0, 1, 3],
                                [2, 1, 1, 3, 1, 3, 1, 2],
-                               [0, 0, 0, 0, 0, 0, 0, 0]]], dtype=np.float32)
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0]],
+                              [[0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0],
+                               [0, 0, 0, 0, 0, 0, 0, 0]]
+                              ], dtype=np.float32)
 
         invalid_disp = np.isnan(cv['cost_volume'].data)
         cv_updated = optimization_.number_of_disp(cv, disp_path, invalid_disp)
 
         # Ground truth calculated with disp_path
-        gt_disp = np.array([[2, 3, 0],
-                            [1, 4, 8]], dtype=np.float32)
+        gt_disp = np.array([[np.nan, np.nan, np.nan, np.nan, np.nan],
+                            [np.nan, 2, 3, 0, np.nan],
+                            [np.nan, 1, 4, 8, np.nan],
+                            [np.nan, np.nan, np.nan, np.nan, np.nan]], dtype=np.float32)
 
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated['confidence_measure'].data[:, :, -1], gt_disp)

@@ -39,9 +39,6 @@
     "filter_after_validation" : {
       "filter_method": "median",
       "filter_size": 3
-    },
-    "resize": {
-      "border_disparity": -9999
     }
   }
 }
