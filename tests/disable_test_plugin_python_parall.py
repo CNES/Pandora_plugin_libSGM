@@ -20,18 +20,18 @@
 # limitations under the License.
 #
 """
-This module provides functions to test Pandora + plugin_LibSGM 
+This module provides functions to test Pandora + plugin_LibSGM
 """
 
-import rasterio
 import unittest
+import rasterio
 import numpy as np
 
 import pandora
 from pandora.state_machine import PandoraMachine
 
 
-class TestPlugin(unittest.TestCase):
+class TestPluginPythonParall(unittest.TestCase):
     """
     TestPlugin class allows to test pandora + plugin_libsgm
     """
@@ -53,34 +53,33 @@ class TestPlugin(unittest.TestCase):
         self.disp_left_zncc = rasterio.open('tests/disp_left_zncc.tif').read(1)
         self.disp_right_zncc = rasterio.open('tests/disp_right_zncc.tif').read(1)
 
-    def error(self, data, gt, threshold, unknown_disparity=0):
-        """
-        Percentage of bad pixels whose error is > threshold
-
-        """
-        row, col = data.shape
-        nb_error = 0
-        for r in range(row):
-            for c in range(col):
-                if gt[r, c] != unknown_disparity:
-                    if abs((data[r, c] + gt[r, c])) > threshold:
-                        nb_error += 1
-
-        return nb_error / float(row * col)
-
     def error_mask(self, data, gt):
         """
         Percentage of bad pixels ( != ground truth ) in the validity mask
 
         """
-        row, col = data.shape
+        nb_rows, nb_cols = data.shape
         nb_error = 0
-        for r in range(row):
-            for c in range(col):
-                if data[r, c] != gt[r, c]:
+        for row in range(nb_rows):
+            for col in range(nb_cols):
+                if data[row, col] != gt[row, col]:
                     nb_error += 1
 
-        return nb_error / float(row * col)
+        return nb_error / float(nb_rows * nb_cols)
+
+    def strict_error(self, data, gt):
+        """
+        Average of bad pixels  ( != ground truth )
+
+        """
+        nb_rows, nb_cols = data.shape
+        nb_error = 0
+        for row in range(nb_rows):
+            for col in range(nb_cols):
+                if data[row, col] != gt[row, col]:
+                    nb_error += 1
+
+        return nb_error / float(nb_rows * nb_cols)
 
     def test_libsgm(self):
         """

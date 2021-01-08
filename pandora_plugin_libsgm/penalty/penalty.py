@@ -7,14 +7,14 @@
 #
 #     https://github.com/CNES/Pandora_plugin_libsgm
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -31,7 +31,7 @@ from typing import Tuple
 import numpy as np
 
 
-class AbstractPenalty(object):
+class AbstractPenalty():
     """
     Penalty abstract class
     """
@@ -39,7 +39,7 @@ class AbstractPenalty(object):
 
     penalty_methods_avail = {}
 
-    def __new__(cls, directions, **cfg):
+    def __new__(cls, directions, **cfg): # pylint: disable=unused-argument
         """
         Return the plugin associated with the penality_method given in the configuration
 
@@ -49,20 +49,20 @@ class AbstractPenalty(object):
         :type cfg: dictionary
         """
         if cls is AbstractPenalty:
-            if type(cfg['penalty_method']) is str:
+            if isinstance(cfg['penalty_method'], str):
                 try:
                     return super(AbstractPenalty, cls).__new__(cls.penalty_methods_avail[cfg['penalty_method']])
                 except KeyError:
-                    logging.error("No penalty method named {} supported".format(cfg['penalty_method']))
+                    logging.error('No penalty method named % supported', cfg['penalty_method'])
                     sys.exit(1)
             else:
-                if type(cfg['penalty_method']) is unicode:
+                if isinstance(cfg['penalty_method'], unicode): # pylint: disable=undefined-variable
                     # creating a plugin from registered short name given as unicode (py2 & 3 compatibility)
                     try:
                         return super(AbstractPenalty, cls).__new__(
                             cls.penality_methods_avail[cfg['penalty_method'].encode('utf-8')])
                     except KeyError:
-                        logging.error("No penalty method named {} supported".format(cfg['penalty_method']))
+                        logging.error('No penalty method named % supported', cfg['penalty_method'])
                         sys.exit(1)
         else:
             return super(AbstractPenalty, cls).__new__(cls)

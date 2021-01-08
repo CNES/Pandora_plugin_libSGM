@@ -21,3 +21,5 @@
 from . import penalty_sgm
 from . import penalty_mc_cnn
 from .penalty import AbstractPenalty
+
+# pylint: disable=missing-module-docstring
