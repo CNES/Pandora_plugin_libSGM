@@ -36,13 +36,20 @@ try:
 except ImportError:
     print('WARNING: sphinx not available. Doc cannot be built')
 
-requirements = ['numpy',
+REQUIREMENTS = ['numpy',
                 'xarray',
                 'nose2',
                 'json-checker',
                 'rasterio',
                 'libsgm==0.3.1',
                 'pandora>=0.4.0']
+
+REQUIREMENTS_DEV = {'dev': ['sphinx',
+                            'sphinx_rtd_theme',
+                            'sphinx_autoapi',
+                            'nose2',
+                            'pylint',
+                            'pre-commit']}
 
 
 def readme():
@@ -60,7 +67,8 @@ setup(name='pandora_plugin_libsgm',
       author_email='myriam.cournet@cnes.fr',
       license='Apache License 2.0',
       packages=find_packages(),
-      install_requires=requirements,
+      install_requires=REQUIREMENTS,
+      extras_require=REQUIREMENTS_DEV,
       entry_points='''
           [pandora.plugin]
           pandora_plugin_libsgm = pandora_plugin_libsgm.lib_sgm:SGM
