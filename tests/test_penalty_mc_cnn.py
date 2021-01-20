@@ -19,6 +19,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+This module provides functions to test mc-cnn penalties
+"""
 
 import unittest
 
@@ -68,8 +71,8 @@ class TestPenalitySGM(unittest.TestCase):
         img_wanted = np.array([[3, 3, 3],
                                [3, 3, 3]])
 
-        dir = [1, 0]
-        computed_gradient = self.penalty.compute_gradient(img_left, dir)
+        direc = [1, 0]
+        computed_gradient = self.penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -78,8 +81,8 @@ class TestPenalitySGM(unittest.TestCase):
                                [1, 1],
                                [1, 1]])
 
-        dir = [0, 1]
-        computed_gradient = self.penalty.compute_gradient(img_left, dir)
+        direc = [0, 1]
+        computed_gradient = self.penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -87,8 +90,8 @@ class TestPenalitySGM(unittest.TestCase):
         img_wanted = np.array([[4, 4],
                                [4, 4]])
 
-        dir = [1, 1]
-        computed_gradient = self.penalty.compute_gradient(img_left, dir)
+        direc = [1, 1]
+        computed_gradient = self.penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -96,8 +99,8 @@ class TestPenalitySGM(unittest.TestCase):
         img_wanted = np.array([[4, 4],
                                [4, 4]])
 
-        dir = [-1, -1]
-        computed_gradient = self.penalty.compute_gradient(img_left, dir)
+        direc = [-1, -1]
+        computed_gradient = self.penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -105,12 +108,12 @@ class TestPenalitySGM(unittest.TestCase):
         img_wanted = np.array([[2, 2],
                                [2, 2]])
 
-        dir = [-1, 1]
-        computed_gradient = self.penalty.compute_gradient(img_left, dir)
+        direc = [-1, 1]
+        computed_gradient = self.penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
-    def test_mc_cnn_PenaltyFunction(self):
+    def test_mc_cnn_penalty_function(self):
         """
         Test mc_cnn menalty
 
@@ -118,12 +121,12 @@ class TestPenalitySGM(unittest.TestCase):
 
         # TEST 1
 
-        default_P1 = 3
-        default_P2 = 4
-        D = 5
-        V = 2
-        Q1 = 5
-        Q2 = 6
+        default_p1 = 3
+        default_p2 = 4
+        d_mccnn = 5
+        v_mccnn = 2
+        q1_mccnn = 5
+        q2_mccnn = 6
 
         img_right = np.array([[1, 6, 11, 16, 21],
                               [2, 7, 12, 17, 22],
@@ -175,8 +178,9 @@ class TestPenalitySGM(unittest.TestCase):
                                 [4, 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6), 4 / (5 * 6)]], dtype=np.float32)
 
         directions = [[1, 0], [-1, 1], [1, 1]]
-        computed_p1, computed_p2 = self.penalty.mc_cnn_penalty_function(img_left, img_right, default_P1, default_P2, Q1,
-                                                                        Q2, D, V, directions)
+        computed_p1, computed_p2 = self.penalty.mc_cnn_penalty_function(img_left, img_right, default_p1, default_p2,
+                                                                        q1_mccnn, q2_mccnn, d_mccnn, v_mccnn,
+                                                                        directions)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_p1[:, :, 0], p1_wanted_0)
         np.testing.assert_array_equal(computed_p2[:, :, 0], p2_wanted_0)

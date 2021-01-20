@@ -7,23 +7,24 @@
 #
 #     https://github.com/CNES/Pandora_plugin_libsgm
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""
-This module contains the required libraries and softwares allowing to execute the software, and setup elements to configure and identify the software. 
-"""
+'''
+This module contains the required libraries and softwares allowing to execute the software,
+ and setup elements to configure and identify the software.
+'''
 
-from codecs import open
+from codecs import open as copen
 
 from setuptools import setup, find_packages
 
@@ -35,7 +36,7 @@ try:
 except ImportError:
     print('WARNING: sphinx not available. Doc cannot be built')
 
-requirements = ['numpy',
+REQUIREMENTS = ['numpy',
                 'xarray',
                 'nose2',
                 'json-checker',
@@ -43,10 +44,17 @@ requirements = ['numpy',
                 'libsgm==0.3.1',
                 'pandora>=0.4.0']
 
+REQUIREMENTS_DEV = {'dev': ['sphinx',
+                            'sphinx_rtd_theme',
+                            'sphinx_autoapi',
+                            'nose2',
+                            'pylint',
+                            'pre-commit']}
+
 
 def readme():
-    with open("README.md", "r", "utf-8") as f:
-        return f.read()
+    with copen('README.md', 'r', 'utf-8') as fstream:
+        return fstream.read()
 
 
 setup(name='pandora_plugin_libsgm',
@@ -59,11 +67,12 @@ setup(name='pandora_plugin_libsgm',
       author_email='myriam.cournet@cnes.fr',
       license='Apache License 2.0',
       packages=find_packages(),
-      install_requires=requirements,
-      entry_points="""
+      install_requires=REQUIREMENTS,
+      extras_require=REQUIREMENTS_DEV,
+      entry_points='''
           [pandora.plugin]
           pandora_plugin_libsgm = pandora_plugin_libsgm.lib_sgm:SGM
-      """,
+      ''',
       cmdclass=cmdclass,
       command_options={
           'build_sphinx': {

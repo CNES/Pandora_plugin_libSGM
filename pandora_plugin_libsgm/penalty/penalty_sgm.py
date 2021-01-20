@@ -7,14 +7,14 @@
 #
 #     https://github.com/CNES/Pandora_plugin_libsgm
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -46,13 +46,13 @@ class SgmPenalty(penalty.AbstractPenalty):
     _ALPHA = 1.
     _BETA = 1
     _GAMMA = 1
-    _P2_METHOD = "constant"
+    _P2_METHOD = 'constant'
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
 
     def __init__(self, directions, **cfg):
         """
-        :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value, 'beta': value, 'gamma": value,
+        :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value, 'beta': value, 'gamma': value,
                                             'p2_method': value}
         :type cfg: dict
         """
@@ -96,17 +96,17 @@ class SgmPenalty(penalty.AbstractPenalty):
 
         p1_value = cfg['P1']
         schema = {
-            "sgm_version": And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
-            "optimization_method": And(str, lambda x: is_method(x, ['sgm'])),
-            "penalty_method": And(str, lambda x: is_method(x, ['sgm_penalty'])),
-            "P1": And(Or(int, float), lambda x: x > 0),
-            "P2": And(Or(int, float), lambda x: x > p1_value),
-            "alpha": And(Or(int, float), lambda x: x >= 0),
-            "beta": And(Or(int, float), lambda x: x > 0),
-            "gamma": And(Or(int, float), lambda x: x > 0),
-            "p2_method": And(str, lambda x: is_method(x, ['constant', 'negativeGradient', 'inverseGradient'])),
-            "overcounting": bool,
-            "min_cost_paths": bool
+            'sgm_version': And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
+            'optimization_method': And(str, lambda x: is_method(x, ['sgm'])),
+            'penalty_method': And(str, lambda x: is_method(x, ['sgm_penalty'])),
+            'P1': And(Or(int, float), lambda x: x > 0),
+            'P2': And(Or(int, float), lambda x: x > p1_value),
+            'alpha': And(Or(int, float), lambda x: x >= 0),
+            'beta': And(Or(int, float), lambda x: x > 0),
+            'gamma': And(Or(int, float), lambda x: x > 0),
+            'p2_method': And(str, lambda x: is_method(x, ['constant', 'negativeGradient', 'inverseGradient'])),
+            'overcounting': bool,
+            'min_cost_paths': bool
         }
 
         checker = Checker(schema)
@@ -135,19 +135,19 @@ class SgmPenalty(penalty.AbstractPenalty):
         """
 
         # Calculation of the invalid value according to the chosen P2 estimation method
-        if self._p2_method == "constant":
+        if self._p2_method == 'constant':
             invalid_value = float(cv.attrs['cmax'] + self._p2 + 1)
-        elif self._p2_method == "negativeGradient":
+        elif self._p2_method == 'negativeGradient':
             invalid_value = float(cv.attrs['cmax'] + self._gamma + 1)
-        elif self._p2_method == "inverseGradient":
+        elif self._p2_method == 'inverseGradient':
             invalid_value = float(cv.attrs['cmax'] + self._gamma + (self._alpha / self._beta) + 1)
 
         # Compute penalties
-        if self._p2_method == "negativeGradient":
+        if self._p2_method == 'negativeGradient':
             p1_mask, p2_mask = self.negative_penalty_function(img_left, self._p1, self._p2, self._directions,
                                                               self._alpha, self._gamma)
 
-        elif self._p2_method == "inverseGradient":
+        elif self._p2_method == 'inverseGradient':
             p1_mask, p2_mask = self.inverse_penalty_function(img_left, self._p1, self._p2, self._directions,
                                                              self._alpha,
                                                              self._beta, self._gamma)
@@ -199,7 +199,8 @@ class SgmPenalty(penalty.AbstractPenalty):
         p1_mask = p1 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
         p2_mask = p2 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
 
-        for i in range(len(directions)):
+        nb_directions = len(directions)
+        for i in range(nb_directions):
             direction = directions[i]
             abs_gradient = self.compute_gradient(img_left[:, :], direction)
             p2_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
@@ -235,11 +236,12 @@ class SgmPenalty(penalty.AbstractPenalty):
         p1_mask = p1 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
         p2_mask = p2 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
 
-        for i in range(len(directions)):
-            d = directions[i]
-            abs_gradient = self.compute_gradient(img_left[:, :], d)
-            p2_mask[max(0, d[0]): min(img_left.shape[0] + d[0], img_left.shape[0]),
-            max(0, d[1]): min(img_left.shape[1] + d[1], img_left.shape[1]), i] = \
+        nb_directions = len(directions)
+        for i in range(nb_directions):
+            direc = directions[i]
+            abs_gradient = self.compute_gradient(img_left[:, :], direc)
+            p2_mask[max(0, direc[0]): min(img_left.shape[0] + direc[0], img_left.shape[0]),
+            max(0, direc[1]): min(img_left.shape[1] + direc[1], img_left.shape[1]), i] = \
                 alpha / (abs_gradient + beta) + gamma
         # if p2 < defaultP2 then p2
         msk = p2_mask < p2

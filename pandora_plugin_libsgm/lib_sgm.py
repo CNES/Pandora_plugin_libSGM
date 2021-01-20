@@ -7,14 +7,14 @@
 #
 #     https://github.com/CNES/Pandora_plugin_libsgm
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -28,7 +28,7 @@ from typing import Dict, Union
 
 import numpy as np
 import xarray as xr
-from libSGM import sgm_wrapper
+from libSGM import sgm_wrapper # pylint: disable=no-name-in-module
 from pandora.optimization import optimization
 from pkg_resources import iter_entry_points
 
@@ -43,15 +43,15 @@ class SGM(optimization.AbstractOptimization):
 
     """
     # Default configuration, do not change these values
-    _SGM_VERSION = "c++"
+    _SGM_VERSION = 'c++'
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
-    _PENALTY_METHOD = "sgm_penalty"
+    _PENALTY_METHOD = 'sgm_penalty'
     _DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
 
     def __init__(self, **cfg):
         """
-        :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value, 'beta': value, 'gamma": value,
+        :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value, 'beta': value, 'gamma': value,
                                             'p2_method': value}
         :type cfg: dict
         """
@@ -122,7 +122,7 @@ class SGM(optimization.AbstractOptimization):
         invalid_disp = np.isnan(cv['cost_volume'].data)
 
         # libSGM uses dissimilarities : methods with similarity have to be multiplied by -1
-        if cv.attrs['type_measure'] == "max":
+        if cv.attrs['type_measure'] == 'max':
             cv['cost_volume'].data *= -1
 
         img_left_full = img_left['im'].data
@@ -134,11 +134,11 @@ class SGM(optimization.AbstractOptimization):
         # Compute penalities
         invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left_full, img_right_full)
 
-        if self._sgm_version == "c++":
+        if self._sgm_version == 'c++':
             # If the cost volume is calculated with the census measure and the invalid value <= 255,
             # the cost volume is converted to unint8 to optimize the memory
             # Invalid value must not exceed the maximum value of uint8 type (255)
-            if cv.attrs['measure'] == "census" and invalid_value <= 255:
+            if cv.attrs['measure'] == 'census' and invalid_value <= 255:
                 invalid_value = int(invalid_value)
                 cv['cost_volume'].data = cv['cost_volume'].data.astype(np.uint8)
 
@@ -159,17 +159,17 @@ class SGM(optimization.AbstractOptimization):
             cost_volumes_out = run_sgm(cv['cost_volume'].data, p1_mat, p2_mat, self._directions,
                                        cost_paths=self._min_cost_paths, overcounting=self._overcounting)
 
-        cv['cost_volume'].data = cost_volumes_out["cv"]
+        cv['cost_volume'].data = cost_volumes_out['cv']
 
         # Allocate the number of paths given the min costs
         if self._min_cost_paths:
-            cv = self.number_of_disp(cv, cost_volumes_out["cv_min"], invalid_disp)
+            cv = self.number_of_disp(cv, cost_volumes_out['cv_min'], invalid_disp)
 
         # The cost volume has to be multiplied by -1 to be re-considered as a similarity measure
-        if cv.attrs['type_measure'] == "max":
+        if cv.attrs['type_measure'] == 'max':
             cv['cost_volume'].data *= -1
 
-        if self._sgm_version == "c++":
+        if self._sgm_version == 'c++':
             cv['cost_volume'].data[invalid_disp] = np.nan
         cv.attrs['optimization'] = 'sgm'
 
@@ -188,7 +188,8 @@ class SGM(optimization.AbstractOptimization):
 
         return cv
 
-    def number_of_disp(self, cv: xr.Dataset, disp_paths: np.ndarray, invalid_disp: np.ndarray) -> \
+    @staticmethod
+    def number_of_disp(cv: xr.Dataset, disp_paths: np.ndarray, invalid_disp: np.ndarray) -> \
             xr.Dataset:
         """
         Update the confidence measure by adding the number of disp indicator, which gives the number (between 0 and 8)
@@ -231,8 +232,8 @@ class SGM(optimization.AbstractOptimization):
         cv['confidence_measure'] = xr.DataArray(data=conf_measure, dims=['row', 'col', 'indicator'])
 
         # Allocate the number of paths given the same disparity as the one which has calculated the min cost
-        for d in range(disp_paths.shape[2]):
-            pos_y, pos_x = np.where(disp_paths[:, :, d] == disp_map)
+        for disp in range(disp_paths.shape[2]):
+            pos_y, pos_x = np.where(disp_paths[:, :, disp] == disp_map)
             cv['confidence_measure'].data[pos_y, pos_x, -1] += 1
         cv['confidence_measure'].data[:, :, -1][invalid_pixel] = np.nan
 
@@ -255,25 +256,27 @@ def argmin_split(cost_volume: xr.Dataset) -> np.ndarray:
     :return: the disparities for which the cost volume values are the smallest
     :rtype: np.ndarray
     """
-    ny, nx, nd = cost_volume['cost_volume'].shape
-    disp = np.zeros((ny, nx), dtype=np.float32)
+    ncol, nrow, _ = cost_volume['cost_volume'].shape
+    disp = np.zeros((ncol, nrow), dtype=np.float32)
 
     # Numpy argmin is making a copy of the cost volume.
     # To reduce memory, numpy argmin is applied on a small part of the cost volume.
     # The cost volume is split (along the row axis) into multiple sub-arrays with a step of 100
-    cv_chunked_y = np.array_split(cost_volume['cost_volume'].data, np.arange(100, ny, 100), axis=0)
+    cv_chunked_y = np.array_split(cost_volume['cost_volume'].data, np.arange(100, ncol, 100), axis=0)
 
     y_begin = 0
 
-    for y in range(len(cv_chunked_y)):
+    nb_chunks_y = len(cv_chunked_y)
+    for num_chunk_y in range(nb_chunks_y):
         # To reduce memory, the cost volume is split (along the col axis) into multiple sub-arrays with a step of 100
-        cv_chunked_x = np.array_split(cv_chunked_y[y], np.arange(100, nx, 100), axis=1)
+        cv_chunked_x = np.array_split(cv_chunked_y[num_chunk_y], np.arange(100, nrow, 100), axis=1)
         x_begin = 0
-        for x in range(len(cv_chunked_x)):
-            disp[y_begin:y_begin + cv_chunked_y[y].shape[0], x_begin: x_begin + cv_chunked_x[x].shape[1]] = \
-                np.argmin(cv_chunked_x[x], axis=2)
-            x_begin += cv_chunked_x[x].shape[1]
+        nb_chunks_x = len(cv_chunked_x)
+        for num_chunk_x in range(nb_chunks_x):
+            disp[y_begin:y_begin + cv_chunked_y[num_chunk_y].shape[0],
+                 x_begin: x_begin + cv_chunked_x[num_chunk_x].shape[1]] = np.argmin(cv_chunked_x[num_chunk_x], axis=2)
+            x_begin += cv_chunked_x[num_chunk_x].shape[1]
 
-        y_begin += cv_chunked_y[y].shape[0]
+        y_begin += cv_chunked_y[num_chunk_y].shape[0]
 
     return disp

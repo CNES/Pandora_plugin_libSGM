@@ -1,4 +1,4 @@
-#
+# pylint:disable=missing-module-docstring
 # coding: utf8
 # Copyright (c) 2020 Centre National d'Etudes Spatiales (CNES).
 #
@@ -21,3 +21,5 @@
 from . import penalty_sgm
 from . import penalty_mc_cnn
 from .penalty import AbstractPenalty
+
+# pylint: disable=missing-module-docstring

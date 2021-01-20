@@ -7,14 +7,14 @@
 #
 #     https://github.com/CNES/Pandora_plugin_libsgm
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -51,7 +51,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
     def __init__(self, directions, **cfg):
         """
-        :param cfg: optional configuration, {'P1': value, 'P2': value, 'Q1': value, 'Q2': value, 'D": value,
+        :param cfg: optional configuration, {'P1': value, 'P2': value, 'Q1': value, 'Q2': value, 'D': value,
                                             'V': value}
         :type cfg: dict
         """
@@ -95,17 +95,17 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
         p1_value = cfg['P1']
         schema = {
-            "sgm_version": And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
-            "optimization_method": And(str, lambda x: is_method(x, ['sgm'])),
-            "penalty_method": And(str, lambda x: is_method(x, ['mc_cnn_penalty'])),
-            "P1": And(Or(int, float), lambda x: x > 0),
-            "P2": And(Or(int, float), lambda x: x > p1_value),
-            "Q1": And(Or(int, float), lambda x: x > 0),
-            "Q2": And(Or(int, float), lambda x: x > 0),
-            "D": And(Or(int, float), lambda x: x >= 0),
-            "V": And(Or(int, float), lambda x: x > 0),
-            "overcounting": bool,
-            "min_cost_paths": bool
+            'sgm_version': And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
+            'optimization_method': And(str, lambda x: is_method(x, ['sgm'])),
+            'penalty_method': And(str, lambda x: is_method(x, ['mc_cnn_penalty'])),
+            'P1': And(Or(int, float), lambda x: x > 0),
+            'P2': And(Or(int, float), lambda x: x > p1_value),
+            'Q1': And(Or(int, float), lambda x: x > 0),
+            'Q2': And(Or(int, float), lambda x: x > 0),
+            'D': And(Or(int, float), lambda x: x >= 0),
+            'V': And(Or(int, float), lambda x: x > 0),
+            'overcounting': bool,
+            'min_cost_paths': bool
         }
 
         checker = Checker(schema)
@@ -162,8 +162,9 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
         return np.abs(mat1 - mat2)
 
-    def mc_cnn_penalty_function(self, img_left, img_right, p1, p2, q1, q2, d, v, directions) -> \
-            Tuple[np.ndarray, np.ndarray]:
+    def mc_cnn_penalty_function(self, img_left, img_right, p1_mccnn, p2_mccnn, # pylint: disable=too-many-arguments
+                                q1_mccnn, q2_mccnn, d_mccnn, v_mccnn,
+                                directions) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute mc_cnn penalty
 
@@ -171,42 +172,43 @@ class MccnnPenalty(penalty.AbstractPenalty):
         :type img_left: numpy array
         :param img_right: right  image
         :type img_right: numpy array
-        :param p1:  P1 penalty
-        :type p1: int or float
-        :param p2: default P2 penalty
-        :type p2: int or float
-        :param q1: hyper parameter
-        :type q1: int or float
-        :param q2: hyper parameter
-        :type q2: int or float
-        :param d: hyper parameter
-        :type d: int or float
-        :param v: hyper parameter
-        :type v: int or float
+        :param p1_mccnn:  P1 penalty
+        :type p1_mccnn: int or float
+        :param p2_mccnn: default P2 penalty
+        :type p2_mccnn: int or float
+        :param q1_mccnn: hyper parameter
+        :type q1_mccnn: int or float
+        :param q2_mccnn: hyper parameter
+        :type q2_mccnn: int or float
+        :param d_mccnn: hyper parameter
+        :type d_mccnn: int or float
+        :param v_mccnn: hyper parameter
+        :type v_mccnn: int or float
         :param directions: directions to
         :type directions: list of [x offset, y offset]
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
-        p1_mask = p1 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
-        p2_mask = p2 * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
+        p1_mask = p1_mccnn * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
+        p2_mask = p2_mccnn * np.ones([img_left.shape[0], img_left.shape[1], len(directions)], dtype=np.float32)
 
-        for i in range(len(directions)):
+        nb_directions = len(directions)
+        for i in range(nb_directions):
             direction = directions[i]
             abs_gradient_left = self.compute_gradient(img_left[:, :], direction)
             abs_gradient_right = self.compute_gradient(img_right[:, :], direction)
             # if(D1<sgm_D && D2<sgm_D)
-            msk1 = (abs_gradient_left < d) * (abs_gradient_right < d)
-            final_p1 = msk1 * p1 * np.ones(abs_gradient_left.shape)
-            final_p2 = msk1 * p2 * np.ones(abs_gradient_left.shape)
+            msk1 = (abs_gradient_left < d_mccnn) * (abs_gradient_right < d_mccnn)
+            final_p1 = msk1 * p1_mccnn * np.ones(abs_gradient_left.shape)
+            final_p2 = msk1 * p2_mccnn * np.ones(abs_gradient_left.shape)
             # if(D1 > sgm_D && D2 > sgm_D)
-            msk2 = (abs_gradient_left > d) * (abs_gradient_right > d)
-            final_p1 = final_p1 + msk2 * (p1 / (q1 * q2)) * np.ones(abs_gradient_left.shape)
-            final_p2 = final_p2 + msk2 * (p2 / (q1 * q2)) * np.ones(abs_gradient_left.shape)
+            msk2 = (abs_gradient_left > d_mccnn) * (abs_gradient_right > d_mccnn)
+            final_p1 = final_p1 + msk2 * (p1_mccnn / (q1_mccnn * q2_mccnn)) * np.ones(abs_gradient_left.shape)
+            final_p2 = final_p2 + msk2 * (p2_mccnn / (q1_mccnn * q2_mccnn)) * np.ones(abs_gradient_left.shape)
             # else
             msk3 = (1 - msk1) * (1 - msk2)
-            final_p1 = final_p1 + msk3 * (p1 / q1) * np.ones(abs_gradient_left.shape)
-            final_p2 = final_p2 + msk3 * (p2 / q1) * np.ones(abs_gradient_left.shape)
+            final_p1 = final_p1 + msk3 * (p1_mccnn / q1_mccnn) * np.ones(abs_gradient_left.shape)
+            final_p2 = final_p2 + msk3 * (p2_mccnn / q1_mccnn) * np.ones(abs_gradient_left.shape)
 
             p1_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
             max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p1
@@ -214,6 +216,6 @@ class MccnnPenalty(penalty.AbstractPenalty):
             max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p2
 
             if i in [1, 5]:
-                p1_mask[:, :, i] = p1_mask[:, :, i] / v
+                p1_mask[:, :, i] = p1_mask[:, :, i] / v_mccnn
 
         return p1_mask, p2_mask
