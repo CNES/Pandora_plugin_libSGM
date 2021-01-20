@@ -162,8 +162,9 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
         return np.abs(mat1 - mat2)
 
-    def mc_cnn_penalty_function(self, img_left, img_right, p1_mccnn, p2_mccnn, q1_mccnn, q2_mccnn, d_mccnn, v_mccnn,
-                                    directions) -> Tuple[np.ndarray, np.ndarray]: #pylint: disable=too-many-arguments
+    def mc_cnn_penalty_function(self, img_left, img_right, p1_mccnn, p2_mccnn, # pylint: disable=too-many-arguments
+                                q1_mccnn, q2_mccnn, d_mccnn, v_mccnn,
+                                directions) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute mc_cnn penalty
 

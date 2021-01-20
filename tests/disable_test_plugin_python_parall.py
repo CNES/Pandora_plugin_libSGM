@@ -29,7 +29,7 @@ import numpy as np
 
 import pandora
 from pandora.state_machine import PandoraMachine
-
+import common
 
 class TestPluginPythonParall(unittest.TestCase):
     """
@@ -41,11 +41,8 @@ class TestPluginPythonParall(unittest.TestCase):
         Method called to prepare the test fixture
 
         """
-        self.left = pandora.read_img('tests/left.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                            'valid_pixels': 0, 'no_data': 1}, mask=None)
-        self.right = pandora.read_img('tests/right.png', no_data=np.nan, cfg={'nodata1': 'np.nan', 'nodata2': 'np.nan',
-                                                                              'valid_pixels': 0, 'no_data': 1},
-                                      mask=None)
+        self.left = pandora.read_img('tests/left.png', no_data=np.nan, mask=None)
+        self.right = pandora.read_img('tests/right.png', no_data=np.nan, mask=None)
         self.disp_left = rasterio.open('tests/disp_left.tif').read(1)
         self.disp_right = rasterio.open('tests/disp_right.tif').read(1)
         self.occlusion = rasterio.open('tests/occl.png').read(1)
@@ -53,33 +50,6 @@ class TestPluginPythonParall(unittest.TestCase):
         self.disp_left_zncc = rasterio.open('tests/disp_left_zncc.tif').read(1)
         self.disp_right_zncc = rasterio.open('tests/disp_right_zncc.tif').read(1)
 
-    def error_mask(self, data, gt):
-        """
-        Percentage of bad pixels ( != ground truth ) in the validity mask
-
-        """
-        nb_rows, nb_cols = data.shape
-        nb_error = 0
-        for row in range(nb_rows):
-            for col in range(nb_cols):
-                if data[row, col] != gt[row, col]:
-                    nb_error += 1
-
-        return nb_error / float(nb_rows * nb_cols)
-
-    def strict_error(self, data, gt):
-        """
-        Average of bad pixels  ( != ground truth )
-
-        """
-        nb_rows, nb_cols = data.shape
-        nb_error = 0
-        for row in range(nb_rows):
-            for col in range(nb_cols):
-                if data[row, col] != gt[row, col]:
-                    nb_error += 1
-
-        return nb_error / float(nb_rows * nb_cols)
 
     def test_libsgm(self):
         """
@@ -99,12 +69,12 @@ class TestPluginPythonParall(unittest.TestCase):
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(left['disparity_map'].data, self.disp_left, 1) > 0.20:
+        if common.error(left['disparity_map'].data, self.disp_left, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(left['disparity_map'].data, self.disp_left, 2) > 0.15:
+        if common.error(left['disparity_map'].data, self.disp_left, 2) > 0.15:
             raise AssertionError
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
@@ -113,17 +83,17 @@ class TestPluginPythonParall(unittest.TestCase):
         occlusion[left['validity_mask'].data >= 512] = 0
 
         # If the percentage of errors is > 0.15, raise an error
-        if self.error_mask(occlusion, self.occlusion) > 0.15:
+        if common.error_mask(occlusion, self.occlusion) > 0.15:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(-1 * right['disparity_map'].data, self.disp_right, 1) > 0.20:
+        if common.error(-1 * right['disparity_map'].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(-1 * right['disparity_map'].data, self.disp_right, 2) > 0.15:
+        if common.error(-1 * right['disparity_map'].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_negative_disparities(self):
@@ -144,12 +114,12 @@ class TestPluginPythonParall(unittest.TestCase):
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(left['disparity_map'].data, self.disp_left, 1) > 0.20:
+        if common.error(left['disparity_map'].data, self.disp_left, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(left['disparity_map'].data, self.disp_left, 2) > 0.15:
+        if common.error(left['disparity_map'].data, self.disp_left, 2) > 0.15:
             raise AssertionError
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
@@ -158,17 +128,17 @@ class TestPluginPythonParall(unittest.TestCase):
         occlusion[left['validity_mask'].data >= 512] = 0
 
         # If the percentage of errors is > 0.15, raise an error
-        if self.error_mask(occlusion, self.occlusion) > 0.15:
+        if common.error_mask(occlusion, self.occlusion) > 0.15:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(-1 * right['disparity_map'].data, self.disp_right, 1) > 0.20:
+        if common.error(-1 * right['disparity_map'].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(-1 * right['disparity_map'].data, self.disp_right, 2) > 0.15:
+        if common.error(-1 * right['disparity_map'].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_positive_disparities(self):
@@ -188,22 +158,22 @@ class TestPluginPythonParall(unittest.TestCase):
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(left['disparity_map'].data, self.disp_left, 1) > 0.20:
+        if common.error(left['disparity_map'].data, self.disp_left, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(left['disparity_map'].data, self.disp_left, 2) > 0.15:
+        if common.error(left['disparity_map'].data, self.disp_left, 2) > 0.15:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(-1 * right['disparity_map'].data, self.disp_right, 1) > 0.20:
+        if common.error(-1 * right['disparity_map'].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(-1 * right['disparity_map'].data, self.disp_right, 2) > 0.15:
+        if common.error(-1 * right['disparity_map'].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_zncc(self):

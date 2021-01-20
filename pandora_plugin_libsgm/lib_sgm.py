@@ -28,7 +28,7 @@ from typing import Dict, Union
 
 import numpy as np
 import xarray as xr
-from libSGM import sgm_wrapper
+from libSGM import sgm_wrapper # pylint: disable=no-name-in-module
 from pandora.optimization import optimization
 from pkg_resources import iter_entry_points
 
