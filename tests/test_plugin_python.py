@@ -72,7 +72,7 @@ class TestPluginPython(unittest.TestCase):
         Test pandora + plugin_libsgm
 
         """
-        user_cfg = pandora.read_config_file('conf/sgm_python.json')
+        user_cfg = pandora.read_config_file('tests/conf/sgm_python.json')
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -117,7 +117,7 @@ class TestPluginPython(unittest.TestCase):
         Test pandora + plugin_libsgm, with negative disparities
 
         """
-        user_cfg = pandora.read_config_file('conf/sgm_python.json')
+        user_cfg = pandora.read_config_file('tests/conf/sgm_python.json')
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -162,7 +162,7 @@ class TestPluginPython(unittest.TestCase):
         Test pandora + plugin_libsgm, with positive disparities
 
         """
-        user_cfg = pandora.read_config_file('conf/sgm_python.json')
+        user_cfg = pandora.read_config_file('tests/conf/sgm_python.json')
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -198,7 +198,7 @@ class TestPluginPython(unittest.TestCase):
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file('conf/sgm_zncc_python.json')
+        user_cfg = pandora.read_config_file('tests/conf/sgm_zncc_python.json')
 
         # Import pandora plugins
         pandora.import_plugin()

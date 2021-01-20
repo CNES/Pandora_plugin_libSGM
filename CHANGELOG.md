@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Move /conf to /tests directory [#49]
+
 ## 0.5.0 (December 2020)
 
 ### Changed

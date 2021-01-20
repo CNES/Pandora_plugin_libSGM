@@ -59,7 +59,7 @@ class TestPlugin(unittest.TestCase):
         Test pandora + plugin_libsgm
 
         """
-        user_cfg = pandora.read_config_file('conf/sgm.json')
+        user_cfg = pandora.read_config_file('tests/conf/sgm.json')
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -104,7 +104,7 @@ class TestPlugin(unittest.TestCase):
         Test pandora + plugin_libsgm, with negative disparities
 
         """
-        user_cfg = pandora.read_config_file('conf/sgm.json')
+        user_cfg = pandora.read_config_file('tests/conf/sgm.json')
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -149,7 +149,7 @@ class TestPlugin(unittest.TestCase):
         Test pandora + plugin_libsgm, with positive disparities
 
         """
-        user_cfg = pandora.read_config_file('conf/sgm.json')
+        user_cfg = pandora.read_config_file('tests/conf/sgm.json')
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -185,7 +185,7 @@ class TestPlugin(unittest.TestCase):
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file('conf/sgm_zncc.json')
+        user_cfg = pandora.read_config_file('tests/conf/sgm_zncc.json')
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -214,7 +214,7 @@ class TestPlugin(unittest.TestCase):
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file('conf/sgm.json')
+        user_cfg = pandora.read_config_file('tests/conf/sgm.json')
         user_cfg['pipeline']['stereo']['window_size'] = 3
         user_cfg['pipeline']['optimization']['min_cost_paths'] = True
 
