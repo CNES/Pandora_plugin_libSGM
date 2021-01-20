@@ -11,7 +11,6 @@ Welcome to pandora_plugin_libsgm's documentation!
    :caption: Contents:
 
    getting_started
-   user_guide
    api_reference/index.rst
    developer_guide
 

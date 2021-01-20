@@ -38,7 +38,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'pandora_plugin_libsgm'
+project = 'Pandora Plugin Libsgm 0.6.0'
 copyright = '2020, CNES'
 author = 'CNES'
 
@@ -64,18 +64,26 @@ extensions = [
 
 autoapi_dirs = ['../../pandora_plugin_libsgm']
 autoapi_root = 'api_reference'
+autoapi_keep_files = True
+autoapi_options = ['members', 'undoc-members', 'private-members', 'show-inheritance', 'show-module-summary',
+                   'special-members']
 
-imgmath_font_size = 12
-imgmath_dvipng_args = ['-gamma', '1.5', '-D', '110', '-bg', 'Transparent']
-
-# Add any paths that contain templates here, relative to this directory.
+# Add any paths that contain templates here, relative to this directory.cd
 templates_path = ['_templates']
+
+# These folders are copied to the documentation's HTML output
+html_static_path = ['_static']
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    'css/my_custom.css'
+]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -83,6 +91,11 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+
+html_theme_options = {
+    'logo_only': True,
+    'navigation_depth': 3,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -95,3 +108,6 @@ latex_elements = {
     'preamble': '',
     'figure_align': 'htbp'
 }
+
+numfig = True
+

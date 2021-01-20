@@ -32,6 +32,7 @@ from libSGM import sgm_wrapper # pylint: disable=no-name-in-module
 from pandora.optimization import optimization
 from pkg_resources import iter_entry_points
 
+from pandora.optimization import optimization
 from pandora_plugin_libsgm import penalty
 
 
@@ -49,7 +50,7 @@ class SGM(optimization.AbstractOptimization):
     _PENALTY_METHOD = 'sgm_penalty'
     _DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
 
-    def __init__(self, **cfg):
+    def __init__(self, **cfg: Union[str, int, float, bool]):
         """
         :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value, 'beta': value, 'gamma': value,
                                             'p2_method': value}
@@ -98,26 +99,26 @@ class SGM(optimization.AbstractOptimization):
         """
         Optimizes the cost volume with the SGM method
 
-        :param cv: the cost volume
-        :type cv:
-            xarray.Dataset, with the data variables:
+        :param cv: the cost volume, with the data variables:
+
                 - cost_volume 3D xarray.DataArray (row, col, disp)
                 - confidence_measure 3D xarray.DataArray (row, col, indicator)
-        :param img_left: left Dataset image
-        :type img_left:
-            xarray.Dataset containing :
+        :type cv: xarray.Dataset
+        :param img_left: left Dataset image containing :
+
                 - im : 2D (row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
-        :param img_right: right Dataset image
-        :type img_right:
-            xarray.Dataset containing :
+        :type img_left: xarray
+        :param img_right: right Dataset image containing :
+
                 - im : 2D (row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
-        :return: the optimize cost volume
-        :rtype:
-            xarray.Dataset, with the data variables:
+        :type img_right: xarray
+        :return: the optimize cost volume with the data variables:
+
                 - cost_volume 3D xarray.DataArray (row, col, disp)
                 - confidence_measure 3D xarray.DataArray (row, col, indicator)
+        :rtype: xarray.Dataset
         """
         invalid_disp = np.isnan(cv['cost_volume'].data)
 
@@ -131,7 +132,7 @@ class SGM(optimization.AbstractOptimization):
         img_left_full = np.ascontiguousarray(img_left_full, dtype=np.float32)
         img_right_full = np.ascontiguousarray(img_right_full, dtype=np.float32)
 
-        # Compute penalities
+        # Compute penalties
         invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left_full, img_right_full)
 
         if self._sgm_version == 'c++':
@@ -195,20 +196,20 @@ class SGM(optimization.AbstractOptimization):
         Update the confidence measure by adding the number of disp indicator, which gives the number (between 0 and 8)
         of local disparities equal to the ones which return the global minimal costs
 
-        :param cv: the original cost volume dataset
-        :type cv:
-            xarray.Dataset, with the data variables:
+        :param cv: the original cost volume dataset with the data variables:
+
                 - cost_volume 3D xarray.DataArray (row, col, disp)
                 - confidence_measure 3D xarray.DataArray (row, col, indicator)
+        :type cv: xarray.Dataset
         :param disp_paths: the disparities given the minimum cost
         :type disp_paths: numpy.array
         :param invalid_disp: invalid pixels of the cost_volume
         :type invalid_disp: np.ndarray
-        :return: the cost volume dataset updated with a new indicator
-        :rtype:
-            xarray.Dataset, with the data variables:
+        :return: the cost volume dataset updated with a new indicator with the data variables:
+
                 - cost_volume 3D xarray.DataArray (row, col, disp)
                 - confidence_measure 3D xarray.DataArray (row, col, indicator)
+        :rtype: xarray.Dataset
         """
 
         # Compute the disparity given the minimum cost volume for each pixel

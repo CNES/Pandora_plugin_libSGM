@@ -31,6 +31,7 @@ import pandora
 from pandora.state_machine import PandoraMachine
 import common
 
+
 class TestPluginPythonParall(unittest.TestCase):
     """
     TestPlugin class allows to test pandora + plugin_libsgm
@@ -49,7 +50,6 @@ class TestPluginPythonParall(unittest.TestCase):
 
         self.disp_left_zncc = rasterio.open('tests/disp_left_zncc.tif').read(1)
         self.disp_right_zncc = rasterio.open('tests/disp_right_zncc.tif').read(1)
-
 
     def test_libsgm(self):
         """

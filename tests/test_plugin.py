@@ -26,9 +26,10 @@ This module provides functions to test Pandora + plugin_LibSGM
 import unittest
 
 import numpy as np
-import pandora
 import rasterio
 import xarray as xr
+
+import pandora
 from pandora import stereo, optimization
 from pandora.state_machine import PandoraMachine
 import common
