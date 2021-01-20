@@ -38,10 +38,10 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Pandora Plugin Libsgm 0.6.0'
+project = 'Pandora Plugin Libsgm'
 copyright = '2020, CNES'
 author = 'CNES'
-
+version = '0.6.0'
 # The full version, including alpha/beta/rc tags
 # not useful at the moment :  see  https://gitlab.cnes.fr/OutilsCommuns/CorrelateurChaine3D/pandora/issues/124
 # release = '0.2.0'
