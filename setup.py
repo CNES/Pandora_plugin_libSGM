@@ -59,7 +59,7 @@ def readme():
 
 setup(name='pandora_plugin_libsgm',
       version='x.y.z',
-      description='Pandora plugin to optimize the cost volume with the LigSGM library',
+      description='Pandora plugin to optimize the cost volume with the LibSGM library',
       long_description=readme(),
       long_description_content_type='text/markdown',
       url='https://github.com/CNES/Pandora_plugin_libsgm',
