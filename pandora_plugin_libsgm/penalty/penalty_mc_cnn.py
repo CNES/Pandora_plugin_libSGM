@@ -23,12 +23,13 @@
 This module provides class and functions to compute penalties used to optimize the cost volume using the LibSGM library
 """
 
-from typing import Dict, Union, Tuple
+from typing import Dict, Union, Tuple, List
 
 import numpy as np
+import xarray as xr
 from json_checker import Checker, And, Or
-from pandora.common import is_method
 
+from pandora.common import is_method
 from pandora_plugin_libsgm.penalty import penalty
 
 
@@ -49,9 +50,11 @@ class MccnnPenalty(penalty.AbstractPenalty):
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
 
-    def __init__(self, directions, **cfg):
+    def __init__(self, directions: List[List[int]], **cfg: Union[str, int, float, bool]):
         """
-        :param cfg: optional configuration, {'P1': value, 'P2': value, 'Q1': value, 'Q2': value, 'D': value,
+        :param directions: directions to
+        :type directions: list of [x offset, y offset]
+        :param cfg: optional configuration, {'P1': value, 'P2': value, 'Q1': value, 'Q2': value, 'D": value,
                                             'V': value}
         :type cfg: dict
         """
@@ -119,15 +122,19 @@ class MccnnPenalty(penalty.AbstractPenalty):
         """
         print('Penalty method description')
 
-    def compute_penalty(self, cv, img_left, img_right) -> Tuple[float, np.ndarray, np.ndarray]:
+    def compute_penalty(self, cv: xr.Dataset, img_left: np.ndarray, img_right: np.ndarray) \
+            -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
 
-        :param cv: the cost volume
-        :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row, col, disp)
+        :param cv: the cost volume, with the data variables:
+
+            - cost_volume 3D xarray.DataArray (row, col, disp)
+            - confidence_measure 3D xarray.DataArray (row, col, indicator)
+        :type cv: xarray.Dataset
         :param img_left: left  image
         :type img_left: numpy array
-        :param img_right: right image
+        :param img_right: right  image
         :type img_right: numpy array
         :return: P1 and P2 penalities
         :rtype: tuple(numpy array, numpy array)
@@ -144,7 +151,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
         return invalid_value, p1_mask, p2_mask
 
     @staticmethod
-    def compute_gradient(img, direction) -> np.ndarray:
+    def compute_gradient(img: np.ndarray, direction: List[List[int]]) -> np.ndarray:
         """
         Compute image gradient
 
@@ -162,9 +169,10 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
         return np.abs(mat1 - mat2)
 
-    def mc_cnn_penalty_function(self, img_left, img_right, p1_mccnn, p2_mccnn, # pylint: disable=too-many-arguments
-                                q1_mccnn, q2_mccnn, d_mccnn, v_mccnn,
-                                directions) -> Tuple[np.ndarray, np.ndarray]:
+    def mc_cnn_penalty_function(self, img_left: np.ndarray, img_right: np.ndarray, # pylint: disable=too-many-arguments
+                                p1_mccnn: Union[int, float], p2_mccnn: Union[int, float], q1_mccnn: Union[int, float],
+                                q2_mccnn: Union[int, float], d_mccnn: Union[int, float], v_mccnn: Union[int, float],
+                                directions: List[List[int]]) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute mc_cnn penalty
 

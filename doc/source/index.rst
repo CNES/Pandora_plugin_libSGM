@@ -10,8 +10,7 @@ Welcome to pandora_plugin_libsgm's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   getting_started
-   user_guide
+   getting_started.rst
    api_reference/index.rst
    developer_guide
 

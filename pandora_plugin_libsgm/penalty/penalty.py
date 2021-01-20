@@ -26,9 +26,10 @@ This module provides class and functions to compute penalties used to optimize t
 import logging
 import sys
 from abc import ABCMeta, abstractmethod
-from typing import Tuple
+from typing import Tuple, List, Union
 
 import numpy as np
+import xarray as xr
 
 
 class AbstractPenalty():
@@ -39,12 +40,13 @@ class AbstractPenalty():
 
     penalty_methods_avail = {}
 
-    def __new__(cls, directions, **cfg): # pylint: disable=unused-argument
+    def __new__(cls, directions: List[List[int]], **cfg: Union[str, int, float, bool]):# pylint: disable=unused-argument
+
         """
         Return the plugin associated with the penality_method given in the configuration
 
-        :param directions: directions used in SGM
-        :type directions: list of lists
+        :param directions: directions to
+        :type directions: list of [x offset, y offset]
         :param cfg: configuration {'penalty_method': value}
         :type cfg: dictionary
         """
@@ -60,7 +62,7 @@ class AbstractPenalty():
                     # creating a plugin from registered short name given as unicode (py2 & 3 compatibility)
                     try:
                         return super(AbstractPenalty, cls).__new__(
-                            cls.penality_methods_avail[cfg['penalty_method'].encode('utf-8')])
+                            cls.penalty_methods_avail[cfg['penalty_method'].encode('utf-8')])
                     except KeyError:
                         logging.error('No penalty method named % supported', cfg['penalty_method'])
                         sys.exit(1)
@@ -68,7 +70,7 @@ class AbstractPenalty():
             return super(AbstractPenalty, cls).__new__(cls)
 
     @classmethod
-    def register_subclass(cls, short_name):
+    def register_subclass(cls, short_name: str):
         """
         Allows to register the subclass with its short name
 
@@ -91,16 +93,20 @@ class AbstractPenalty():
         print('Penalty method description')
 
     @abstractmethod
-    def compute_penalty(self, cv, img_left, img_right) -> Tuple[float, np.ndarray, np.ndarray]:
+    def compute_penalty(self, cv: xr.Dataset, img_left: np.ndarray, img_right: np.ndarray) \
+            -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
 
-        :param cv: the cost volume
-        :type cv: xarray.Dataset, with the data variables cost_volume 3D xarray.DataArray (row, col, disp)
+        :param cv: the cost volume, with the data variables:
+
+            - cost_volume 3D xarray.DataArray (row, col, disp)
+            - confidence_measure 3D xarray.DataArray (row, col, indicator)
+        :type cv: xarray.Dataset
         :param img_left: left  image
         :type img_left: numpy array
-        :param img_right: right image
+        :param img_right: right  image
         :type img_right: numpy array
-        :return: P1 and P2 penalities
+        :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
