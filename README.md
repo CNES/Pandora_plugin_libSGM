@@ -24,6 +24,7 @@ This [Pandora plugin](https://pandora.readthedocs.io/userguide/plugin.html) aims
 **pandora_plugin_libsgm** is available on Pypi and can be installed by:
 
 ```bash
+pip install numpy
 pip install pandora_plugin_libsgm
 ```
 
