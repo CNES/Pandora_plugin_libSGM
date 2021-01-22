@@ -30,7 +30,7 @@ import rasterio
 import xarray as xr
 
 import pandora
-from pandora import stereo, optimization
+from pandora import matching_cost, optimization
 from pandora.state_machine import PandoraMachine
 import common
 
@@ -215,11 +215,11 @@ class TestPlugin(unittest.TestCase):
 
         # Prepare the configuration
         user_cfg = pandora.read_config_file('tests/conf/sgm.json')
-        user_cfg['pipeline']['stereo']['window_size'] = 3
+        user_cfg['pipeline']['matching_cost']['window_size'] = 3
         user_cfg['pipeline']['optimization']['min_cost_paths'] = True
 
         # Load plugins
-        stereo_ = stereo.AbstractStereo(**user_cfg['pipeline']['stereo'])
+        matching_cost_ = matching_cost.AbstractMatchingCost(**user_cfg['pipeline']['matching_cost'])
         optimization_ = optimization.AbstractOptimization(**user_cfg['pipeline']['optimization'])
 
         # Import pandora plugins
@@ -242,7 +242,7 @@ class TestPlugin(unittest.TestCase):
                            attrs={'no_data_img': 0, 'valid_pixels': 0, 'no_data_mask': 1})
 
         # Computes the cost volume dataset
-        cv = stereo_.compute_cost_volume(img_left=left, img_right=right, disp_min=-2, disp_max=2)
+        cv = matching_cost_.compute_cost_volume(img_left=left, img_right=right, disp_min=-2, disp_max=2)
 
         # Disparities which give a minimum local cost, in indices
         disp_path = np.array([[[0, 0, 0, 0, 0, 0, 0, 0],

@@ -42,7 +42,7 @@ REQUIREMENTS = ['numpy',
                 'json-checker',
                 'rasterio',
                 'libsgm==0.3.1',
-                'pandora>=0.4.0']
+                'pandora>=0.5.0']
 
 REQUIREMENTS_DEV = {'dev': ['sphinx',
                             'sphinx_rtd_theme',
