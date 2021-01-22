@@ -1,6 +1,6 @@
-<h1 align="center"> Pandora_plugin_libsgm </h1>
+<h1 align="center"> Pandora plugin libSGM </h1>
 
-<h4 align="center">Semi-Global Matching algorithm plugin for <a href="https://github.com/CNES/Pandora"><img src="https://raw.githubusercontent.com/CNES/Pandora/master/doc/sources/Images/logo/logo_typo.svg?inline=false" width="64" height="64"/></a>  .</h4>
+<h4 align="center">Semi-Global Matching algorithm plugin for <a href="https://github.com/CNES/Pandora"><img align="center" src="https://raw.githubusercontent.com/CNES/Pandora/master/doc/sources/Images/logo/logo_typo.svg?inline=false" width="64" height="64"/></a>  .</h4>
 
 <p align="center">
   <a href="https://opensource.org/licenses/Apache-2.0/"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a>
@@ -31,7 +31,7 @@ This command will installed required dependencies as [Pandora](https://github.co
 
 ## Usage
 
-Let's refer to [Pandora's readme](https://github.com/CNES/Pandora/blob/master/README.md) or [online documentation](https://cnes.github.io/Pandora/index.html) for further information about Pandora general functionalities. 
+Let's refer to [Pandora's readme](https://github.com/CNES/Pandora/blob/master/README.md) or [online documentation](https://pandora.readthedocs.io/?badge=latest) for further information about Pandora general functionalities. 
 
 More specifically, you can find :
 - [SGM configuration file example](https://raw.githubusercontent.com/CNES/Pandora/master/data_samples/json_conf_files/a_semi_global_matching.json)
