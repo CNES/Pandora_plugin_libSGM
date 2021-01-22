@@ -2,11 +2,12 @@
 
 ## Unreleased
 
+## 0.6.0 (January 2021)
+
 ### Changed
 
 - Move /conf to /tests directory [#49]
 - Update depency to Pandora 0.5.0 version.
-
 
 ## 0.5.0 (December 2020)
 
