@@ -96,7 +96,7 @@ class AbstractPenalty():
         print('Penalty method description')
 
     @abstractmethod
-    def compute_penalty(self, cv: xr.Dataset, img_left: np.ndarray, img_right: np.ndarray) \
+    def compute_penalty(self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset) \
             -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
@@ -107,9 +107,9 @@ class AbstractPenalty():
             - confidence_measure 3D xarray.DataArray (row, col, indicator)
         :type cv: xarray.Dataset
         :param img_left: left  image
-        :type img_left: numpy array
+        :type img_left: xarray.Dataset
         :param img_right: right  image
-        :type img_right: numpy array
+        :type img_right: xarray.Dataset
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """

@@ -125,14 +125,11 @@ class SGM(optimization.AbstractOptimization):
         if cv.attrs['type_measure'] == 'max':
             cv['cost_volume'].data *= -1
 
-        img_left_full = img_left['im'].data
-        img_right_full = img_right['im'].data
-
-        img_left_full = np.ascontiguousarray(img_left_full, dtype=np.float32)
-        img_right_full = np.ascontiguousarray(img_right_full, dtype=np.float32)
+        img_left['im'].data = np.ascontiguousarray(img_left['im'].data, dtype=np.float32)
+        img_right['im'].data = np.ascontiguousarray(img_right['im'].data, dtype=np.float32)
 
         # Compute penalties
-        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left_full, img_right_full)
+        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left, img_right)
 
         if self._sgm_version == 'c++':
             # If the cost volume is calculated with the census measure and the invalid value <= 255,
@@ -180,7 +177,7 @@ class SGM(optimization.AbstractOptimization):
                 cv['cost_volume' + repr(i)].data = copy.deepcopy(cost_volumes_out['cv_' + repr(i)])
 
         # Remove temporary values
-        del img_left_full, img_right_full, p1_mat, p2_mat, invalid_disp
+        del p1_mat, p2_mat, invalid_disp
 
         # Maximal cost of the cost volume after optimization
         cmax = invalid_value - 1
