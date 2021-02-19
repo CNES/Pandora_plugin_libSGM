@@ -6,6 +6,7 @@
 
 - Penalties method : removes mc_cnn_penalty parameter, added mc_cnn_fast_penalty and mc_cnn_accurate_penalty parameters
   to be able to automatically load the penalties according to the type of measure. 
+- Change compute_penalty to take images datasets as input.
 
 ## 0.6.0 (January 2021)
 
