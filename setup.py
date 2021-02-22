@@ -77,5 +77,6 @@ setup(name='pandora_plugin_libsgm',
       command_options={
           'build_sphinx': {
               'build_dir': ('setup.py', 'doc/build/'),
-              'source_dir': ('setup.py', 'doc/source/')}},
-      )
+              'source_dir': ('setup.py', 'doc/source/'),
+              'warning_is_error': ('setup.py', True)}})
+
