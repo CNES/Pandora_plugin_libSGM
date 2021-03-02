@@ -51,7 +51,7 @@ class TestPenalitySGM(unittest.TestCase):
             "V": 1.0,
             "overcounting": False,
             "min_cost_paths": False,
-            "penalty_method": "mc_cnn_penalty"
+            "penalty_method": "mc_cnn_fast_penalty"
         }
 
         self._directions = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
