@@ -188,3 +188,50 @@ class TestPenalitySGM(unittest.TestCase):
         np.testing.assert_array_equal(computed_p2[:, :, 1], p2_wanted_1)
         np.testing.assert_array_equal(computed_p1[:, :, 2], p1_wanted_2)
         np.testing.assert_array_equal(computed_p2[:, :, 2], p2_wanted_2)
+
+    # pylint:disable=protected-access
+    @staticmethod
+    def test_penalty_default_configuration():
+        """
+        Test default parameters according to the type of mc-cnn measure
+
+        """
+        # Check with fast mc-cnn
+        cfg = {
+            "sgm_version": "c++",
+            "optimization_method": "sgm",
+            "overcounting": False,
+            "min_cost_paths": False,
+            "penalty_method": "mc_cnn_fast_penalty"
+        }
+
+        _directions = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
+        penalty = penalty_mc_cnn.MccnnPenalty(_directions, **cfg)
+
+        # Checks that penalties correspond to the type of measure
+        assert penalty._p1 == penalty_mc_cnn.MccnnPenalty._P1_FAST
+        assert penalty._p2 == penalty_mc_cnn.MccnnPenalty._P2_FAST
+        assert penalty._q1 == penalty_mc_cnn.MccnnPenalty._Q1_FAST
+        assert penalty._q2 == penalty_mc_cnn.MccnnPenalty._Q2_FAST
+        assert penalty._d == penalty_mc_cnn.MccnnPenalty._D_FAST
+        assert penalty._v == penalty_mc_cnn.MccnnPenalty._V_FAST
+
+        # Check with accurate mc-cnn
+        cfg = {
+            "sgm_version": "c++",
+            "optimization_method": "sgm",
+            "overcounting": False,
+            "min_cost_paths": False,
+            "penalty_method": "mc_cnn_accurate_penalty"
+        }
+
+        _directions = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
+        penalty = penalty_mc_cnn.MccnnPenalty(_directions, **cfg)
+
+        # Checks that penalties correspond to the type of measure
+        assert penalty._p1 == penalty_mc_cnn.MccnnPenalty._P1_ACCURATE
+        assert penalty._p2 == penalty_mc_cnn.MccnnPenalty._P2_ACCURATE
+        assert penalty._q1 == penalty_mc_cnn.MccnnPenalty._Q1_ACCURATE
+        assert penalty._q2 == penalty_mc_cnn.MccnnPenalty._Q2_ACCURATE
+        assert penalty._d == penalty_mc_cnn.MccnnPenalty._D_ACCURATE
+        assert penalty._v == penalty_mc_cnn.MccnnPenalty._V_ACCURATE
