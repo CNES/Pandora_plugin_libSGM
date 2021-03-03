@@ -28,8 +28,8 @@ from typing import Dict, Union, Tuple, List
 import numpy as np
 import xarray as xr
 from json_checker import Checker, And, Or
-
 from pandora.common import is_method
+
 from pandora_plugin_libsgm.penalty import penalty
 
 
@@ -65,8 +65,8 @@ class SgmPenalty(penalty.AbstractPenalty):
         self._alpha = self.cfg['alpha']
         self._beta = self.cfg['beta']
         self._gamma = self.cfg['gamma']
-        self._p2_method = self.cfg['p2_method']
         self._overcounting = self.cfg['overcounting']
+        self._p2_method = self.cfg['p2_method']
         self._min_cost_paths = self.cfg['min_cost_paths']
         self._directions = directions
 
@@ -98,6 +98,7 @@ class SgmPenalty(penalty.AbstractPenalty):
             cfg['min_cost_paths'] = self._MIN_COST_PATH
 
         p1_value = cfg['P1']
+
         schema = {
             'sgm_version': And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
             'optimization_method': And(str, lambda x: is_method(x, ['sgm'])),
@@ -121,7 +122,7 @@ class SgmPenalty(penalty.AbstractPenalty):
         Describes the penality method
 
         """
-        print('Penalty method description')
+        print('SGM penalty method description')
 
     def compute_penalty(self, cv: xr.Dataset, img_left: np.ndarray, img_right: np.ndarray) -> Tuple[
         float, np.ndarray, np.ndarray]:
@@ -148,26 +149,29 @@ class SgmPenalty(penalty.AbstractPenalty):
         elif self._p2_method == 'negativeGradient':
             invalid_value = float(cv.attrs['cmax'] + self._gamma + 1)
         elif self._p2_method == 'inverseGradient':
-            invalid_value = float(cv.attrs['cmax'] + self._gamma + (self._alpha / self._beta) + 1)
+            invalid_value = float(cv.attrs['cmax'] + self._gamma + (self._alpha / self._beta) + 1)  # type: ignore
 
         # Compute penalties
         if self._p2_method == 'negativeGradient':
-            p1_mask, p2_mask = self.negative_penalty_function(img_left, self._p1, self._p2, self._directions,
-                                                              self._alpha, self._gamma)
+            p1_mask, p2_mask = self.negative_penalty_function(img_left, self._p1, self._p2,  # type: ignore
+                                                              self._directions, self._alpha, # type: ignore
+                                                              self._gamma)  # type: ignore
 
         elif self._p2_method == 'inverseGradient':
-            p1_mask, p2_mask = self.inverse_penalty_function(img_left, self._p1, self._p2, self._directions,
-                                                             self._alpha,
-                                                             self._beta, self._gamma)
+            p1_mask, p2_mask = self.inverse_penalty_function(img_left, self._p1, self._p2,  # type: ignore
+                                                             self._directions, self._alpha, self._beta, # type: ignore
+                                                             self._gamma)  # type: ignore
+
 
         else:
             # Default p2_method is constant
-            p1_mask, p2_mask = self.constant_penalty_function(img_left, self._p1, self._p2, self._directions)
+            p1_mask, p2_mask = self.constant_penalty_function(img_left, self._p1,  # type: ignore
+                                                              self._p2, self._directions)  # type: ignore
 
         return invalid_value, p1_mask, p2_mask
 
     @staticmethod
-    def compute_gradient(img: np.ndarray, direction: List[List[int]]) -> np.ndarray:
+    def compute_gradient(img: np.ndarray, direction: List[int]) -> np.ndarray:
         """
         Compute image gradient
 
@@ -175,11 +179,11 @@ class SgmPenalty(penalty.AbstractPenalty):
         :type img: numpy array of shape(n,m)
         :param direction: directions to
         :type direction: list of [x offset, y offset]
-        :return: Gradient
+        :return: gradient
         :rtype: numpy array of shape(n-dir[0], m-dir[1])
         """
-        mat1 = img[max(direction[0], 0): min(img.shape[0] + direction[0], img.shape[0]),
-               max(direction[1], 0): min(img.shape[1] + direction[1], img.shape[1])]
+        mat1 = img[max(direction[0], 0): min(img.shape[0] + direction[0], img.shape[0]), max(direction[1], 0)
+               : min(img.shape[1] + direction[1], img.shape[1])]
         mat2 = img[max(-direction[0], 0): min(img.shape[0] - direction[0], img.shape[0]),
                max(-direction[1], 0): min(img.shape[1] - direction[1], img.shape[1])]
 

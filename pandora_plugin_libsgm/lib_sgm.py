@@ -28,11 +28,10 @@ from typing import Dict, Union
 
 import numpy as np
 import xarray as xr
-from libSGM import sgm_wrapper # pylint: disable=no-name-in-module
+from libSGM import sgm_wrapper  # pylint: disable=no-name-in-module
 from pandora.optimization import optimization
 from pkg_resources import iter_entry_points
 
-from pandora.optimization import optimization
 from pandora_plugin_libsgm import penalty
 
 
@@ -61,11 +60,11 @@ class SGM(optimization.AbstractOptimization):
         self._overcounting = self.cfg['overcounting']
         self._min_cost_paths = self.cfg['min_cost_paths']
         self._directions = self._DIRECTIONS
-        self._penalty = penalty.AbstractPenalty(self._directions, **self.cfg)
+        self._penalty = penalty.AbstractPenalty(self._directions, **self.cfg)  # type: ignore
 
         # Get Python versions of LibSGM
         self._method = []
-        for entry_point in iter_entry_points(group='libsgm', name=self._sgm_version):
+        for entry_point in iter_entry_points(group='libsgm', name=self._sgm_version):  # type: ignore
             self._method.append(entry_point.load())
 
     def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
@@ -275,7 +274,7 @@ def argmin_split(cost_volume: xr.Dataset) -> np.ndarray:
         nb_chunks_x = len(cv_chunked_x)
         for num_chunk_x in range(nb_chunks_x):
             disp[y_begin:y_begin + cv_chunked_y[num_chunk_y].shape[0],
-                 x_begin: x_begin + cv_chunked_x[num_chunk_x].shape[1]] = np.argmin(cv_chunked_x[num_chunk_x], axis=2)
+            x_begin: x_begin + cv_chunked_x[num_chunk_x].shape[1]] = np.argmin(cv_chunked_x[num_chunk_x], axis=2)
             x_begin += cv_chunked_x[num_chunk_x].shape[1]
 
         y_begin += cv_chunked_y[num_chunk_y].shape[0]

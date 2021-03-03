@@ -49,7 +49,8 @@ REQUIREMENTS_DEV = {'dev': ['sphinx',
                             'sphinx_autoapi',
                             'nose2',
                             'pylint',
-                            'pre-commit']}
+                            'pre-commit',
+                            'mypy']}
 
 
 def readme():
@@ -79,4 +80,3 @@ setup(name='pandora_plugin_libsgm',
               'build_dir': ('setup.py', 'doc/build/'),
               'source_dir': ('setup.py', 'doc/source/'),
               'warning_is_error': ('setup.py', True)}})
-

@@ -120,7 +120,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
         Describes the penality method
 
         """
-        print('Penalty method description')
+        print('MC-CNN penalty method description')
 
     def compute_penalty(self, cv: xr.Dataset, img_left: np.ndarray, img_right: np.ndarray) \
             -> Tuple[float, np.ndarray, np.ndarray]:
@@ -141,17 +141,17 @@ class MccnnPenalty(penalty.AbstractPenalty):
         """
 
         # Calculation of the invalid value
-        p2_max = max(self._p2, self._p2 / self._q2, self._p2 / self._p1)
+        p2_max = max(self._p2, self._p2 / self._q2, self._p2 / self._p1) # type: ignore
         invalid_value = float(cv.attrs['cmax'] + p2_max + 1)
 
         # Compute penalties
-        p1_mask, p2_mask = self.mc_cnn_penalty_function(img_left, img_right, self._p1, self._p2, self._q1, self._q2,
-                                                        self._d, self._v, self._directions)
+        p1_mask, p2_mask = self.mc_cnn_penalty_function(img_left, img_right, self._p1, self._p2, self._q1,# type: ignore
+                                                        self._q2, self._d, self._v, self._directions) # type: ignore
 
         return invalid_value, p1_mask, p2_mask
 
     @staticmethod
-    def compute_gradient(img: np.ndarray, direction: List[List[int]]) -> np.ndarray:
+    def compute_gradient(img: np.ndarray, direction: List[int]) -> np.ndarray:
         """
         Compute image gradient
 

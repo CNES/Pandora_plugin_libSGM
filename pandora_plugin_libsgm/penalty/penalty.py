@@ -58,7 +58,7 @@ class AbstractPenalty():
                     logging.error('No penalty method named % supported', cfg['penalty_method'])
                     sys.exit(1)
             else:
-                if isinstance(cfg['penalty_method'], unicode): # pylint: disable=undefined-variable
+                if isinstance(cfg['penalty_method'], unicode):# type: ignore # pylint: disable=undefined-variable
                     # creating a plugin from registered short name given as unicode (py2 & 3 compatibility)
                     try:
                         return super(AbstractPenalty, cls).__new__(
