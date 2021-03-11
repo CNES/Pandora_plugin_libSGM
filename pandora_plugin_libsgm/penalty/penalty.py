@@ -70,16 +70,19 @@ class AbstractPenalty():
             return super(AbstractPenalty, cls).__new__(cls)
 
     @classmethod
-    def register_subclass(cls, short_name: str):
+    def register_subclass(cls, short_name: str, *args: str):
         """
         Allows to register the subclass with its short name
 
         :param short_name: the subclass to be registered
         :type short_name: string
+        :param args: allows to register one plugin that contains different methods
+        :param args: string
         """
-
         def decorator(subclass):
             cls.penalty_methods_avail[short_name] = subclass
+            for arg in args:
+                cls.penalty_methods_avail[arg] = subclass
             return subclass
 
         return decorator
