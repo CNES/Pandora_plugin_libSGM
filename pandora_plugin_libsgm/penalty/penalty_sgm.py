@@ -124,7 +124,7 @@ class SgmPenalty(penalty.AbstractPenalty):
         """
         print('SGM penalty method description')
 
-    def compute_penalty(self, cv: xr.Dataset, img_left: np.ndarray, img_right: np.ndarray) -> Tuple[
+    def compute_penalty(self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset) -> Tuple[
         float, np.ndarray, np.ndarray]:
         """
         Compute penalty
@@ -135,12 +135,15 @@ class SgmPenalty(penalty.AbstractPenalty):
             - confidence_measure 3D xarray.DataArray (row, col, indicator)
         :type cv: xarray.Dataset
         :param img_left: left  image
-        :type img_left: numpy array
+        :type img_left: xarray.Dataset
         :param img_right: right  image
-        :type img_right: numpy array
+        :type img_right: xarray.Dataset
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
+
+        # Get array
+        img_left_array = img_left['im'].data
 
         # Calculation of the invalid value according to the chosen P2 estimation method
         invalid_value = None
@@ -153,19 +156,18 @@ class SgmPenalty(penalty.AbstractPenalty):
 
         # Compute penalties
         if self._p2_method == 'negativeGradient':
-            p1_mask, p2_mask = self.negative_penalty_function(img_left, self._p1, self._p2,  # type: ignore
+            p1_mask, p2_mask = self.negative_penalty_function(img_left_array, self._p1, self._p2,  # type: ignore
                                                               self._directions, self._alpha, # type: ignore
                                                               self._gamma)  # type: ignore
 
         elif self._p2_method == 'inverseGradient':
-            p1_mask, p2_mask = self.inverse_penalty_function(img_left, self._p1, self._p2,  # type: ignore
+            p1_mask, p2_mask = self.inverse_penalty_function(img_left_array, self._p1, self._p2,  # type: ignore
                                                              self._directions, self._alpha, self._beta, # type: ignore
                                                              self._gamma)  # type: ignore
 
-
         else:
             # Default p2_method is constant
-            p1_mask, p2_mask = self.constant_penalty_function(img_left, self._p1,  # type: ignore
+            p1_mask, p2_mask = self.constant_penalty_function(img_left_array, self._p1,  # type: ignore
                                                               self._p2, self._directions)  # type: ignore
 
         return invalid_value, p1_mask, p2_mask
