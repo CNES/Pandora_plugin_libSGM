@@ -33,7 +33,7 @@ from pandora.common import is_method
 from pandora_plugin_libsgm.penalty import penalty
 
 
-@penalty.AbstractPenalty.register_subclass('sgm_penalty')
+@penalty.AbstractPenalty.register_subclass("sgm_penalty")
 class SgmPenalty(penalty.AbstractPenalty):
     """
 
@@ -44,10 +44,10 @@ class SgmPenalty(penalty.AbstractPenalty):
     # Default configuration, do not change these values
     _P1 = 8
     _P2 = 32
-    _ALPHA = 1.
+    _ALPHA = 1.0
     _BETA = 1
     _GAMMA = 1
-    _P2_METHOD = 'constant'
+    _P2_METHOD = "constant"
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
 
@@ -60,14 +60,14 @@ class SgmPenalty(penalty.AbstractPenalty):
         :type cfg: dict
         """
         self.cfg = self.check_conf(**cfg)
-        self._p1 = self.cfg['P1']
-        self._p2 = self.cfg['P2']
-        self._alpha = self.cfg['alpha']
-        self._beta = self.cfg['beta']
-        self._gamma = self.cfg['gamma']
-        self._overcounting = self.cfg['overcounting']
-        self._p2_method = self.cfg['p2_method']
-        self._min_cost_paths = self.cfg['min_cost_paths']
+        self._p1 = self.cfg["P1"]
+        self._p2 = self.cfg["P2"]
+        self._alpha = self.cfg["alpha"]
+        self._beta = self.cfg["beta"]
+        self._gamma = self.cfg["gamma"]
+        self._overcounting = self.cfg["overcounting"]
+        self._p2_method = self.cfg["p2_method"]
+        self._min_cost_paths = self.cfg["min_cost_paths"]
         self._directions = directions
 
     def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
@@ -80,37 +80,37 @@ class SgmPenalty(penalty.AbstractPenalty):
         :rtype cfg: dict
         """
         # Give the default value if the required element is not in the configuration
-        if 'P1' not in cfg:
-            cfg['P1'] = self._P1
-        if 'P2' not in cfg:
-            cfg['P2'] = self._P2
-        if 'alpha' not in cfg:
-            cfg['alpha'] = self._ALPHA
-        if 'beta' not in cfg:
-            cfg['beta'] = self._BETA
-        if 'gamma' not in cfg:
-            cfg['gamma'] = self._GAMMA
-        if 'p2_method' not in cfg:
-            cfg['p2_method'] = self._P2_METHOD
-        if 'overcounting' not in cfg:
-            cfg['overcounting'] = self._OVERCOUNTING
-        if 'min_cost_paths' not in cfg:
-            cfg['min_cost_paths'] = self._MIN_COST_PATH
+        if "P1" not in cfg:
+            cfg["P1"] = self._P1
+        if "P2" not in cfg:
+            cfg["P2"] = self._P2
+        if "alpha" not in cfg:
+            cfg["alpha"] = self._ALPHA
+        if "beta" not in cfg:
+            cfg["beta"] = self._BETA
+        if "gamma" not in cfg:
+            cfg["gamma"] = self._GAMMA
+        if "p2_method" not in cfg:
+            cfg["p2_method"] = self._P2_METHOD
+        if "overcounting" not in cfg:
+            cfg["overcounting"] = self._OVERCOUNTING
+        if "min_cost_paths" not in cfg:
+            cfg["min_cost_paths"] = self._MIN_COST_PATH
 
-        p1_value = cfg['P1']
+        p1_value = cfg["P1"]
 
         schema = {
-            'sgm_version': And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
-            'optimization_method': And(str, lambda x: is_method(x, ['sgm'])),
-            'penalty_method': And(str, lambda x: is_method(x, ['sgm_penalty'])),
-            'P1': And(Or(int, float), lambda x: x > 0),
-            'P2': And(Or(int, float), lambda x: x > p1_value),
-            'alpha': And(Or(int, float), lambda x: x >= 0),
-            'beta': And(Or(int, float), lambda x: x > 0),
-            'gamma': And(Or(int, float), lambda x: x > 0),
-            'p2_method': And(str, lambda x: is_method(x, ['constant', 'negativeGradient', 'inverseGradient'])),
-            'overcounting': bool,
-            'min_cost_paths': bool
+            "sgm_version": And(str, lambda x: is_method(x, ["c++", "python_libsgm", "python_libsgm_parall"])),
+            "optimization_method": And(str, lambda x: is_method(x, ["sgm"])),
+            "penalty_method": And(str, lambda x: is_method(x, ["sgm_penalty"])),
+            "P1": And(Or(int, float), lambda x: x > 0),
+            "P2": And(Or(int, float), lambda x: x > p1_value),
+            "alpha": And(Or(int, float), lambda x: x >= 0),
+            "beta": And(Or(int, float), lambda x: x > 0),
+            "gamma": And(Or(int, float), lambda x: x > 0),
+            "p2_method": And(str, lambda x: is_method(x, ["constant", "negativeGradient", "inverseGradient"])),
+            "overcounting": bool,
+            "min_cost_paths": bool,
         }
 
         checker = Checker(schema)
@@ -122,10 +122,11 @@ class SgmPenalty(penalty.AbstractPenalty):
         Describes the penality method
 
         """
-        print('SGM penalty method description')
+        print("SGM penalty method description")
 
-    def compute_penalty(self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset) -> Tuple[
-        float, np.ndarray, np.ndarray]:
+    def compute_penalty(
+        self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset
+    ) -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
 
@@ -143,57 +144,56 @@ class SgmPenalty(penalty.AbstractPenalty):
         """
 
         # Get array
-        img_left_array = img_left['im'].data
+        img_left_array = img_left["im"].data
 
         # Calculation of the invalid value according to the chosen P2 estimation method
         invalid_value = None
-        if self._p2_method == 'constant':
-            invalid_value = float(cv.attrs['cmax'] + self._p2 + 1)
-        elif self._p2_method == 'negativeGradient':
-            invalid_value = float(cv.attrs['cmax'] + self._gamma + 1)
-        elif self._p2_method == 'inverseGradient':
-            invalid_value = float(cv.attrs['cmax'] + self._gamma + (self._alpha / self._beta) + 1)  # type: ignore
+        if self._p2_method == "constant":
+            invalid_value = float(cv.attrs["cmax"] + self._p2 + 1)
+        elif self._p2_method == "negativeGradient":
+            invalid_value = float(cv.attrs["cmax"] + self._gamma + 1)
+        elif self._p2_method == "inverseGradient":
+            invalid_value = float(cv.attrs["cmax"] + self._gamma + (self._alpha / self._beta) + 1)  # type: ignore
 
         # Compute penalties
-        if self._p2_method == 'negativeGradient':
-            p1_mask, p2_mask = self.negative_penalty_function(img_left_array, self._p1, self._p2,  # type: ignore
-                                                              self._directions, self._alpha, # type: ignore
-                                                              self._gamma)  # type: ignore
+        if self._p2_method == "negativeGradient":
+            p1_mask, p2_mask = self.negative_penalty_function(
+                img_left_array,
+                self._p1,  # type: ignore
+                self._p2,  # type: ignore
+                self._directions,
+                self._alpha,  # type: ignore
+                self._gamma,  # type: ignore
+            )
 
-        elif self._p2_method == 'inverseGradient':
-            p1_mask, p2_mask = self.inverse_penalty_function(img_left_array, self._p1, self._p2,  # type: ignore
-                                                             self._directions, self._alpha, self._beta, # type: ignore
-                                                             self._gamma)  # type: ignore
+        elif self._p2_method == "inverseGradient":
+            p1_mask, p2_mask = self.inverse_penalty_function(
+                img_left_array,
+                self._p1,  # type: ignore
+                self._p2,  # type: ignore
+                self._directions,
+                self._alpha,  # type: ignore
+                self._beta,  # type: ignore
+                self._gamma,  # type: ignore
+            )
 
         else:
             # Default p2_method is constant
-            p1_mask, p2_mask = self.constant_penalty_function(img_left_array, self._p1,  # type: ignore
-                                                              self._p2, self._directions)  # type: ignore
+            p1_mask, p2_mask = self.constant_penalty_function(
+                img_left_array, self._p1, self._p2, self._directions  # type: ignore
+            )
 
         return invalid_value, p1_mask, p2_mask
 
-    @staticmethod
-    def compute_gradient(img: np.ndarray, direction: List[int]) -> np.ndarray:
-        """
-        Compute image gradient
-
-        :param img: image
-        :type img: numpy array of shape(n,m)
-        :param direction: directions to
-        :type direction: list of [x offset, y offset]
-        :return: gradient
-        :rtype: numpy array of shape(n-dir[0], m-dir[1])
-        """
-        mat1 = img[max(direction[0], 0): min(img.shape[0] + direction[0], img.shape[0]), max(direction[1], 0)
-               : min(img.shape[1] + direction[1], img.shape[1])]
-        mat2 = img[max(-direction[0], 0): min(img.shape[0] - direction[0], img.shape[0]),
-               max(-direction[1], 0): min(img.shape[1] - direction[1], img.shape[1])]
-
-        return np.abs(mat1 - mat2)
-
-    def negative_penalty_function(self, img_left: np.ndarray, p1: Union[int, float], p2: Union[int, float],
-                                  directions: List[List[int]], alpha: float, gamma: float) -> Tuple[
-        np.ndarray, np.ndarray]:
+    def negative_penalty_function(
+        self,
+        img_left: np.ndarray,
+        p1: Union[int, float],
+        p2: Union[int, float],
+        directions: List[List[int]],
+        alpha: float,
+        gamma: float,
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute negative penalty
 
@@ -219,17 +219,27 @@ class SgmPenalty(penalty.AbstractPenalty):
         for i in range(nb_directions):
             direction = directions[i]
             abs_gradient = self.compute_gradient(img_left[:, :], direction)
-            p2_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
-            max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = \
-                - alpha * abs_gradient + gamma
+            val = -alpha * abs_gradient + gamma
+            p2_mask[
+                max(0, direction[0]) : min(img_left.shape[0] + direction[0], img_left.shape[0]),
+                max(0, direction[1]) : min(img_left.shape[1] + direction[1], img_left.shape[1]),
+                i,
+            ] = val
         # if p2 < defaultP2 then p2
         msk = p2_mask < p2
         p2_mask = p2 * msk + p2_mask * (1 - msk)
         return p1_mask, p2_mask
 
-    def inverse_penalty_function(self, img_left: np.ndarray, p1: Union[int, float], p2: Union[int, float],
-                                 directions: List[List[int]], alpha: float, beta: float, gamma: float) -> \
-            Tuple[np.ndarray, np.ndarray]:
+    def inverse_penalty_function(
+        self,
+        img_left: np.ndarray,
+        p1: Union[int, float],
+        p2: Union[int, float],
+        directions: List[List[int]],
+        alpha: float,
+        beta: float,
+        gamma: float,
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute inverse penalty
 
@@ -257,17 +267,21 @@ class SgmPenalty(penalty.AbstractPenalty):
         for i in range(nb_directions):
             direc = directions[i]
             abs_gradient = self.compute_gradient(img_left[:, :], direc)
-            p2_mask[max(0, direc[0]): min(img_left.shape[0] + direc[0], img_left.shape[0]),
-            max(0, direc[1]): min(img_left.shape[1] + direc[1], img_left.shape[1]), i] = \
-                alpha / (abs_gradient + beta) + gamma
+            val = alpha / (abs_gradient + beta) + gamma
+            p2_mask[
+                max(0, direc[0]) : min(img_left.shape[0] + direc[0], img_left.shape[0]),
+                max(0, direc[1]) : min(img_left.shape[1] + direc[1], img_left.shape[1]),
+                i,
+            ] = val
         # if p2 < defaultP2 then p2
         msk = p2_mask < p2
         p2_mask = p2 * msk + p2_mask * (1 - msk)
         return p1_mask, p2_mask
 
     @staticmethod
-    def constant_penalty_function(img_left: np.ndarray, p1: Union[int, float], p2: Union[int, float],
-                                  directions: List[List[int]]) -> Tuple[np.ndarray, np.ndarray]:
+    def constant_penalty_function(
+        img_left: np.ndarray, p1: Union[int, float], p2: Union[int, float], directions: List[List[int]]
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute constant penalty
 
