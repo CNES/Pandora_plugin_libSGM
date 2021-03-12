@@ -32,15 +32,18 @@ import numpy as np
 import xarray as xr
 
 
-class AbstractPenalty():
+class AbstractPenalty:
     """
     Penalty abstract class
     """
+
     __metaclass__ = ABCMeta
 
     penalty_methods_avail = {}
 
-    def __new__(cls, directions: List[List[int]], **cfg: Union[str, int, float, bool]):# pylint: disable=unused-argument
+    def __new__(
+        cls, directions: List[List[int]], **cfg: Union[str, int, float, bool]
+    ):  # pylint: disable=unused-argument
 
         """
         Return the plugin associated with the penality_method given in the configuration
@@ -51,20 +54,21 @@ class AbstractPenalty():
         :type cfg: dictionary
         """
         if cls is AbstractPenalty:
-            if isinstance(cfg['penalty_method'], str):
+            if isinstance(cfg["penalty_method"], str):
                 try:
-                    return super(AbstractPenalty, cls).__new__(cls.penalty_methods_avail[cfg['penalty_method']])
+                    return super(AbstractPenalty, cls).__new__(cls.penalty_methods_avail[cfg["penalty_method"]])
                 except KeyError:
-                    logging.error('No penalty method named % supported', cfg['penalty_method'])
+                    logging.error("No penalty method named % supported", cfg["penalty_method"])
                     sys.exit(1)
             else:
-                if isinstance(cfg['penalty_method'], unicode):# type: ignore # pylint: disable=undefined-variable
+                if isinstance(cfg["penalty_method"], unicode):  # type: ignore # pylint: disable=undefined-variable
                     # creating a plugin from registered short name given as unicode (py2 & 3 compatibility)
                     try:
                         return super(AbstractPenalty, cls).__new__(
-                            cls.penalty_methods_avail[cfg['penalty_method'].encode('utf-8')])
+                            cls.penalty_methods_avail[cfg["penalty_method"].encode("utf-8")]
+                        )
                     except KeyError:
-                        logging.error('No penalty method named % supported', cfg['penalty_method'])
+                        logging.error("No penalty method named % supported", cfg["penalty_method"])
                         sys.exit(1)
         else:
             return super(AbstractPenalty, cls).__new__(cls)
@@ -79,6 +83,7 @@ class AbstractPenalty():
         :param args: allows to register one plugin that contains different methods
         :param args: string
         """
+
         def decorator(subclass):
             cls.penalty_methods_avail[short_name] = subclass
             for arg in args:
@@ -93,11 +98,12 @@ class AbstractPenalty():
         Describes the penalty method
 
         """
-        print('Penalty method description')
+        print("Penalty method description")
 
     @abstractmethod
-    def compute_penalty(self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset) \
-            -> Tuple[float, np.ndarray, np.ndarray]:
+    def compute_penalty(
+        self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset
+    ) -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
 
@@ -113,3 +119,26 @@ class AbstractPenalty():
         :return: P1 and P2 penalties
         :rtype: tuple(numpy array, numpy array)
         """
+
+    @staticmethod
+    def compute_gradient(img: np.ndarray, direction: List[int]) -> np.ndarray:
+        """
+        Compute image gradient
+
+        :param img: image
+        :type img: numpy array of shape(n,m)
+        :param direction: directions to
+        :type direction: list of [x offset, y offset]
+        :return: Gradient
+        :rtype: numpy array of shape(n-dir[0], m-dir[1])
+        """
+        mat1 = img[
+            max(direction[0], 0) : min(img.shape[0] + direction[0], img.shape[0]),
+            max(direction[1], 0) : min(img.shape[1] + direction[1], img.shape[1]),
+        ]
+        mat2 = img[
+            max(-direction[0], 0) : min(img.shape[0] - direction[0], img.shape[0]),
+            max(-direction[1], 0) : min(img.shape[1] - direction[1], img.shape[1]),
+        ]
+
+        return np.abs(mat1 - mat2)

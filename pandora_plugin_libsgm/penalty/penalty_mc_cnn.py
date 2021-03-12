@@ -33,13 +33,14 @@ from pandora.common import is_method
 from pandora_plugin_libsgm.penalty import penalty
 
 
-@penalty.AbstractPenalty.register_subclass('mc_cnn_fast_penalty', 'mc_cnn_accurate_penalty')
+@penalty.AbstractPenalty.register_subclass("mc_cnn_fast_penalty", "mc_cnn_accurate_penalty")
 class MccnnPenalty(penalty.AbstractPenalty):
     """
 
     MC-CNN Penalty
 
     """
+
     # Default mc-cnn fast penalty
     _P1_FAST = 2.3
     _P2_FAST = 55.9
@@ -68,14 +69,14 @@ class MccnnPenalty(penalty.AbstractPenalty):
         :type cfg: dict
         """
         self.cfg = self.check_conf(**cfg)
-        self._p1 = self.cfg['P1']
-        self._p2 = self.cfg['P2']
-        self._q1 = self.cfg['Q1']
-        self._q2 = self.cfg['Q2']
-        self._d = self.cfg['D']
-        self._v = self.cfg['V']
-        self._overcounting = self.cfg['overcounting']
-        self._min_cost_paths = self.cfg['min_cost_paths']
+        self._p1 = self.cfg["P1"]
+        self._p2 = self.cfg["P2"]
+        self._q1 = self.cfg["Q1"]
+        self._q2 = self.cfg["Q2"]
+        self._d = self.cfg["D"]
+        self._v = self.cfg["V"]
+        self._overcounting = self.cfg["overcounting"]
+        self._min_cost_paths = self.cfg["min_cost_paths"]
         self._directions = directions
 
     def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
@@ -88,7 +89,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
         :rtype cfg: dict
         """
         # Load default penalties according to the type of mc-cnn measure
-        if cfg['penalty_method'] == 'mc_cnn_accurate_penalty':
+        if cfg["penalty_method"] == "mc_cnn_accurate_penalty":
             default_p1 = self._P1_ACCURATE
             default_p2 = self._P2_ACCURATE
             default_q1 = self._Q1_ACCURATE
@@ -104,36 +105,42 @@ class MccnnPenalty(penalty.AbstractPenalty):
             default_v = self._V_FAST
 
         # Give the default value if the required element is not in the configuration
-        if 'P1' not in cfg:
-            cfg['P1'] = default_p1
-        if 'P2' not in cfg:
-            cfg['P2'] = default_p2
-        if 'Q1' not in cfg:
-            cfg['Q1'] = default_q1
-        if 'Q2' not in cfg:
-            cfg['Q2'] = default_q2
-        if 'D' not in cfg:
-            cfg['D'] = default_d
-        if 'V' not in cfg:
-            cfg['V'] = default_v
-        if 'overcounting' not in cfg:
-            cfg['overcounting'] = self._OVERCOUNTING
-        if 'min_cost_paths' not in cfg:
-            cfg['min_cost_paths'] = self._MIN_COST_PATH
+        if "P1" not in cfg:
+            cfg["P1"] = default_p1
+        if "P2" not in cfg:
+            cfg["P2"] = default_p2
+        if "Q1" not in cfg:
+            cfg["Q1"] = default_q1
+        if "Q2" not in cfg:
+            cfg["Q2"] = default_q2
+        if "D" not in cfg:
+            cfg["D"] = default_d
+        if "V" not in cfg:
+            cfg["V"] = default_v
+        if "overcounting" not in cfg:
+            cfg["overcounting"] = self._OVERCOUNTING
+        if "min_cost_paths" not in cfg:
+            cfg["min_cost_paths"] = self._MIN_COST_PATH
 
-        p1_value = cfg['P1']
+        p1_value = cfg["P1"]
         schema = {
-            'sgm_version': And(str, lambda x: is_method(x, ['c++', 'python_libsgm', 'python_libsgm_parall'])),
-            'optimization_method': And(str, lambda x: is_method(x, ['sgm'])),
-            'penalty_method': And(str, lambda x: is_method(x, ['mc_cnn_fast_penalty', 'mc_cnn_accurate_penalty'])),
-            'P1': And(Or(int, float), lambda x: x > 0),
-            'P2': And(Or(int, float), lambda x: x > p1_value),
-            'Q1': And(Or(int, float), lambda x: x > 0),
-            'Q2': And(Or(int, float), lambda x: x > 0),
-            'D': And(Or(int, float), lambda x: x >= 0),
-            'V': And(Or(int, float), lambda x: x > 0),
-            'overcounting': bool,
-            'min_cost_paths': bool
+            "sgm_version": And(
+                str,
+                lambda x: is_method(x, ["c++", "python_libsgm", "python_libsgm_parall"]),
+            ),
+            "optimization_method": And(str, lambda x: is_method(x, ["sgm"])),
+            "penalty_method": And(
+                str,
+                lambda x: is_method(x, ["mc_cnn_fast_penalty", "mc_cnn_accurate_penalty"]),
+            ),
+            "P1": And(Or(int, float), lambda x: x > 0),
+            "P2": And(Or(int, float), lambda x: x > p1_value),
+            "Q1": And(Or(int, float), lambda x: x > 0),
+            "Q2": And(Or(int, float), lambda x: x > 0),
+            "D": And(Or(int, float), lambda x: x >= 0),
+            "V": And(Or(int, float), lambda x: x > 0),
+            "overcounting": bool,
+            "min_cost_paths": bool,
         }
 
         checker = Checker(schema)
@@ -145,10 +152,11 @@ class MccnnPenalty(penalty.AbstractPenalty):
         Describes the penality method
 
         """
-        print('MC-CNN penalty method description')
+        print("MC-CNN penalty method description")
 
-    def compute_penalty(self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset) \
-            -> Tuple[float, np.ndarray, np.ndarray]:
+    def compute_penalty(
+        self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset
+    ) -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
 
@@ -165,43 +173,41 @@ class MccnnPenalty(penalty.AbstractPenalty):
         :rtype: tuple(numpy array, numpy array)
         """
         # Get array
-        img_left_array = img_left['im'].data
-        img_right_array = img_right['im'].data
+        img_left_array = img_left["im"].data
+        img_right_array = img_right["im"].data
 
         # Calculation of the invalid value
-        p2_max = max(self._p2, self._p2 / self._q2, self._p2 / self._p1) # type: ignore
-        invalid_value = float(cv.attrs['cmax'] + p2_max + 1)
+        p2_max = max(self._p2, self._p2 / self._q2, self._p2 / self._p1)  # type: ignore
+        invalid_value = float(cv.attrs["cmax"] + p2_max + 1)
 
         # Compute penalties
 
-        p1_mask, p2_mask = self.mc_cnn_penalty_function(img_left_array, img_right_array, self._p1, self._p2, self._q1,
-                                                        self._q2, self._d, self._v, self._directions)
+        p1_mask, p2_mask = self.mc_cnn_penalty_function(
+            img_left_array,
+            img_right_array,
+            self._p1,  # type: ignore
+            self._p2,  # type: ignore
+            self._q1,  # type: ignore
+            self._q2,  # type: ignore
+            self._d,  # type: ignore
+            self._v,  # type: ignore
+            self._directions,
+        )
 
         return invalid_value, p1_mask, p2_mask
 
-    @staticmethod
-    def compute_gradient(img: np.ndarray, direction: List[int]) -> np.ndarray:
-        """
-        Compute image gradient
-
-        :param img: image
-        :type img: numpy array of shape(n,m)
-        :param direction: directions to
-        :type direction: list of [x offset, y offset]
-        :return: Gradient
-        :rtype: numpy array of shape(n-dir[0], m-dir[1])
-        """
-        mat1 = img[max(direction[0], 0): min(img.shape[0] + direction[0], img.shape[0]),
-               max(direction[1], 0): min(img.shape[1] + direction[1], img.shape[1])]
-        mat2 = img[max(-direction[0], 0): min(img.shape[0] - direction[0], img.shape[0]),
-               max(-direction[1], 0): min(img.shape[1] - direction[1], img.shape[1])]
-
-        return np.abs(mat1 - mat2)
-
-    def mc_cnn_penalty_function(self, img_left: np.ndarray, img_right: np.ndarray, # pylint: disable=too-many-arguments
-                                p1_mccnn: Union[int, float], p2_mccnn: Union[int, float], q1_mccnn: Union[int, float],
-                                q2_mccnn: Union[int, float], d_mccnn: Union[int, float], v_mccnn: Union[int, float],
-                                directions: List[List[int]]) -> Tuple[np.ndarray, np.ndarray]:
+    def mc_cnn_penalty_function(  # pylint: disable=too-many-arguments
+        self,
+        img_left: np.ndarray,
+        img_right: np.ndarray,
+        p1_mccnn: Union[int, float],
+        p2_mccnn: Union[int, float],
+        q1_mccnn: Union[int, float],
+        q2_mccnn: Union[int, float],
+        d_mccnn: Union[int, float],
+        v_mccnn: Union[int, float],
+        directions: List[List[int]],
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Compute mc_cnn penalty
 
@@ -247,10 +253,16 @@ class MccnnPenalty(penalty.AbstractPenalty):
             final_p1 = final_p1 + msk3 * (p1_mccnn / q1_mccnn) * np.ones(abs_gradient_left.shape)
             final_p2 = final_p2 + msk3 * (p2_mccnn / q1_mccnn) * np.ones(abs_gradient_left.shape)
 
-            p1_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
-            max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p1
-            p2_mask[max(0, direction[0]): min(img_left.shape[0] + direction[0], img_left.shape[0]),
-            max(0, direction[1]): min(img_left.shape[1] + direction[1], img_left.shape[1]), i] = final_p2
+            p1_mask[
+                max(0, direction[0]) : min(img_left.shape[0] + direction[0], img_left.shape[0]),
+                max(0, direction[1]) : min(img_left.shape[1] + direction[1], img_left.shape[1]),
+                i,
+            ] = final_p1
+            p2_mask[
+                max(0, direction[0]) : min(img_left.shape[0] + direction[0], img_left.shape[0]),
+                max(0, direction[1]) : min(img_left.shape[1] + direction[1], img_left.shape[1]),
+                i,
+            ] = final_p2
 
             if i in [1, 5]:
                 p1_mask[:, :, i] = p1_mask[:, :, i] / v_mccnn
