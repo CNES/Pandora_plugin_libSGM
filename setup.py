@@ -38,7 +38,9 @@ except ImportError:
 
 REQUIREMENTS = ["numpy", "xarray", "nose2", "json-checker", "rasterio", "libsgm==0.3.1", "pandora>=0.5.0"]
 
-REQUIREMENTS_DEV = {"dev": ["sphinx", "sphinx_rtd_theme", "sphinx_autoapi", "nose2", "pylint", "pre-commit", "mypy"]}
+REQUIREMENTS_DEV = {
+    "dev": ["sphinx", "sphinx_rtd_theme", "sphinx_autoapi", "nose2", "pylint", "pre-commit", "mypy", "black"]
+}
 
 
 def readme():
