@@ -19,10 +19,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-'''
+"""
 This module contains the required libraries and softwares allowing to execute the software,
  and setup elements to configure and identify the software.
-'''
+"""
 
 from codecs import open as copen
 
@@ -32,51 +32,45 @@ cmdclass = {}
 try:
     from sphinx.setup_command import BuildDoc
 
-    cmdclass['build_sphinx'] = BuildDoc
+    cmdclass["build_sphinx"] = BuildDoc
 except ImportError:
-    print('WARNING: sphinx not available. Doc cannot be built')
+    print("WARNING: sphinx not available. Doc cannot be built")
 
-REQUIREMENTS = ['numpy',
-                'xarray',
-                'nose2',
-                'json-checker',
-                'rasterio',
-                'libsgm==0.3.1',
-                'pandora>=0.5.0']
+REQUIREMENTS = ["numpy", "xarray", "nose2", "json-checker", "rasterio", "libsgm==0.3.1", "pandora>=0.5.0"]
 
-REQUIREMENTS_DEV = {'dev': ['sphinx',
-                            'sphinx_rtd_theme',
-                            'sphinx_autoapi',
-                            'nose2',
-                            'pylint',
-                            'pre-commit',
-                            'mypy']}
+REQUIREMENTS_DEV = {
+    "dev": ["sphinx", "sphinx_rtd_theme", "sphinx_autoapi", "nose2", "pylint", "pre-commit", "mypy", "black"]
+}
 
 
 def readme():
-    with copen('README.md', 'r', 'utf-8') as fstream:
+    with copen("README.md", "r", "utf-8") as fstream:
         return fstream.read()
 
 
-setup(name='pandora_plugin_libsgm',
-      version='x.y.z',
-      description='Pandora plugin to optimize the cost volume with the LibSGM library',
-      long_description=readme(),
-      long_description_content_type='text/markdown',
-      url='https://github.com/CNES/Pandora_plugin_libsgm',
-      author='CNES',
-      author_email='myriam.cournet@cnes.fr',
-      license='Apache License 2.0',
-      packages=find_packages(),
-      install_requires=REQUIREMENTS,
-      extras_require=REQUIREMENTS_DEV,
-      entry_points='''
+setup(
+    name="pandora_plugin_libsgm",
+    version="x.y.z",
+    description="Pandora plugin to optimize the cost volume with the LibSGM library",
+    long_description=readme(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/CNES/Pandora_plugin_libsgm",
+    author="CNES",
+    author_email="myriam.cournet@cnes.fr",
+    license="Apache License 2.0",
+    packages=find_packages(),
+    install_requires=REQUIREMENTS,
+    extras_require=REQUIREMENTS_DEV,
+    entry_points="""
           [pandora.plugin]
           pandora_plugin_libsgm = pandora_plugin_libsgm.lib_sgm:SGM
-      ''',
-      cmdclass=cmdclass,
-      command_options={
-          'build_sphinx': {
-              'build_dir': ('setup.py', 'doc/build/'),
-              'source_dir': ('setup.py', 'doc/source/'),
-              'warning_is_error': ('setup.py', True)}})
+      """,
+    cmdclass=cmdclass,
+    command_options={
+        "build_sphinx": {
+            "build_dir": ("setup.py", "doc/build/"),
+            "source_dir": ("setup.py", "doc/source/"),
+            "warning_is_error": ("setup.py", True),
+        }
+    },
+)
