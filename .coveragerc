@@ -1,0 +1,5 @@
+[run]
+source = pandora_plugin_libsgm
+omit =
+    # Omit tests
+    /tests/*
