@@ -1,12 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 (March 2021)
 
 ### BREAKING CHANGE
 
 - Penalties method : removes mc_cnn_penalty parameter, added mc_cnn_fast_penalty and mc_cnn_accurate_penalty parameters
   to be able to automatically load the penalties according to the type of measure. 
 - Change compute_penalty to take images datasets as input.
+- Update depency to Pandora 1.0.0 version.[#59]
 
 ## 0.6.0 (January 2021)
 

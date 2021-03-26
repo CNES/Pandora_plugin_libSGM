@@ -9,7 +9,9 @@
       "window_size": 5,
       "subpix": 1
     },
-
+    "cost_volume_confidence" : {
+      "confidence_method": "std_intensity"
+    },
     "optimization" : {
       "optimization_method": "sgm",
       "P1": 8,

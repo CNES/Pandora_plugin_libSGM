@@ -29,6 +29,7 @@ from typing import Dict, Union
 import numpy as np
 import xarray as xr
 from libSGM import sgm_wrapper  # pylint: disable=no-name-in-module
+from pandora.cost_volume_confidence import AbstractCostVolumeConfidence
 from pandora.optimization import optimization
 from pkg_resources import iter_entry_points
 
@@ -229,24 +230,20 @@ class SGM(optimization.AbstractOptimization):
         invalid_pixel = np.where(invalid_mc)
         disp_map[invalid_pixel] = np.nan
 
-        # Add a new indicator to the confidence measure DataArray
-        row, col, nb_indicator = cv["confidence_measure"].shape
-        conf_measure = np.zeros((row, col, nb_indicator + 1), dtype=np.float32)
-        conf_measure[:, :, :-1] = cv["confidence_measure"].data
-
-        indicator = np.copy(cv.coords["indicator"])
-        indicator = np.append(indicator, "optimization_pluginlibSGM_nbOfDisp")
-
-        # Remove confidence_measure dataArray from the dataset to update it
-        cv = cv.drop_dims("indicator")
-        cv = cv.assign_coords(indicator=indicator)
-        cv["confidence_measure"] = xr.DataArray(data=conf_measure, dims=["row", "col", "indicator"])
+        # Compute the confidence measure
+        row, col, _ = cv["cost_volume"].shape
+        conf_map = np.zeros((row, col), dtype=np.float32)
 
         # Allocate the number of paths given the same disparity as the one which has calculated the min cost
         for disp in range(disp_paths.shape[2]):
             pos_y, pos_x = np.where(disp_paths[:, :, disp] == disp_map)
-            cv["confidence_measure"].data[pos_y, pos_x, -1] += 1
-        cv["confidence_measure"].data[:, :, -1][invalid_pixel] = np.nan
+            conf_map[pos_y, pos_x] += 1
+        conf_map[invalid_pixel] = np.nan
+
+        # Allocate the confidence measure
+        _, cv = AbstractCostVolumeConfidence.allocate_confidence_map(
+            "optimization_pluginlibSGM_nbOfDisp", conf_map, None, cv
+        )
 
         del invalid_mc
         del disp_map
