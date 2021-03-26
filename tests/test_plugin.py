@@ -30,7 +30,7 @@ import rasterio
 import xarray as xr
 
 import pandora
-from pandora import matching_cost, optimization
+from pandora import matching_cost, optimization, cost_volume_confidence
 from pandora.state_machine import PandoraMachine
 import common
 
@@ -229,19 +229,109 @@ class TestPlugin(unittest.TestCase):
         left = xr.Dataset(
             {"im": (["row", "col"], data)},
             coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1},
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
         )
 
         data = np.array(([1, 1, 1, 2, 2], [1, 1, 1, 4, 2], [1, 1, 1, 4, 4], [1, 1, 1, 1, 1]), dtype=np.float32)
         right = xr.Dataset(
             {"im": (["row", "col"], data)},
             coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1},
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
         )
 
         # Computes the cost volume dataset
         cv = matching_cost_.compute_cost_volume(img_left=left, img_right=right, disp_min=-2, disp_max=2)
 
+        # Disparities which give a minimum local cost, in indices
+        disp_path = np.array(
+            [
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [1, 3, 2, 3, 1, 3, 3, 2],
+                    [0, 1, 1, 4, 2, 2, 3, 1],
+                    [2, 4, 2, 4, 3, 0, 3, 3],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [3, 3, 2, 3, 1, 0, 1, 3],
+                    [2, 1, 1, 3, 1, 3, 1, 2],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+                [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                ],
+            ],
+            dtype=np.float32,
+        )
+
+        invalid_disp = np.isnan(cv["cost_volume"].data)
+        cv_updated = optimization_.number_of_disp(cv, disp_path, invalid_disp)
+
+        # Ground truth calculated with disp_path
+        gt_disp = np.array(
+            [
+                [np.nan, np.nan, np.nan, np.nan, np.nan],
+                [np.nan, 2, 3, 0, np.nan],
+                [np.nan, 1, 4, 8, np.nan],
+                [np.nan, np.nan, np.nan, np.nan, np.nan],
+            ],
+            dtype=np.float32,
+        )
+
+        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
+        np.testing.assert_array_equal(cv_updated["confidence_measure"].data[:, :, -1], gt_disp)
+
+    @staticmethod
+    def test_number_of_disp_with_previous_confidence():
+        """
+        Test plugin_libsgm number_of_disp function if min_cost_paths is activated and the confidence measure was present
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+        user_cfg["pipeline"]["matching_cost"]["window_size"] = 3
+        user_cfg["pipeline"]["optimization"]["min_cost_paths"] = True
+
+        # Load plugins
+        matching_cost_ = matching_cost.AbstractMatchingCost(**user_cfg["pipeline"]["matching_cost"])
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+        confidence_ = cost_volume_confidence.AbstractCostVolumeConfidence(
+            **user_cfg["pipeline"]["cost_volume_confidence"]
+        )
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        data = np.array(([1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]), dtype=np.float32)
+        left = xr.Dataset(
+            {"im": (["row", "col"], data)},
+            coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+        )
+
+        data = np.array(([1, 1, 1, 2, 2], [1, 1, 1, 4, 2], [1, 1, 1, 4, 4], [1, 1, 1, 1, 1]), dtype=np.float32)
+        right = xr.Dataset(
+            {"im": (["row", "col"], data)},
+            coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+        )
+
+        # Computes the cost volume dataset
+        cv = matching_cost_.compute_cost_volume(img_left=left, img_right=right, disp_min=-2, disp_max=2)
+        left_disp, cv = confidence_.confidence_prediction(None, left, right, cv)  # pylint:disable=unused-variable
         # Disparities which give a minimum local cost, in indices
         disp_path = np.array(
             [
