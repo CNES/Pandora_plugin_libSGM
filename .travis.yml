@@ -1,0 +1,29 @@
+language: python
+python:
+- 3.6
+before_install:
+- python --version
+- pip install -U pip
+- pip install nose2
+- pip install codecov
+install:
+- pip install .
+script:
+- nose2 --plugin nose2.plugins.junitxml --with-coverage --coverage pandora_plugin_libsgm
+  --coverage-report xml -X
+after_success:
+- codecov
+- bash <(curl -s https://codecov.io/bash)
+before_deploy:
+- echo 'update version according to the tag name'
+- sed -i "/version=/d" setup.py
+- sed -i 's|long_description=readme(),|long_description=readme(),\n      version='"'${TRAVIS_TAG}'"',|'
+  setup.py
+- cat setup.py | grep version
+deploy:
+  provider: pypi
+  user: __token__
+  password: $pypi_token
+  on:
+    tags: true
+  skip_cleanup: true
