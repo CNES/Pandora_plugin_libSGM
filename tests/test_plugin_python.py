@@ -28,7 +28,7 @@ import rasterio
 import numpy as np
 
 import pandora
-import common
+import tests.common as common
 from pandora.state_machine import PandoraMachine
 
 
