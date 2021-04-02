@@ -32,7 +32,7 @@ import xarray as xr
 import pandora
 from pandora import matching_cost, optimization, cost_volume_confidence
 from pandora.state_machine import PandoraMachine
-import common
+import tests.common as common
 
 
 class TestPlugin(unittest.TestCase):

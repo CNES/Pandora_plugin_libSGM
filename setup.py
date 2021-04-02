@@ -36,10 +36,12 @@ try:
 except ImportError:
     print("WARNING: sphinx not available. Doc cannot be built")
 
-REQUIREMENTS = ["numpy", "xarray", "nose2", "json-checker", "rasterio", "libsgm==0.3.1", "pandora>=1.0.0"]
+REQUIREMENTS = ["numpy", "xarray", "json-checker", "rasterio", "libsgm==0.3.1", "pandora>=1.0.0"]
 
-REQUIREMENTS_DEV = {"dev": ["sphinx", "sphinx_rtd_theme", "sphinx_autoapi", "nose2", "pylint", "pre-commit", "mypy",
-                            "black"]}
+REQUIREMENTS_DEV = {
+    "dev": ["sphinx", "sphinx_rtd_theme", "sphinx_autoapi", "pytest", "pytest-cov", "pylint", "pre-commit", "mypy",
+            "black"]}
+
 
 def readme():
     with copen("README.md", "r", "utf-8") as fstream:
