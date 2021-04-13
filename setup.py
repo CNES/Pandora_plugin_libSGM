@@ -38,9 +38,21 @@ except ImportError:
 
 REQUIREMENTS = ["numpy", "xarray", "json-checker", "rasterio", "libsgm==0.3.1", "pandora>=1.0.0"]
 
+SETUP_REQUIREMENTS = ["setuptools-scm"]
+
 REQUIREMENTS_DEV = {
-    "dev": ["sphinx", "sphinx_rtd_theme", "sphinx_autoapi", "pytest", "pytest-cov", "pylint", "pre-commit", "mypy",
-            "black"]}
+    "dev": [
+        "sphinx",
+        "sphinx_rtd_theme",
+        "sphinx_autoapi",
+        "pytest",
+        "pytest-cov",
+        "pylint",
+        "pre-commit",
+        "mypy",
+        "black",
+    ]
+}
 
 
 def readme():
@@ -50,7 +62,7 @@ def readme():
 
 setup(
     name="pandora_plugin_libsgm",
-    version="x.y.z",
+    use_scm_version=True,
     description="Pandora plugin to optimize the cost volume with the LibSGM library",
     long_description=readme(),
     long_description_content_type="text/markdown",
@@ -60,6 +72,7 @@ setup(
     license="Apache License 2.0",
     packages=find_packages(),
     install_requires=REQUIREMENTS,
+    setup_requires=SETUP_REQUIREMENTS,
     extras_require=REQUIREMENTS_DEV,
     entry_points="""
           [pandora.plugin]
