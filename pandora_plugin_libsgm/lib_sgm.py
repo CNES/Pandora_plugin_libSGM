@@ -24,7 +24,8 @@ This module provides functions to optimize the cost volume using the LibSGM libr
 """
 
 import copy
-from typing import Dict, Union
+import logging
+from typing import Dict, Union, Tuple
 
 import numpy as np
 import xarray as xr
@@ -50,6 +51,7 @@ class SGM(optimization.AbstractOptimization):
     _MIN_COST_PATH = False
     _PENALTY_METHOD = "sgm_penalty"
     _DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
+    _USE_CONFIDENCE = False
 
     def __init__(self, **cfg: Union[str, int, float, bool]):
         """
@@ -61,6 +63,7 @@ class SGM(optimization.AbstractOptimization):
         self._sgm_version = self.cfg["sgm_version"]
         self._overcounting = self.cfg["overcounting"]
         self._min_cost_paths = self.cfg["min_cost_paths"]
+        self._use_confidence = self.cfg["use_confidence"]
         self._directions = self._DIRECTIONS
         self._penalty = penalty.AbstractPenalty(self._directions, **self.cfg)  # type: ignore
 
@@ -87,6 +90,8 @@ class SGM(optimization.AbstractOptimization):
             cfg["min_cost_paths"] = self._MIN_COST_PATH
         if "penalty_method" not in cfg:
             cfg["penalty_method"] = self._PENALTY_METHOD
+        if "use_confidence" not in cfg:
+            cfg["use_confidence"] = self._USE_CONFIDENCE
 
         return cfg
 
@@ -133,11 +138,14 @@ class SGM(optimization.AbstractOptimization):
         # Compute penalties
         invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left, img_right)
 
+        # Apply confidence to cost volume
+        cv, confidence_is_int = self.apply_confidence(cv, self._use_confidence)  # type:ignore
+
         if self._sgm_version == "c++":
             # If the cost volume is calculated with the census measure and the invalid value <= 255,
             # the cost volume is converted to unint8 to optimize the memory
             # Invalid value must not exceed the maximum value of uint8 type (255)
-            if cv.attrs["measure"] == "census" and invalid_value <= 255:
+            if cv.attrs["measure"] == "census" and invalid_value <= 255 and not confidence_is_int:
                 invalid_value = int(invalid_value)
                 cv["cost_volume"].data = cv["cost_volume"].data.astype(np.uint8)
 
@@ -249,6 +257,45 @@ class SGM(optimization.AbstractOptimization):
         del disp_map
 
         return cv
+
+    @staticmethod
+    def apply_confidence(cv: xr.Dataset, use_confidence: bool) -> Tuple[xr.Dataset, bool]:
+        """
+        Apply the confidence measure to cost volume,as weights.
+
+        :param cv: the original cost volume dataset with the data variables:
+
+                - cost_volume 3D xarray.DataArray (row, col, disp)
+                - confidence_measure 3D xarray.DataArray (row, col, indicator)
+        :type cv: xarray.Dataset
+        :param use_confidence: Apply or not confidence
+        :type use_confidence: bool
+        :return: the cost volume dataset updated with a new indicator with the data variables:
+
+                - cost_volume 3D xarray.DataArray (row, col, disp)
+                - confidence_measure 3D xarray.DataArray (row, col, indicator)
+        :rtype: xarray.Dataset
+        """
+
+        nb_rows, nb_cols, _ = cv["cost_volume"].data.shape
+        # Initialise confidence ( in [0, 1])
+        confidence_is_int = True
+        if use_confidence:
+            if "confidence_measure" in cv:
+                confidence_is_int = False
+                confidence_array = cv["confidence_measure"].data
+            else:
+                confidence_array = np.ones((nb_rows, nb_cols))
+                logging.warning(
+                    "User wants to use confidence that was not computed previously? \n Default confidence is used."
+                )
+        else:
+            confidence_array = np.ones((nb_rows, nb_cols))
+
+        # Apply confidence to cost volume
+        cv["cost_volume"].data *= np.expand_dims(confidence_array, axis=2)
+
+        return cv, confidence_is_int
 
 
 def argmin_split(cost_volume: xr.Dataset) -> np.ndarray:

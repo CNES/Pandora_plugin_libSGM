@@ -50,6 +50,7 @@ class SgmPenalty(penalty.AbstractPenalty):
     _P2_METHOD = "constant"
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
+    _USE_CONFIDENCE = False
 
     def __init__(self, directions: List[List[int]], **cfg: Union[str, int, float, bool]):
         """
@@ -96,6 +97,8 @@ class SgmPenalty(penalty.AbstractPenalty):
             cfg["overcounting"] = self._OVERCOUNTING
         if "min_cost_paths" not in cfg:
             cfg["min_cost_paths"] = self._MIN_COST_PATH
+        if "use_confidence" not in cfg:
+            cfg["use_confidence"] = self._USE_CONFIDENCE
 
         p1_value = cfg["P1"]
 
@@ -111,6 +114,7 @@ class SgmPenalty(penalty.AbstractPenalty):
             "p2_method": And(str, lambda x: is_method(x, ["constant", "negativeGradient", "inverseGradient"])),
             "overcounting": bool,
             "min_cost_paths": bool,
+            "use_confidence": bool,
         }
 
         checker = Checker(schema)

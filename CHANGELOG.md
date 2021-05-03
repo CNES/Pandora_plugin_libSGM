@@ -5,6 +5,7 @@
 ### Added
 
 - Version handling with setuptools_scm
+- Confidence can be used as weights for cost volume.
 
 ## 1.0.0 (March 2021)
 
@@ -46,3 +47,4 @@
 -  min_cost_paths calculation: fix creation of temporary disparity map to avoid dangerous DataArray manipulation. [#43]
 
 
+:q

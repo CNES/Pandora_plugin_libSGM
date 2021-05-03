@@ -59,6 +59,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
+    _USE_CONFIDENCE = False
 
     def __init__(self, directions: List[List[int]], **cfg: Union[str, int, float, bool]):
         """
@@ -121,6 +122,8 @@ class MccnnPenalty(penalty.AbstractPenalty):
             cfg["overcounting"] = self._OVERCOUNTING
         if "min_cost_paths" not in cfg:
             cfg["min_cost_paths"] = self._MIN_COST_PATH
+        if "use_confidence" not in cfg:
+            cfg["use_confidence"] = self._USE_CONFIDENCE
 
         p1_value = cfg["P1"]
         schema = {
@@ -141,6 +144,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
             "V": And(Or(int, float), lambda x: x > 0),
             "overcounting": bool,
             "min_cost_paths": bool,
+            "use_confidence": bool,
         }
 
         checker = Checker(schema)
