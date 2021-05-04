@@ -60,6 +60,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
     _USE_CONFIDENCE = False
+    _PIECEWISE_OPTIMIZATION_LAYER = "None"
 
     def __init__(self, directions: List[List[int]], **cfg: Union[str, int, float, bool]):
         """
@@ -78,6 +79,8 @@ class MccnnPenalty(penalty.AbstractPenalty):
         self._v = self.cfg["V"]
         self._overcounting = self.cfg["overcounting"]
         self._min_cost_paths = self.cfg["min_cost_paths"]
+        self._use_confidence = self.cfg["use_confidence"]
+        self._piecewise_optimization_layer = self.cfg["piecewise_optimization_layer"]
         self._directions = directions
 
     def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
@@ -124,6 +127,8 @@ class MccnnPenalty(penalty.AbstractPenalty):
             cfg["min_cost_paths"] = self._MIN_COST_PATH
         if "use_confidence" not in cfg:
             cfg["use_confidence"] = self._USE_CONFIDENCE
+        if "piecewise_optimization_layer" not in cfg:
+            cfg["piecewise_optimization_layer"] = self._PIECEWISE_OPTIMIZATION_LAYER
 
         p1_value = cfg["P1"]
         schema = {
@@ -145,6 +150,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
             "overcounting": bool,
             "min_cost_paths": bool,
             "use_confidence": bool,
+            "piecewise_optimization_layer": And(str, lambda x: is_method(x, ["None", "classif", "segm"])),
         }
 
         checker = Checker(schema)

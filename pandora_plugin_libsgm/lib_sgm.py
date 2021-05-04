@@ -52,6 +52,7 @@ class SGM(optimization.AbstractOptimization):
     _PENALTY_METHOD = "sgm_penalty"
     _DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
     _USE_CONFIDENCE = False
+    _PIECEWISE_OPTIMIZATION_LAYER = "None"
 
     def __init__(self, **cfg: Union[str, int, float, bool]):
         """
@@ -64,6 +65,7 @@ class SGM(optimization.AbstractOptimization):
         self._overcounting = self.cfg["overcounting"]
         self._min_cost_paths = self.cfg["min_cost_paths"]
         self._use_confidence = self.cfg["use_confidence"]
+        self._piecewise_optimization_layer = self.cfg["piecewise_optimization_layer"]
         self._directions = self._DIRECTIONS
         self._penalty = penalty.AbstractPenalty(self._directions, **self.cfg)  # type: ignore
 
@@ -92,6 +94,8 @@ class SGM(optimization.AbstractOptimization):
             cfg["penalty_method"] = self._PENALTY_METHOD
         if "use_confidence" not in cfg:
             cfg["use_confidence"] = self._USE_CONFIDENCE
+        if "piecewise_optimization_layer" not in cfg:
+            cfg["piecewise_optimization_layer"] = self._PIECEWISE_OPTIMIZATION_LAYER
 
         return cfg
 
@@ -141,6 +145,9 @@ class SGM(optimization.AbstractOptimization):
         # Apply confidence to cost volume
         cv, confidence_is_int = self.apply_confidence(cv, self._use_confidence)  # type:ignore
 
+        # Apply get piecewise optimization layer array
+        piecewise_optimization_layer_array = self.compute_piecewise_layer(img_left, self._piecewise_optimization_layer)
+
         if self._sgm_version == "c++":
             # If the cost volume is calculated with the census measure and the invalid value <= 255,
             # the cost volume is converted to unint8 to optimize the memory
@@ -165,6 +172,7 @@ class SGM(optimization.AbstractOptimization):
                 p2_mat,
                 np.array(self._directions).astype(np.int32),
                 invalid_value,
+                piecewise_optimization_layer_array,
                 self._min_cost_paths,
                 self._overcounting,
             )
@@ -176,6 +184,7 @@ class SGM(optimization.AbstractOptimization):
                 p1_mat,
                 p2_mat,
                 self._directions,
+                piecewise_optimization_layer_array,
                 cost_paths=self._min_cost_paths,
                 overcounting=self._overcounting,
             )
@@ -287,7 +296,7 @@ class SGM(optimization.AbstractOptimization):
             else:
                 confidence_array = np.ones((nb_rows, nb_cols))
                 logging.warning(
-                    "User wants to use confidence that was not computed previously? \n Default confidence is used."
+                    "User wants to use confidence that was not computed previously \n Default confidence is used."
                 )
         else:
             confidence_array = np.ones((nb_rows, nb_cols))
@@ -296,6 +305,35 @@ class SGM(optimization.AbstractOptimization):
         cv["cost_volume"].data *= np.expand_dims(confidence_array, axis=2)
 
         return cv, confidence_is_int
+
+    @staticmethod
+    def compute_piecewise_layer(img_left: xr.Dataset, piecewise_optimization_layer: str) -> np.ndarray:
+        """
+        Compute the piecewise optimization layer array to use in optimization
+
+        :param img_left: left image dataset with the data variables:
+
+                - im : 2D (row, col) xarray.DataArray float32
+                - msk : 2D (row, col) xarray.DataArray int16, with the convention defined in the configuration file
+                - classif (optional): 2D (row, col) xarray.DataArray int16, with the convention defined in the configuration file
+                - segm (optional): 2D (row, col) xarray.DataArray int16, with the convention defined in the configuration file
+        :type cv: xarray.Dataset
+        :param piecewise_optimization_layer: Layer to use
+        :type piecewise_optimization_layer: str
+        :return: the piecewise optimization layer array
+        :rtype: np.ndarray
+        """
+
+        if piecewise_optimization_layer in img_left:
+            piecewise_optimization_layer_array = img_left[piecewise_optimization_layer].data
+        else:
+            piecewise_optimization_layer_array = np.ones(img_left["im"].data.shape)
+            if piecewise_optimization_layer != "None":
+                logging.warning(
+                    "User wants to use a piecewise_optimization_layer not in image dataset. \n Default is used."
+                )
+
+        return piecewise_optimization_layer_array
 
 
 def argmin_split(cost_volume: xr.Dataset) -> np.ndarray:
