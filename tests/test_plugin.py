@@ -554,6 +554,102 @@ class TestPlugin(unittest.TestCase):
         # Check if confidence_is_int is right
         self.assertEqual(confidence_is_int, True)
 
+    @staticmethod
+    def test_compute_piecewise_layer_not_in_dataset():
+        """
+        Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
+         without any in dataset
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Create input dataset
+        data_img_left = np.random.rand(5, 6)
+        img_left = xr.Dataset(
+            {"im": (["row", "col"], data_img_left)},
+            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
+        )
+
+        piecewise_optimization_layer = "toto"
+
+        classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
+
+        gt_classif = np.ones((5, 6))
+        np.testing.assert_array_equal(classif_arr, gt_classif)
+
+    @staticmethod
+    def test_compute_piecewise_layer_in_dataset():
+        """
+        Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
+         without any in dataset
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Create input dataset
+        data_img_left = np.random.rand(3, 2)
+        img_left = xr.Dataset(
+            {"im": (["row", "col"], data_img_left)},
+            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
+        )
+
+        data_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
+        img_left["classif"] = xr.DataArray(data_classif, dims=["row", "col"])
+
+        piecewise_optimization_layer = "classif"
+
+        classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
+
+        gt_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
+        np.testing.assert_array_equal(classif_arr, gt_classif)
+
+    @staticmethod
+    def test_compute_piecewise_none_layer_in_dataset():
+        """
+        Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
+         without any in dataset
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Create input dataset
+        data_img_left = np.random.rand(3, 2)
+        img_left = xr.Dataset(
+            {"im": (["row", "col"], data_img_left)},
+            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
+        )
+
+        data_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
+        img_left["classif"] = xr.DataArray(data_classif, dims=["row", "col"])
+
+        piecewise_optimization_layer = "None"
+
+        classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
+
+        gt_classif = np.ones((3, 2))
+        np.testing.assert_array_equal(classif_arr, gt_classif)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -146,7 +146,10 @@ class SGM(optimization.AbstractOptimization):
         cv, confidence_is_int = self.apply_confidence(cv, self._use_confidence)  # type:ignore
 
         # Apply get piecewise optimization layer array
-        piecewise_optimization_layer_array = self.compute_piecewise_layer(img_left, self._piecewise_optimization_layer)
+        piecewise_optimization_layer_array = self.compute_piecewise_layer(
+            img_left,
+            self._piecewise_optimization_layer,  # type:ignore
+        )
 
         if self._sgm_version == "c++":
             # If the cost volume is calculated with the census measure and the invalid value <= 255,
@@ -315,8 +318,8 @@ class SGM(optimization.AbstractOptimization):
 
                 - im : 2D (row, col) xarray.DataArray float32
                 - msk : 2D (row, col) xarray.DataArray int16, with the convention defined in the configuration file
-                - classif (optional): 2D (row, col) xarray.DataArray int16, with the convention defined in the configuration file
-                - segm (optional): 2D (row, col) xarray.DataArray int16, with the convention defined in the configuration file
+                - classif (optional): 2D (row, col) xarray.DataArray
+                - segm (optional): 2D (row, col) xarray.DataArray
         :type cv: xarray.Dataset
         :param piecewise_optimization_layer: Layer to use
         :type piecewise_optimization_layer: str
