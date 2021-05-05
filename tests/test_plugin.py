@@ -521,8 +521,6 @@ class TestPlugin(unittest.TestCase):
 
         data_confidence = np.array([[1, 1, 1, 0.5], [1, 1, 0.5, 1], [1, 1, 1, 1]], dtype=np.float32)
 
-        print(data_cv.shape)
-        print(data_confidence.shape)
         cv_in = xr.Dataset(
             {"cost_volume": (["row", "col", "disp"], data_cv)},
             coords={
@@ -552,7 +550,7 @@ class TestPlugin(unittest.TestCase):
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
 
         # Check if confidence_is_int is right
-        self.assertEqual(confidence_is_int, True)
+        self.assertEqual(confidence_is_int, False)
 
     @staticmethod
     def test_compute_piecewise_layer_not_in_dataset():
