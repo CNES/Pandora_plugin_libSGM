@@ -293,19 +293,21 @@ class SGM(optimization.AbstractOptimization):
         # Initialise confidence ( in [0, 1])
         confidence_is_int = True
         if use_confidence:
-            if "confidence_measure" in cv:
+            if "confidence_measure" in cv and "ambiguity_confidence" in cv.coords["indicator"]:
                 confidence_is_int = False
-                confidence_array = cv["confidence_measure"].data
+                confidence_array = cv["confidence_measure"].sel(indicator="ambiguity_confidence").data
             else:
                 confidence_array = np.ones((nb_rows, nb_cols))
                 logging.warning(
-                    "User wants to use confidence that was not computed previously \n Default confidence is used."
+                    "User wants to use ambiguity confidence that was not computed previously \n "
+                    "Default confidence is used."
                 )
         else:
             confidence_array = np.ones((nb_rows, nb_cols))
 
         # Apply confidence to cost volume
-        cv["cost_volume"].data *= confidence_array
+        confidence_array[np.isnan(confidence_array)] = 1
+        cv["cost_volume"].data *= np.expand_dims(confidence_array, axis=2)
         cv["cost_volume"].data = cv["cost_volume"].data.astype(np.float32)
 
         return cv, confidence_is_int
@@ -338,6 +340,7 @@ class SGM(optimization.AbstractOptimization):
                 )
 
         piecewise_optimization_layer_array = piecewise_optimization_layer_array.astype(np.float32)
+        piecewise_optimization_layer_array[np.isnan(piecewise_optimization_layer_array)] = -9999
 
         return piecewise_optimization_layer_array
 

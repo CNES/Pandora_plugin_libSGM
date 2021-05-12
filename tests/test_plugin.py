@@ -519,7 +519,9 @@ class TestPlugin(unittest.TestCase):
             dtype=np.float32,
         )
 
-        data_confidence = np.array([[1, 1, 1, 0.5], [1, 1, 0.5, 1], [1, 1, 1, 1]], dtype=np.float32)
+        data_confidence = np.expand_dims(
+            np.array([[1, 1, 1, 0.5], [1, 1, 0.5, 1], [1, 1, 1, 1]], dtype=np.float32), axis=2
+        )
 
         cv_in = xr.Dataset(
             {"cost_volume": (["row", "col", "disp"], data_cv)},
@@ -527,11 +529,12 @@ class TestPlugin(unittest.TestCase):
                 "row": np.arange(data_cv.shape[0]),
                 "col": np.arange(data_cv.shape[1]),
                 "disp": np.arange(data_cv.shape[2]),
+                "indicator": ["ambiguity_confidence"],
             },
             attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
         )
 
-        cv_in["confidence_measure"] = xr.DataArray(data_confidence, dims=["row", "col"])
+        cv_in["confidence_measure"] = xr.DataArray(data_confidence, dims=["row", "col", "indicator"])
 
         # apply confidence
         cv_updated, confidence_is_int = optimization_.apply_confidence(cv_in, use_confidence)
@@ -612,7 +615,7 @@ class TestPlugin(unittest.TestCase):
 
         classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
 
-        gt_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
+        gt_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]), dtype=np.float32)
         np.testing.assert_array_equal(classif_arr, gt_classif)
 
     @staticmethod
