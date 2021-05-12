@@ -305,7 +305,8 @@ class SGM(optimization.AbstractOptimization):
             confidence_array = np.ones((nb_rows, nb_cols))
 
         # Apply confidence to cost volume
-        cv["cost_volume"].data *= np.expand_dims(confidence_array, axis=2)
+        cv["cost_volume"].data *= confidence_array
+        cv["cost_volume"].data = cv["cost_volume"].data.astype(np.float32)
 
         return cv, confidence_is_int
 
@@ -335,6 +336,8 @@ class SGM(optimization.AbstractOptimization):
                 logging.warning(
                     "User wants to use a piecewise_optimization_layer not in image dataset. \n Default is used."
                 )
+
+        piecewise_optimization_layer_array = piecewise_optimization_layer_array.astype(np.float32)
 
         return piecewise_optimization_layer_array
 
