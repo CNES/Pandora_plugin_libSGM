@@ -300,7 +300,7 @@ class SGM(optimization.AbstractOptimization):
                 confidence_array = np.ones((nb_rows, nb_cols))
                 logging.warning(
                     "User wants to use ambiguity confidence that was not computed previously \n "
-                    "Default confidence is used."
+                    "Default is used : confidence values will be equal to 1, which is equivalent to not use confidence."
                 )
         else:
             confidence_array = np.ones((nb_rows, nb_cols))
@@ -336,7 +336,8 @@ class SGM(optimization.AbstractOptimization):
             piecewise_optimization_layer_array = np.ones(img_left["im"].data.shape)
             if piecewise_optimization_layer != "None":
                 logging.warning(
-                    "User wants to use a piecewise_optimization_layer not in image dataset. \n Default is used."
+                    "User wants to use a piecewise_optimization_layer not in image dataset. \n "
+                    "Default is used : no piecewise optimization will be performed."
                 )
 
         piecewise_optimization_layer_array = piecewise_optimization_layer_array.astype(np.float32)
