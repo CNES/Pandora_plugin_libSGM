@@ -50,6 +50,8 @@ class SgmPenalty(penalty.AbstractPenalty):
     _P2_METHOD = "constant"
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
+    _USE_CONFIDENCE = False
+    _PIECEWISE_OPTIMIZATION_LAYER = "None"
 
     def __init__(self, directions: List[List[int]], **cfg: Union[str, int, float, bool]):
         """
@@ -68,6 +70,8 @@ class SgmPenalty(penalty.AbstractPenalty):
         self._overcounting = self.cfg["overcounting"]
         self._p2_method = self.cfg["p2_method"]
         self._min_cost_paths = self.cfg["min_cost_paths"]
+        self._use_confidence = self.cfg["use_confidence"]
+        self._piecewise_optimization_layer = self.cfg["piecewise_optimization_layer"]
         self._directions = directions
 
     def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
@@ -96,6 +100,10 @@ class SgmPenalty(penalty.AbstractPenalty):
             cfg["overcounting"] = self._OVERCOUNTING
         if "min_cost_paths" not in cfg:
             cfg["min_cost_paths"] = self._MIN_COST_PATH
+        if "use_confidence" not in cfg:
+            cfg["use_confidence"] = self._USE_CONFIDENCE
+        if "piecewise_optimization_layer" not in cfg:
+            cfg["piecewise_optimization_layer"] = self._PIECEWISE_OPTIMIZATION_LAYER
 
         p1_value = cfg["P1"]
 
@@ -111,6 +119,8 @@ class SgmPenalty(penalty.AbstractPenalty):
             "p2_method": And(str, lambda x: is_method(x, ["constant", "negativeGradient", "inverseGradient"])),
             "overcounting": bool,
             "min_cost_paths": bool,
+            "use_confidence": bool,
+            "piecewise_optimization_layer": And(str, lambda x: is_method(x, ["None", "classif", "segm"])),
         }
 
         checker = Checker(schema)

@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+## 1.1.0 (June 2021)
+
 ### Added
 
 - Version handling with setuptools_scm
+- Confidence can be used as weights for cost volume.
+- Udpate dependency to Pandora 1.1.0 and libSGM 0.4.0
 
 ## 1.0.0 (March 2021)
 
@@ -44,5 +48,4 @@
 ### Fixed
 
 -  min_cost_paths calculation: fix creation of temporary disparity map to avoid dangerous DataArray manipulation. [#43]
-
 

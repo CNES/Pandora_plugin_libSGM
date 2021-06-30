@@ -384,6 +384,273 @@ class TestPlugin(unittest.TestCase):
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["confidence_measure"].data[:, :, -1], gt_disp)
 
+    def test_apply_confidence_no_confidence(self):
+        """
+        Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Test
+        use_confidence = False
+
+        data_cv = np.array(
+            [
+                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
+                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
+                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
+            ],
+            dtype=np.float32,
+        )
+        cv_in = xr.Dataset(
+            {"cost_volume": (["row", "col", "disp"], data_cv)},
+            coords={
+                "row": np.arange(data_cv.shape[0]),
+                "col": np.arange(data_cv.shape[1]),
+                "disp": np.arange(data_cv.shape[2]),
+            },
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+        )
+
+        # apply confidence
+        cv_updated, confidence_is_int = optimization_.apply_confidence(cv_in, use_confidence)
+
+        # Ground Truth
+        optim_cv_gt = np.array(
+            [
+                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
+                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
+                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
+            ],
+            dtype=np.float32,
+        )
+
+        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
+        np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
+
+        # Check if confidence_is_int is right
+        self.assertEqual(confidence_is_int, True)
+
+    def test_apply_confidence_no_confidence_dataarray(self):
+        """
+        Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Test
+        use_confidence = True
+
+        data_cv = np.array(
+            [
+                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
+                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
+                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
+            ],
+            dtype=np.float32,
+        )
+        cv_in = xr.Dataset(
+            {"cost_volume": (["row", "col", "disp"], data_cv)},
+            coords={
+                "row": np.arange(data_cv.shape[0]),
+                "col": np.arange(data_cv.shape[1]),
+                "disp": np.arange(data_cv.shape[2]),
+            },
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+        )
+
+        # apply confidence
+        cv_updated, confidence_is_int = optimization_.apply_confidence(cv_in, use_confidence)
+
+        # Ground Truth
+        optim_cv_gt = np.array(
+            [
+                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
+                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
+                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
+            ],
+            dtype=np.float32,
+        )
+
+        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
+        np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
+
+        # Check if confidence_is_int is right
+        self.assertEqual(confidence_is_int, True)
+
+    def test_apply_confidence_with_confidence_dataarray(self):
+        """
+        Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Test
+
+        use_confidence = True
+
+        data_cv = np.array(
+            [
+                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
+                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
+                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
+            ],
+            dtype=np.float32,
+        )
+
+        data_confidence = np.expand_dims(
+            np.array([[1, 1, 1, 0.5], [1, 1, 0.5, 1], [1, 1, 1, 1]], dtype=np.float32), axis=2
+        )
+
+        cv_in = xr.Dataset(
+            {"cost_volume": (["row", "col", "disp"], data_cv)},
+            coords={
+                "row": np.arange(data_cv.shape[0]),
+                "col": np.arange(data_cv.shape[1]),
+                "disp": np.arange(data_cv.shape[2]),
+                "indicator": ["ambiguity_confidence"],
+            },
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+        )
+
+        cv_in["confidence_measure"] = xr.DataArray(data_confidence, dims=["row", "col", "indicator"])
+
+        # apply confidence
+        cv_updated, confidence_is_int = optimization_.apply_confidence(cv_in, use_confidence)
+
+        # Ground Truth
+        optim_cv_gt = np.array(
+            [
+                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [0.5, 0.5, 0.5, 0.5, 0.5]],
+                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [0.5, 0.5, 0.5, 2, 1.5], [1, 1, 1, 1, 7]],
+                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
+            ],
+            dtype=np.float32,
+        )
+
+        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
+        np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
+
+        # Check if confidence_is_int is right
+        self.assertEqual(confidence_is_int, False)
+
+    @staticmethod
+    def test_compute_piecewise_layer_not_in_dataset():
+        """
+        Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
+         without any in dataset
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Create input dataset
+        data_img_left = np.random.rand(5, 6)
+        img_left = xr.Dataset(
+            {"im": (["row", "col"], data_img_left)},
+            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
+        )
+
+        piecewise_optimization_layer = "toto"
+
+        classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
+
+        gt_classif = np.ones((5, 6))
+        np.testing.assert_array_equal(classif_arr, gt_classif)
+
+    @staticmethod
+    def test_compute_piecewise_layer_in_dataset():
+        """
+        Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
+         without any in dataset
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Create input dataset
+        data_img_left = np.random.rand(3, 2)
+        img_left = xr.Dataset(
+            {"im": (["row", "col"], data_img_left)},
+            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
+        )
+
+        data_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
+        img_left["classif"] = xr.DataArray(data_classif, dims=["row", "col"])
+
+        piecewise_optimization_layer = "classif"
+
+        classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
+
+        gt_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]), dtype=np.float32)
+        np.testing.assert_array_equal(classif_arr, gt_classif)
+
+    @staticmethod
+    def test_compute_piecewise_none_layer_in_dataset():
+        """
+        Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
+         without any in dataset
+        """
+
+        # Prepare the configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Create input dataset
+        data_img_left = np.random.rand(3, 2)
+        img_left = xr.Dataset(
+            {"im": (["row", "col"], data_img_left)},
+            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
+        )
+
+        data_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
+        img_left["classif"] = xr.DataArray(data_classif, dims=["row", "col"])
+
+        piecewise_optimization_layer = "None"
+
+        classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
+
+        gt_classif = np.ones((3, 2))
+        np.testing.assert_array_equal(classif_arr, gt_classif)
+
 
 if __name__ == "__main__":
     unittest.main()
