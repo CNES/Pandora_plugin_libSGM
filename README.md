@@ -4,6 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/CNES/Pandora_plugin_libSGM/actions"><img src="https://github.com/CNES/Pandora_plugin_libSGM/actions/workflows/pandora_plugin_libsgm_ci.yml/badge.svg?branch=master"></a>
+<a href="https://codecov.io/gh/CNES/Pandora_plugin_libSGM"> <img src="https://codecov.io/gh/CNES/Pandora_plugin_libSGM/branch/master/graph/badge.svg?token=O22Y1OF63L"></a>
   <a href="https://opensource.org/licenses/Apache-2.0/"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a>
 </p>
 
