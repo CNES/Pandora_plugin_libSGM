@@ -23,9 +23,30 @@ jobs:
     - name: Install Pandora plugin libSGM
       run: |
         pip install .
+    - name: Clone Pandora submodule
+      run: |
+        mkdir submodule
+        cd submodule
+        pandora_version=$(pip freeze | grep pandora | sed -n '1 p')
+        pandora_version=${pandora_version##*=}
+        echo $pandora_version
+        git clone https://github.com/cnes/pandora --branch ${pandora_version} --depth 1
     - name: Test with pytest
       run: |
         pytest --junitxml=pytest-report.xml --cov-config=.coveragerc --cov-report xml --cov
+    - name: Test with pytest pandora's notebooks
+      run: |
+        pip install ipyvolume
+        pip install bokeh
+        pip install matplotlib
+        pip install graphviz
+        pip install notebook
+        pip install ipython
+        hash -r
+        cd submodule/pandora
+        export NUMBA_DISABLE_JIT="0"
+        pytest -m notebook_tests
+        cd ../..
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
     - name: Create source distrubition
