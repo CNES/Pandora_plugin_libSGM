@@ -85,6 +85,12 @@ class AbstractPenalty:
         """
 
         def decorator(subclass):
+            """
+            Registers the subclass in the available methods
+
+            :param subclass: the subclass to be registered
+            :type subclass: object
+            """
             cls.penalty_methods_avail[short_name] = subclass
             for arg in args:
                 cls.penalty_methods_avail[arg] = subclass

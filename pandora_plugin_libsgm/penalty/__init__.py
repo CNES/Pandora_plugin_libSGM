@@ -18,8 +18,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Init file for penalty module.
+"""
 from . import penalty_sgm
 from . import penalty_mc_cnn
 from .penalty import AbstractPenalty
-
-# pylint: disable=missing-module-docstring
