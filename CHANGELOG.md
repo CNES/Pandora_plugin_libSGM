@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.1.1 (December 2021)
+
+### Changed
+
+Update python packaging.
+
+
 ## 1.1.0 (June 2021)
 
 ### Added
