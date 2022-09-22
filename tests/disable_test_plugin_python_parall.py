@@ -29,7 +29,7 @@ import numpy as np
 
 import pandora
 from pandora.state_machine import PandoraMachine
-import common
+from tests import common
 
 
 class TestPluginPythonParall(unittest.TestCase):

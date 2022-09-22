@@ -28,8 +28,8 @@ import rasterio
 import numpy as np
 
 import pandora
-import tests.common as common
 from pandora.state_machine import PandoraMachine
+from tests import common
 
 
 class TestPluginPython(unittest.TestCase):
