@@ -26,10 +26,10 @@ This module provides functions to test Pandora + plugin_LibSGM
 import unittest
 
 import numpy as np
+import pandora
+import pytest
 import rasterio
 import xarray as xr
-
-import pandora
 from pandora import matching_cost, optimization, cost_volume_confidence
 from pandora.state_machine import PandoraMachine
 from tests import common
@@ -53,6 +53,26 @@ class TestPlugin(unittest.TestCase):
 
         self.disp_left_zncc = rasterio.open("tests/disp_left_zncc.tif").read(1)
         self.disp_right_zncc = rasterio.open("tests/disp_right_zncc.tif").read(1)
+
+        # Create cost volume
+        data_cv = np.array(
+            [
+                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
+                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
+                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
+            ],
+            dtype=np.float32,
+        )
+        self.cv = xr.Dataset(
+            {"cost_volume": (["row", "col", "disp"], data_cv)},
+            coords={
+                "row": np.arange(data_cv.shape[0]),
+                "col": np.arange(data_cv.shape[1]),
+                "disp": np.arange(data_cv.shape[2]),
+                "indicator": ["ambiguity_confidence"],
+            },
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+        )
 
     def test_libsgm(self):
         """
@@ -555,15 +575,14 @@ class TestPlugin(unittest.TestCase):
         # Check if confidence_is_int is right
         self.assertEqual(confidence_is_int, False)
 
-    @staticmethod
-    def test_compute_piecewise_layer_not_in_dataset():
+    def test_compute_piecewise_layer_not_in_dataset(self):
         """
         Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
          without any in dataset
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -578,22 +597,21 @@ class TestPlugin(unittest.TestCase):
             coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
         )
 
-        piecewise_optimization_layer = "toto"
+        piecewise_optimization_layer = {"source": "toto"}
 
-        classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
+        _, classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer, self.cv)
 
         gt_classif = np.ones((5, 6))
         np.testing.assert_array_equal(classif_arr, gt_classif)
 
-    @staticmethod
-    def test_compute_piecewise_layer_in_dataset():
+    def test_compute_piecewise_layer_in_dataset(self):
         """
         Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
          without any in dataset
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -611,22 +629,21 @@ class TestPlugin(unittest.TestCase):
         data_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
         img_left["classif"] = xr.DataArray(data_classif, dims=["row", "col"])
 
-        piecewise_optimization_layer = "classif"
+        piecewise_optimization_layer = {"source": "classif"}
 
-        classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
+        _, classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer, self.cv)
 
         gt_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]), dtype=np.float32)
         np.testing.assert_array_equal(classif_arr, gt_classif)
 
-    @staticmethod
-    def test_compute_piecewise_none_layer_in_dataset():
+    def test_compute_piecewise_none_layer_in_dataset(self):
         """
         Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
          without any in dataset
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -641,15 +658,32 @@ class TestPlugin(unittest.TestCase):
             coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
         )
 
-        data_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
-        img_left["classif"] = xr.DataArray(data_classif, dims=["row", "col"])
+        piecewise_optimization_layer = {"source": "internal"}
 
-        piecewise_optimization_layer = "None"
-
-        classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer)
+        _, classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer, self.cv)
 
         gt_classif = np.ones((3, 2))
         np.testing.assert_array_equal(classif_arr, gt_classif)
+
+    def test_user_initiate_sgm_with_geomprior(self):
+        """
+        Test that user can't implement geometric_prior with a 3sgm configuration
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+        # Add a geometric_prior
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "internal"}
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Pandora pipeline should fail
+        with pytest.raises(SystemExit):
+            _, _ = pandora.run(pandora_machine, self.left, self.right, -60, -1, user_cfg["pipeline"])
 
 
 if __name__ == "__main__":

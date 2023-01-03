@@ -14,13 +14,14 @@
     },
     "optimization" : {
       "optimization_method": "sgm",
-      "P1": 8,
-      "P2": 32,
-      "p2_method": "constant",
       "overcounting": false,
-      "penalty_method": "sgm_penalty"
+      "penalty": {
+        "P1": 8,
+        "P2": 32,
+        "p2_method": "constant",
+        "penalty_method": "sgm_penalty"
+      }
     },
-
     "disparity": {
       "disparity_method": "wta",
       "invalid_disparity": -9999

@@ -13,11 +13,13 @@
     "optimization" : {
       "optimization_method": "sgm",
       "sgm_version": "python_libsgm",
-      "P1": 2,
-      "P2": 4,
-      "p2_method": "constant",
       "overcounting": false,
-      "penalty_method": "sgm_penalty"
+      "penalty": {
+        "P1": 2,
+        "P2": 4,
+        "p2_method": "constant",
+        "penalty_method": "sgm_penalty"
+      }
     },
 
     "disparity": {
