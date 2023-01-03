@@ -24,10 +24,13 @@ This module contains classes and functions associated to the cost volume optimiz
 """
 
 import logging
+import sys
 from typing import Dict, Union, Tuple
 from libSGM import sgm_wrapper  # pylint: disable=no-name-in-module
 import numpy as np
 import xarray as xr
+from json_checker import Checker, And, OptionalKey
+from pandora.common import is_method
 from pandora.cost_volume_confidence import AbstractCostVolumeConfidence
 from pandora.optimization import optimization
 from pkg_resources import iter_entry_points
@@ -44,11 +47,11 @@ class AbstractSGM(optimization.AbstractOptimization):
     _SGM_VERSION = "c++"
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
-    _PENALTY_METHOD = "sgm_penalty"
+    _PENALTY = {"penalty_method": "sgm_penalty", "P1": 4, "P2": 20}
     _DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
     _USE_CONFIDENCE = False
 
-    def __init__(self, **cfg: Union[str, int, float, bool]):
+    def __init__(self, **cfg: Union[str, int, float, bool, dict]):
         """
         :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value, 'beta': value, 'gamma': value,
                                             'p2_method': value}
@@ -60,7 +63,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         self._min_cost_paths = self.cfg["min_cost_paths"]
         self._use_confidence = self.cfg["use_confidence"]
         self._directions = self._DIRECTIONS
-        self._penalty = penalty.AbstractPenalty(self._directions, **self.cfg)  # type: ignore
+        self._penalty = penalty.AbstractPenalty(self._directions, **self.cfg["penalty"])  # type: ignore
 
         # Get Python versions of LibSGM
         self._method = []
@@ -72,7 +75,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         Describes the optimization method
         """
 
-    def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
+    def check_conf(self, **cfg: Union[str, int, float, bool, dict]) -> Dict[str, Union[str, int, float, bool, dict]]:
         """
         Add default values to the dictionary if there are missing elements and check if the dictionary is correct
 
@@ -88,11 +91,28 @@ class AbstractSGM(optimization.AbstractOptimization):
             cfg["overcounting"] = self._OVERCOUNTING
         if "min_cost_paths" not in cfg:
             cfg["min_cost_paths"] = self._MIN_COST_PATH
-        if "penalty_method" not in cfg:
-            cfg["penalty_method"] = self._PENALTY_METHOD
+        if "penalty" not in cfg:
+            cfg["penalty"] = self._PENALTY
         if "use_confidence" not in cfg:
             cfg["use_confidence"] = self._USE_CONFIDENCE
+        if cfg["optimization_method"] == "sgm" and "geometric_prior" in cfg:
+            logging.error("Geometric prior not available for SGM optimization")
+            sys.exit(1)
 
+        schema = {
+            "sgm_version": And(str, lambda x: is_method(x, ["c++", "python_libsgm", "python_libsgm_parall"])),
+            "optimization_method": And(str, lambda x: is_method(x, ["sgm", "3sgm"])),
+            "overcounting": bool,
+            "min_cost_paths": bool,
+            "use_confidence": bool,
+            "penalty": dict,
+            OptionalKey("geometric_prior"): And(
+                dict, lambda x: cfg["geometric_prior"]["source"] in ["internal", "classif", "segm"]  # type: ignore
+            ),
+        }
+
+        checker = Checker(schema)
+        checker.validate(cfg)
         return cfg
 
     def optimize_cv(self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset) -> xr.Dataset:
@@ -121,6 +141,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         :rtype: xarray.Dataset
         """
 
+    @staticmethod
     def argmin_split(cost_volume: xr.Dataset) -> np.ndarray:
         """
         Find the indices of the minimum values for a 3D DataArray, along axis 2.
@@ -162,8 +183,7 @@ class AbstractSGM(optimization.AbstractOptimization):
 
         return disp
 
-    @staticmethod
-    def number_of_disp(cv: xr.Dataset, disp_paths: np.ndarray, invalid_disp: np.ndarray) -> xr.Dataset:
+    def number_of_disp(self, cv: xr.Dataset, disp_paths: np.ndarray, invalid_disp: np.ndarray) -> xr.Dataset:
         """
         Update the confidence measure by adding the number of disp indicator, which gives the number (between 0 and 8)
         of local disparities equal to the ones which return the global minimal costs
@@ -186,7 +206,7 @@ class AbstractSGM(optimization.AbstractOptimization):
 
         # Compute the disparity given the minimum cost volume for each pixel
         cv["cost_volume"].data[invalid_disp] = np.inf
-        disp_map = argmin_split(cv)
+        disp_map = self.argmin_split(cv)
         invalid_mc = np.min(invalid_disp, axis=2)
         invalid_pixel = np.where(invalid_mc)
         disp_map[invalid_pixel] = np.nan

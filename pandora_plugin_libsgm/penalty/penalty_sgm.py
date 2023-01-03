@@ -27,7 +27,7 @@ from typing import Dict, Union, Tuple, List
 
 import numpy as np
 import xarray as xr
-from json_checker import Checker, And, Or, OptionalKey
+from json_checker import Checker, And, Or
 from pandora.common import is_method
 
 from pandora_plugin_libsgm.penalty import penalty
@@ -48,9 +48,6 @@ class SgmPenalty(penalty.AbstractPenalty):
     _BETA = 1
     _GAMMA = 1
     _P2_METHOD = "constant"
-    _OVERCOUNTING = False
-    _MIN_COST_PATH = False
-    _USE_CONFIDENCE = False
 
     def __init__(self, directions: List[List[int]], **cfg: Union[str, int, float, bool]):
         """
@@ -66,10 +63,7 @@ class SgmPenalty(penalty.AbstractPenalty):
         self._alpha = self.cfg["alpha"]
         self._beta = self.cfg["beta"]
         self._gamma = self.cfg["gamma"]
-        self._overcounting = self.cfg["overcounting"]
         self._p2_method = self.cfg["p2_method"]
-        self._min_cost_paths = self.cfg["min_cost_paths"]
-        self._use_confidence = self.cfg["use_confidence"]
         self._directions = directions
 
     def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
@@ -94,18 +88,10 @@ class SgmPenalty(penalty.AbstractPenalty):
             cfg["gamma"] = self._GAMMA
         if "p2_method" not in cfg:
             cfg["p2_method"] = self._P2_METHOD
-        if "overcounting" not in cfg:
-            cfg["overcounting"] = self._OVERCOUNTING
-        if "min_cost_paths" not in cfg:
-            cfg["min_cost_paths"] = self._MIN_COST_PATH
-        if "use_confidence" not in cfg:
-            cfg["use_confidence"] = self._USE_CONFIDENCE
 
         p1_value = cfg["P1"]
 
         schema = {
-            "sgm_version": And(str, lambda x: is_method(x, ["c++", "python_libsgm", "python_libsgm_parall"])),
-            "optimization_method": And(str, lambda x: is_method(x, ["sgm", "segsemsgm"])),
             "penalty_method": And(str, lambda x: is_method(x, ["sgm_penalty"])),
             "P1": And(Or(int, float), lambda x: x > 0),
             "P2": And(Or(int, float), lambda x: x > p1_value),
@@ -113,12 +99,6 @@ class SgmPenalty(penalty.AbstractPenalty):
             "beta": And(Or(int, float), lambda x: x > 0),
             "gamma": And(Or(int, float), lambda x: x > 0),
             "p2_method": And(str, lambda x: is_method(x, ["constant", "negativeGradient", "inverseGradient"])),
-            "overcounting": bool,
-            "min_cost_paths": bool,
-            "use_confidence": bool,
-            OptionalKey("geometric_prior"): And(
-                dict, lambda x: cfg["geometric_prior"]["source"] in ["internal", "classif", "segm"]  # type: ignore
-            ),
         }
 
         checker = Checker(schema)

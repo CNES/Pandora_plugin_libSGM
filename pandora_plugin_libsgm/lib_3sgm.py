@@ -48,13 +48,18 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
     _AVAILABLE_GEOMETRIC_PRIOR = ["internal", "classif", "segm"]
 
     def __init__(self, **cfg: Union[str, int, float, bool]):
-        """ """
+        """
+        :param cfg: optional configuration, {}
+        :type cfg: dict
+        :return: None
+        """
         super().__init__(**cfg)
+        self.cfg = self.check_geometric_prior(cfg)
         self._geometric_prior = self.cfg["geometric_prior"]
 
-    def check_conf_3sgm(self, cfg: dict) -> dict:
+    def check_geometric_prior(self, cfg: dict) -> dict:
         """
-        Verify geometric_prior paramter for 3sgm classification
+        Verify geometric_prior parameter for 3sgm classification
         :param cfg:
         :type cfg: dict
         :return cfg: optimization configuration updated
@@ -65,7 +70,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
             cfg["geometric_prior"] = self._GEOMETRIC_PRIOR
         elif isinstance(cfg["geometric_prior"], dict):
             if not cfg["geometric_prior"]["source"] in self._AVAILABLE_GEOMETRIC_PRIOR:
-                logging.error(f"{cfg['geometric_prior']['source']} is not available for 3sgm optimization method")
+                logging.error(f"{cfg['geometric_prior']['source']} is not available as a geometric prior")
 
         return cfg
 
@@ -116,7 +121,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         cv, confidence_is_int = self.apply_confidence(cv, self._use_confidence)  # type:ignore
 
         # Apply get piecewise optimization layer array
-        cv, geometric_prior_array = self.compute_piecewise_layer(img_left, self._geometric_prior, cv)
+        cv, geometric_prior_array = self.compute_piecewise_layer(img_left, self._geometric_prior, cv)  # type:ignore
 
         if self._sgm_version == "c++":
             cost_volumes_out = self.sgm_cpp(
@@ -147,7 +152,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
 
         if self._sgm_version == "c++":
             cv["cost_volume"].data[invalid_disp] = np.nan
-        cv.attrs["optimization"] = "sgm"
+        cv.attrs["optimization"] = "3sgm"
 
         # add lr cost volumes if they exist
         for i in range(32):
@@ -166,7 +171,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
 
     @staticmethod
     def compute_piecewise_layer(
-        img_left: xr.Dataset, geometric_prior: str, cv: xr.Dataset
+        img_left: xr.Dataset, geometric_prior: dict, cv: xr.Dataset
     ) -> Tuple[xr.Dataset, np.ndarray]:
         """
         Compute the piecewise optimization layer array to use in optimization
@@ -190,7 +195,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         """
         nb_rows, nb_cols = img_left["im"].data.shape
         # internal (from cv), segm or classif (from image)
-        mode = geometric_prior["source"]  # type: ignore
+        mode = geometric_prior["source"]
 
         if mode in ["segm", "classif"]:
             # if geometric_prior comes from the image (segm or classif)
