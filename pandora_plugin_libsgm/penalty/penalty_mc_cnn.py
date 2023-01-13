@@ -33,7 +33,7 @@ from pandora.common import is_method
 from pandora_plugin_libsgm.penalty import penalty
 
 
-@penalty.AbstractPenalty.register_subclass("mc_cnn_fast_penalty", "mc_cnn_accurate_penalty")
+@penalty.AbstractPenalty.register_subclass("mc_cnn_fast_penalty")
 class MccnnPenalty(penalty.AbstractPenalty):
     """
 
@@ -42,20 +42,12 @@ class MccnnPenalty(penalty.AbstractPenalty):
     """
 
     # Default mc-cnn fast penalty
-    _P1_FAST = 2.3
-    _P2_FAST = 55.9
-    _Q1_FAST = 4
-    _Q2_FAST = 2
-    _D_FAST = 0.08
-    _V_FAST = 1.5
-
-    # Default mc-cnn accurate penalty
-    _P1_ACCURATE = 1.3
-    _P2_ACCURATE = 18.1
-    _Q1_ACCURATE = 4.5
-    _Q2_ACCURATE = 9
-    _D_ACCURATE = 0.13
-    _V_ACCURATE = 2.75
+    _P1 = 2.3
+    _P2 = 55.9
+    _Q1 = 4
+    _Q2 = 2
+    _D = 0.08
+    _V = 1.5
 
     _OVERCOUNTING = False
     _MIN_COST_PATH = False
@@ -92,35 +84,20 @@ class MccnnPenalty(penalty.AbstractPenalty):
         :return cfg: optimization configuration updated
         :rtype cfg: dict
         """
-        # Load default penalties according to the type of mc-cnn measure
-        if cfg["penalty_method"] == "mc_cnn_accurate_penalty":
-            default_p1 = self._P1_ACCURATE
-            default_p2 = self._P2_ACCURATE
-            default_q1 = self._Q1_ACCURATE
-            default_q2 = self._Q2_ACCURATE
-            default_d = self._D_ACCURATE
-            default_v = self._V_ACCURATE
-        else:
-            default_p1 = self._P1_FAST
-            default_p2 = self._P2_FAST
-            default_q1 = self._Q1_FAST
-            default_q2 = self._Q2_FAST
-            default_d = self._D_FAST
-            default_v = self._V_FAST
 
         # Give the default value if the required element is not in the configuration
         if "P1" not in cfg:
-            cfg["P1"] = default_p1
+            cfg["P1"] = self._P1
         if "P2" not in cfg:
-            cfg["P2"] = default_p2
+            cfg["P2"] = self._P2
         if "Q1" not in cfg:
-            cfg["Q1"] = default_q1
+            cfg["Q1"] = self._Q1
         if "Q2" not in cfg:
-            cfg["Q2"] = default_q2
+            cfg["Q2"] = self._Q2
         if "D" not in cfg:
-            cfg["D"] = default_d
+            cfg["D"] = self._D
         if "V" not in cfg:
-            cfg["V"] = default_v
+            cfg["V"] = self._V
         if "overcounting" not in cfg:
             cfg["overcounting"] = self._OVERCOUNTING
         if "min_cost_paths" not in cfg:
@@ -139,7 +116,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
             "optimization_method": And(str, lambda x: is_method(x, ["sgm"])),
             "penalty_method": And(
                 str,
-                lambda x: is_method(x, ["mc_cnn_fast_penalty", "mc_cnn_accurate_penalty"]),
+                lambda x: is_method(x, ["mc_cnn_fast_penalty"]),
             ),
             "P1": And(Or(int, float), lambda x: x > 0),
             "P2": And(Or(int, float), lambda x: x > p1_value),
