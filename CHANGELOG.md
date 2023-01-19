@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Force python version >= 3.7. [#63]
+
 ## 1.1.1 (December 2021)
 
 ### Changed
