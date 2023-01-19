@@ -44,7 +44,6 @@ class AbstractPenalty:
     def __new__(
         cls, directions: List[List[int]], **cfg: Union[str, int, float, bool]
     ):  # pylint: disable=unused-argument
-
         """
         Return the plugin associated with the penality_method given in the configuration
 
