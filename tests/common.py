@@ -23,12 +23,20 @@
 This module contains common functions present in Plugin_libsgm's tests.
 """
 
+import numpy as np
 
-def error_mask(data, gt):
+
+def error_mask(data: np.ndarray, gt: np.ndarray) -> float:
     """
     Percentage of bad pixels ( != ground truth ) in the validity mask
-
+    :param data: generated array in test
+    :type data: np.ndarray
+    :param gt: Ground truth
+    :type gt: np.ndarray
+    :return: Percentage
+    :rtype: float
     """
+
     nb_rows, nb_cols = data.shape
     nb_error = 0
     for row in range(nb_rows):
@@ -39,11 +47,17 @@ def error_mask(data, gt):
     return nb_error / float(nb_rows * nb_cols)
 
 
-def strict_error(data, gt):
+def strict_error(data: np.ndarray, gt: np.ndarray) -> float:
     """
     Average of bad pixels  ( != ground truth )
-
+    :param data: generated array in test
+    :type data: np.ndarray
+    :param gt: Ground truth
+    :type gt: np.ndarray
+    :return: Percentage
+    :rtype: float
     """
+
     nb_rows, nb_cols = data.shape
     nb_error = 0
     for row in range(nb_rows):
@@ -54,11 +68,29 @@ def strict_error(data, gt):
     return nb_error / float(nb_rows * nb_cols)
 
 
-def error(data, gt, threshold, unknown_disparity=0):
+def error(
+    data: np.ndarray, gt: np.ndarray, threshold: int, unknown_disparity: int = 0, flag_inverse_value: bool = True
+) -> float:
     """
     Percentage of bad pixels whose error is > threshold
+    If the GT is tested : the values for the left image might be inverse
 
+    :param data: generated array in test
+    :type data: np.ndarray
+    :param gt: Ground truth
+    :type gt: np.ndarray
+    :param threshold: accepted threshold in test
+    :type threshold: int
+    :param unknown_disparity: value for invalid disp in GT
+    :type unknown_disparity: int
+    :param flag_inverse_value: Whether the GT and disparity map values are reversed
+    :type flag_inverse_value: bool
+    :return: Percentage
+    :rtype: float
     """
+
+    if flag_inverse_value:
+        data = -1 * data
     nb_row, nb_col = data.shape
     nb_error = 0
     for row in range(nb_row):

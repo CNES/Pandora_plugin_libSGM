@@ -23,6 +23,7 @@
 This module provides functions to test Pandora + plugin_LibSGM
 """
 
+import copy
 import unittest
 
 import numpy as np
@@ -32,10 +33,11 @@ import rasterio
 import xarray as xr
 from pandora import matching_cost, optimization, cost_volume_confidence
 from pandora.state_machine import PandoraMachine
+
 from tests import common
 
 
-class TestPlugin(unittest.TestCase):
+class TestPluginSGM(unittest.TestCase):
     """
     TestPlugin class allows to test pandora + plugin_libsgm
     """
@@ -45,14 +47,25 @@ class TestPlugin(unittest.TestCase):
         Method called to prepare the test fixture
 
         """
-        self.left = pandora.read_img("tests/left.png", no_data=np.nan, mask=None)
-        self.right = pandora.read_img("tests/right.png", no_data=np.nan, mask=None)
-        self.disp_left = rasterio.open("tests/disp_left.tif").read(1)
-        self.disp_right = rasterio.open("tests/disp_right.tif").read(1)
-        self.occlusion = rasterio.open("tests/occl.png").read(1)
 
-        self.disp_left_zncc = rasterio.open("tests/disp_left_zncc.tif").read(1)
-        self.disp_right_zncc = rasterio.open("tests/disp_right_zncc.tif").read(1)
+        # Cones images
+        self.left_cones = pandora.read_img("tests/inputs/left.png", no_data=np.nan, mask=None)
+        self.right_cones = pandora.read_img("tests/inputs/right.png", no_data=np.nan, mask=None)
+
+        # Manually computed images
+        data = np.array(([1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]), dtype=np.float32)
+        self.left_crafted = xr.Dataset(
+            {"im": (["row", "col"], data)},
+            coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+        )
+
+        data = np.array(([1, 1, 1, 2, 2], [1, 1, 1, 4, 2], [1, 1, 1, 4, 4], [1, 1, 1, 1, 1]), dtype=np.float32)
+        self.right_crafted = xr.Dataset(
+            {"im": (["row", "col"], data)},
+            coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
+            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+        )
 
         # Create cost volume
         data_cv = np.array(
@@ -74,6 +87,14 @@ class TestPlugin(unittest.TestCase):
             attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
         )
 
+        # Cones outputs
+        self.disp_left = rasterio.open("tests/outputs/disp_left.tif").read(1)
+        self.disp_right = rasterio.open("tests/outputs/disp_right.tif").read(1)
+        self.occlusion = rasterio.open("tests/outputs/occl.png").read(1)
+
+        self.disp_left_zncc = rasterio.open("tests/outputs/disp_left_zncc.tif").read(1)
+        self.disp_right_zncc = rasterio.open("tests/outputs/disp_right_zncc.tif").read(1)
+
     def test_libsgm(self):
         """
         Test pandora + plugin_libsgm
@@ -88,16 +109,16 @@ class TestPlugin(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 1) > 0.20:
+        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
             raise AssertionError
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 2) > 0.15:
+        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
             raise AssertionError
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
@@ -111,12 +132,12 @@ class TestPlugin(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 1) > 0.20:
+        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 2) > 0.15:
+        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_negative_disparities(self):
@@ -133,16 +154,16 @@ class TestPlugin(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left, self.right, -60, -1, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, -1, user_cfg["pipeline"])
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 1) > 0.20:
+        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
             raise AssertionError
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 2) > 0.15:
+        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
             raise AssertionError
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
@@ -156,12 +177,12 @@ class TestPlugin(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 1) > 0.20:
+        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 2) > 0.15:
+        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_positive_disparities(self):
@@ -177,26 +198,26 @@ class TestPlugin(unittest.TestCase):
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        right, left = pandora.run(pandora_machine, self.right, self.left, 1, 60, user_cfg["pipeline"])
+        right, left = pandora.run(pandora_machine, self.right_cones, self.left_cones, 1, 60, user_cfg["pipeline"])
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 1) > 0.20:
+        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
             raise AssertionError
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 2) > 0.15:
+        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 1) > 0.20:
+        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 2) > 0.15:
+        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_zncc(self):
@@ -214,7 +235,7 @@ class TestPlugin(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
 
         # Compares the calculated left disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
@@ -227,8 +248,7 @@ class TestPlugin(unittest.TestCase):
         if common.strict_error(right["disparity_map"].data, self.disp_right_zncc) > 0:
             raise AssertionError
 
-    @staticmethod
-    def test_number_of_disp():
+    def test_number_of_disp(self):
         """
         Test plugin_libsgm number_of_disp function if min_cost_paths is activated
         """
@@ -245,22 +265,10 @@ class TestPlugin(unittest.TestCase):
         # Import pandora plugins
         pandora.import_plugin()
 
-        data = np.array(([1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]), dtype=np.float32)
-        left = xr.Dataset(
-            {"im": (["row", "col"], data)},
-            coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
-        )
-
-        data = np.array(([1, 1, 1, 2, 2], [1, 1, 1, 4, 2], [1, 1, 1, 4, 4], [1, 1, 1, 1, 1]), dtype=np.float32)
-        right = xr.Dataset(
-            {"im": (["row", "col"], data)},
-            coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
-        )
-
         # Computes the cost volume dataset
-        cv = matching_cost_.compute_cost_volume(img_left=left, img_right=right, disp_min=-2, disp_max=2)
+        cv = matching_cost_.compute_cost_volume(
+            img_left=self.left_crafted, img_right=self.right_crafted, disp_min=-2, disp_max=2
+        )
 
         # Disparities which give a minimum local cost, in indices
         disp_path = np.array(
@@ -314,8 +322,7 @@ class TestPlugin(unittest.TestCase):
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["confidence_measure"].data[:, :, -1], gt_disp)
 
-    @staticmethod
-    def test_number_of_disp_with_previous_confidence():
+    def test_number_of_disp_with_previous_confidence(self):
         """
         Test plugin_libsgm number_of_disp function if min_cost_paths is activated and the confidence measure was present
         """
@@ -335,23 +342,11 @@ class TestPlugin(unittest.TestCase):
         # Import pandora plugins
         pandora.import_plugin()
 
-        data = np.array(([1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]), dtype=np.float32)
-        left = xr.Dataset(
-            {"im": (["row", "col"], data)},
-            coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
-        )
-
-        data = np.array(([1, 1, 1, 2, 2], [1, 1, 1, 4, 2], [1, 1, 1, 4, 4], [1, 1, 1, 1, 1]), dtype=np.float32)
-        right = xr.Dataset(
-            {"im": (["row", "col"], data)},
-            coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
-        )
-
         # Computes the cost volume dataset
-        cv = matching_cost_.compute_cost_volume(img_left=left, img_right=right, disp_min=-2, disp_max=2)
-        left_disp, cv = confidence_.confidence_prediction(None, left, right, cv)  # pylint:disable=unused-variable
+        cv = matching_cost_.compute_cost_volume(
+            img_left=self.left_crafted, img_right=self.right_crafted, disp_min=-2, disp_max=2
+        )
+        _, cv = confidence_.confidence_prediction(None, self.left_crafted, self.right_crafted, cv)
         # Disparities which give a minimum local cost, in indices
         disp_path = np.array(
             [
@@ -421,26 +416,8 @@ class TestPlugin(unittest.TestCase):
         # Test
         use_confidence = False
 
-        data_cv = np.array(
-            [
-                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
-                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
-                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
-            ],
-            dtype=np.float32,
-        )
-        cv_in = xr.Dataset(
-            {"cost_volume": (["row", "col", "disp"], data_cv)},
-            coords={
-                "row": np.arange(data_cv.shape[0]),
-                "col": np.arange(data_cv.shape[1]),
-                "disp": np.arange(data_cv.shape[2]),
-            },
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
-        )
-
         # apply confidence
-        cv_updated, confidence_is_int = optimization_.apply_confidence(cv_in, use_confidence)
+        cv_updated, confidence_is_int = optimization_.apply_confidence(self.cv, use_confidence)
 
         # Ground Truth
         optim_cv_gt = np.array(
@@ -475,26 +452,8 @@ class TestPlugin(unittest.TestCase):
         # Test
         use_confidence = True
 
-        data_cv = np.array(
-            [
-                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
-                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
-                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
-            ],
-            dtype=np.float32,
-        )
-        cv_in = xr.Dataset(
-            {"cost_volume": (["row", "col", "disp"], data_cv)},
-            coords={
-                "row": np.arange(data_cv.shape[0]),
-                "col": np.arange(data_cv.shape[1]),
-                "disp": np.arange(data_cv.shape[2]),
-            },
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
-        )
-
         # apply confidence
-        cv_updated, confidence_is_int = optimization_.apply_confidence(cv_in, use_confidence)
+        cv_updated, confidence_is_int = optimization_.apply_confidence(self.cv, use_confidence)
 
         # Ground Truth
         optim_cv_gt = np.array(
@@ -527,33 +486,13 @@ class TestPlugin(unittest.TestCase):
         optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
 
         # Test
-
         use_confidence = True
-
-        data_cv = np.array(
-            [
-                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
-                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
-                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
-            ],
-            dtype=np.float32,
-        )
 
         data_confidence = np.expand_dims(
             np.array([[1, 1, 1, 0.5], [1, 1, 0.5, 1], [1, 1, 1, 1]], dtype=np.float32), axis=2
         )
 
-        cv_in = xr.Dataset(
-            {"cost_volume": (["row", "col", "disp"], data_cv)},
-            coords={
-                "row": np.arange(data_cv.shape[0]),
-                "col": np.arange(data_cv.shape[1]),
-                "disp": np.arange(data_cv.shape[2]),
-                "indicator": ["ambiguity_confidence"],
-            },
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
-        )
-
+        cv_in = copy.deepcopy(self.cv)
         cv_in["confidence_measure"] = xr.DataArray(data_confidence, dims=["row", "col", "indicator"])
 
         # apply confidence
@@ -575,14 +514,13 @@ class TestPlugin(unittest.TestCase):
         # Check if confidence_is_int is right
         self.assertEqual(confidence_is_int, False)
 
-    def test_compute_piecewise_layer_not_in_dataset(self):
+    def test_optimization_layer_with_sgm(self):
         """
-        Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
-         without any in dataset
+        Test the optimization layer function with sgm default configuration
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -590,84 +528,21 @@ class TestPlugin(unittest.TestCase):
         # Load plugins
         optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
 
-        # Create input dataset
-        data_img_left = np.random.rand(5, 6)
-        img_left = xr.Dataset(
-            {"im": (["row", "col"], data_img_left)},
-            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
-        )
+        cv_in = copy.deepcopy(self.cv)
 
-        piecewise_optimization_layer = {"source": "toto"}
+        prior_array_out = optimization_.compute_optimization_layer(cv_in, self.left_crafted)
 
-        _, classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer, self.cv)
+        # Check that cost volume isn't changed
+        with pytest.raises(KeyError):
+            _ = cv_in["internal"]
 
-        gt_classif = np.ones((5, 6))
-        np.testing.assert_array_equal(classif_arr, gt_classif)
-
-    def test_compute_piecewise_layer_in_dataset(self):
-        """
-        Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
-         without any in dataset
-        """
-
-        # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
-        # Import pandora plugins
-        pandora.import_plugin()
-
-        # Load plugins
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
-
-        # Create input dataset
-        data_img_left = np.random.rand(3, 2)
-        img_left = xr.Dataset(
-            {"im": (["row", "col"], data_img_left)},
-            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
-        )
-
-        data_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
-        img_left["classif"] = xr.DataArray(data_classif, dims=["row", "col"])
-
-        piecewise_optimization_layer = {"source": "classif"}
-
-        _, classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer, self.cv)
-
-        gt_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]), dtype=np.float32)
-        np.testing.assert_array_equal(classif_arr, gt_classif)
-
-    def test_compute_piecewise_none_layer_in_dataset(self):
-        """
-        Test plugin_libsgm compute_piecewise_layer function, with user asking for piecewise optimization,
-         without any in dataset
-        """
-
-        # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
-        # Import pandora plugins
-        pandora.import_plugin()
-
-        # Load plugins
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
-
-        # Create input dataset
-        data_img_left = np.random.rand(3, 2)
-        img_left = xr.Dataset(
-            {"im": (["row", "col"], data_img_left)},
-            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
-        )
-
-        piecewise_optimization_layer = {"source": "internal"}
-
-        _, classif_arr = optimization_.compute_piecewise_layer(img_left, piecewise_optimization_layer, self.cv)
-
-        gt_classif = np.ones((3, 2))
-        np.testing.assert_array_equal(classif_arr, gt_classif)
+        # Check that prior array is the default one
+        default_prior_array = np.ones(self.left_crafted["im"].data.shape, dtype=np.float32)
+        np.testing.assert_array_equal(default_prior_array, prior_array_out)
 
     def test_user_initiate_sgm_with_geomprior(self):
         """
-        Test that user can't implement geometric_prior with a 3sgm configuration
+        Test that user can't implement geometric_prior with a sgm configuration
         """
 
         # Prepare the SGM configuration
@@ -683,7 +558,7 @@ class TestPlugin(unittest.TestCase):
 
         # Pandora pipeline should fail
         with pytest.raises(SystemExit):
-            _, _ = pandora.run(pandora_machine, self.left, self.right, -60, -1, user_cfg["pipeline"])
+            _, _ = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, -1, user_cfg["pipeline"])
 
 
 if __name__ == "__main__":

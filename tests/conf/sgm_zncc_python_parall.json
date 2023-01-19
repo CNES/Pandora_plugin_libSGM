@@ -13,7 +13,6 @@
     "optimization" : {
       "optimization_method": "sgm",
       "sgm_version": "python_libsgm_parall",
-      "optimization_method": "sgm",
       "overcounting": false,
       "penalty": {
         "P1": 2,

@@ -99,7 +99,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         """
         nb_rows, nb_cols = img_left["im"].data.shape
         # internal (from cv), segm or classif (from image)
-        mode = self._geometric_prior["source"]
+        mode = self._geometric_prior["source"]  # type: ignore
 
         if mode in ["segm", "classif"]:
             # if geometric_prior comes from the image (segm or classif)

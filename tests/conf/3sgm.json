@@ -24,7 +24,7 @@
     },
     "disparity": {
       "disparity_method": "wta",
-      "invalid_disparity": -9999
+      "invalid_disparity": "NaN"
     },
     "refinement": {
       "refinement_method": "vfit"

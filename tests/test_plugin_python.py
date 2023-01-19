@@ -42,30 +42,17 @@ class TestPluginPython(unittest.TestCase):
         Method called to prepare the test fixture
 
         """
-        self.left = pandora.read_img("tests/left.png", no_data=np.nan, mask=None)
-        self.right = pandora.read_img("tests/right.png", no_data=np.nan, mask=None)
-        self.disp_left = rasterio.open("tests/disp_left.tif").read(1)
-        self.disp_right = rasterio.open("tests/disp_right.tif").read(1)
-        self.occlusion = rasterio.open("tests/occl.png").read(1)
+        # Cones images
+        self.left_cones = pandora.read_img("tests/inputs/left.png", no_data=np.nan, mask=None)
+        self.right_cones = pandora.read_img("tests/inputs/right.png", no_data=np.nan, mask=None)
 
-        self.disp_left_zncc = rasterio.open("tests/disp_left_zncc.tif").read(1)
-        self.disp_right_zncc = rasterio.open("tests/disp_right_zncc.tif").read(1)
+        # Cones outputs
+        self.disp_left = rasterio.open("tests/outputs/disp_left.tif").read(1)
+        self.disp_right = rasterio.open("tests/outputs/disp_right.tif").read(1)
+        self.occlusion = rasterio.open("tests/outputs/occl.png").read(1)
 
-    @staticmethod
-    def error(data, gt, threshold, unknown_disparity=0):
-        """
-        Percentage of bad pixels whose error is > threshold
-
-        """
-        nb_rows, nb_cols = data.shape
-        nb_error = 0
-        for row in range(nb_rows):
-            for col in range(nb_cols):
-                if gt[row, col] != unknown_disparity:
-                    if abs((data[row, col] + gt[row, col])) > threshold:
-                        nb_error += 1
-
-        return nb_error / float(nb_rows * nb_cols)
+        self.disp_left_zncc = rasterio.open("tests/outputs/disp_left_zncc.tif").read(1)
+        self.disp_right_zncc = rasterio.open("tests/outputs/disp_right_zncc.tif").read(1)
 
     def test_libsgm(self):
         """
@@ -81,16 +68,16 @@ class TestPluginPython(unittest.TestCase):
         pandora.import_plugin()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(left["disparity_map"].data, self.disp_left, 1) > 0.20:
+        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
             raise AssertionError
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(left["disparity_map"].data, self.disp_left, 2) > 0.15:
+        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
             raise AssertionError
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
@@ -104,12 +91,12 @@ class TestPluginPython(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 1) > 0.20:
+        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 2) > 0.15:
+        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_negative_disparities(self):
@@ -126,16 +113,16 @@ class TestPluginPython(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left, self.right, -60, -1, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, -1, user_cfg["pipeline"])
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(left["disparity_map"].data, self.disp_left, 1) > 0.20:
+        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
             raise AssertionError
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(left["disparity_map"].data, self.disp_left, 2) > 0.15:
+        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
             raise AssertionError
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
@@ -149,12 +136,12 @@ class TestPluginPython(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 1) > 0.20:
+        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(-1 * right["disparity_map"].data, self.disp_right, 2) > 0.15:
+        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_positive_disparities(self):
@@ -170,26 +157,26 @@ class TestPluginPython(unittest.TestCase):
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        right, left = pandora.run(pandora_machine, self.right, self.left, 1, 60, user_cfg["pipeline"])
+        right, left = pandora.run(pandora_machine, self.right_cones, self.left_cones, 1, 60, user_cfg["pipeline"])
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(left["disparity_map"].data, self.disp_left, 1) > 0.20:
+        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
             raise AssertionError
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(left["disparity_map"].data, self.disp_left, 2) > 0.15:
+        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if self.error(-1 * right["disparity_map"].data, self.disp_right, 1) > 0.20:
+        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
             raise AssertionError
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if self.error(-1 * right["disparity_map"].data, self.disp_right, 2) > 0.15:
+        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
             raise AssertionError
 
     def test_libsgm_zncc(self):
@@ -207,7 +194,7 @@ class TestPluginPython(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left, self.right, -60, 0, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
 
         # Compares the calculated left disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
