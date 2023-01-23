@@ -38,7 +38,7 @@ Let's refer to [Pandora's readme](https://github.com/CNES/Pandora/blob/master/RE
 
 More specifically, you can find :
 - [SGM configuration file example](https://raw.githubusercontent.com/CNES/Pandora/master/data_samples/json_conf_files/a_semi_global_matching.json)
-- [documentation about SGM theory and parameters](https://pandora.readthedocs.io/userguide/plugins/plugin_libsgm.html)
+- [documentation about SGM theory and parameters](https://pandora.readthedocs.io/en/stable/userguide/plugins/plugin_libsgm.html)
 
 
 ## Related

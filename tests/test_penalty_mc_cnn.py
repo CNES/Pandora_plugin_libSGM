@@ -218,29 +218,9 @@ class TestPenalitySGM(unittest.TestCase):
         penalty = penalty_mc_cnn.MccnnPenalty(_directions, **cfg)
 
         # Checks that penalties correspond to the type of measure
-        assert penalty._p1 == penalty_mc_cnn.MccnnPenalty._P1_FAST
-        assert penalty._p2 == penalty_mc_cnn.MccnnPenalty._P2_FAST
-        assert penalty._q1 == penalty_mc_cnn.MccnnPenalty._Q1_FAST
-        assert penalty._q2 == penalty_mc_cnn.MccnnPenalty._Q2_FAST
-        assert penalty._d == penalty_mc_cnn.MccnnPenalty._D_FAST
-        assert penalty._v == penalty_mc_cnn.MccnnPenalty._V_FAST
-
-        # Check with accurate mc-cnn
-        cfg = {
-            "sgm_version": "c++",
-            "optimization_method": "sgm",
-            "overcounting": False,
-            "min_cost_paths": False,
-            "penalty_method": "mc_cnn_accurate_penalty",
-        }
-
-        _directions = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
-        penalty = penalty_mc_cnn.MccnnPenalty(_directions, **cfg)
-
-        # Checks that penalties correspond to the type of measure
-        assert penalty._p1 == penalty_mc_cnn.MccnnPenalty._P1_ACCURATE
-        assert penalty._p2 == penalty_mc_cnn.MccnnPenalty._P2_ACCURATE
-        assert penalty._q1 == penalty_mc_cnn.MccnnPenalty._Q1_ACCURATE
-        assert penalty._q2 == penalty_mc_cnn.MccnnPenalty._Q2_ACCURATE
-        assert penalty._d == penalty_mc_cnn.MccnnPenalty._D_ACCURATE
-        assert penalty._v == penalty_mc_cnn.MccnnPenalty._V_ACCURATE
+        assert penalty._p1 == penalty_mc_cnn.MccnnPenalty._P1
+        assert penalty._p2 == penalty_mc_cnn.MccnnPenalty._P2
+        assert penalty._q1 == penalty_mc_cnn.MccnnPenalty._Q1
+        assert penalty._q2 == penalty_mc_cnn.MccnnPenalty._Q2
+        assert penalty._d == penalty_mc_cnn.MccnnPenalty._D
+        assert penalty._v == penalty_mc_cnn.MccnnPenalty._V
