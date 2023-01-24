@@ -19,7 +19,7 @@
 ## Overview
 
 [Pandora](https://github.com/CNES/Pandora) stereo matching framework is designed to provide some state of the art stereo algorithms and to add others one as plugins.  
-This [Pandora plugin](https://pandora.readthedocs.io/userguide/plugin.html) aims to optimize the cost volume following Semi-Global Matching algorithm, defined by [[Hirschmuller]](#Hirschmuller), with the [libSGM](https://github.com/CNES/Pandora_libSGM)  library .
+This [Pandora plugin](https://pandora.readthedocs.io/en/stable/userguide/plugin.html) aims to optimize the cost volume following Semi-Global Matching algorithm, defined by [[Hirschmuller]](#Hirschmuller), with the [libSGM](https://github.com/CNES/Pandora_libSGM)  library .
 
 ## Install
 
