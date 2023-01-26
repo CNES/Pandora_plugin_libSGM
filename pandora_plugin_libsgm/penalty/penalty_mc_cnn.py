@@ -43,9 +43,9 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
     # Default mc-cnn fast penalty
     _P1 = 2.3
-    _P2 = 55.9
-    _Q1 = 4
-    _Q2 = 2
+    _P2 = 42.3
+    _Q1 = 3
+    _Q2 = 6
     _D = 0.08
     _V = 1.5
 
