@@ -2,9 +2,17 @@
 
 ## Unreleased
 
+## 1.2.0 (January 2023)
+
+### Added
+
+- Add 3SGM (Semantic Segmentation for SGM) method. 
+
 ### Changed
 
 - Force python version >= 3.7. [#63]
+- Delete MCCNN accurate penalties. [#67]
+- Change values for default penalties of MC CNN fast [#65]
 
 ## 1.1.1 (December 2021)
 
