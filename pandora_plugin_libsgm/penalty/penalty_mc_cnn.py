@@ -49,11 +49,6 @@ class MccnnPenalty(penalty.AbstractPenalty):
     _D = 0.08
     _V = 1.5
 
-    _OVERCOUNTING = False
-    _MIN_COST_PATH = False
-    _USE_CONFIDENCE = False
-    _PIECEWISE_OPTIMIZATION_LAYER = "None"
-
     def __init__(self, directions: List[List[int]], **cfg: Union[str, int, float, bool]):
         """
         :param directions: directions to
@@ -69,10 +64,6 @@ class MccnnPenalty(penalty.AbstractPenalty):
         self._q2 = self.cfg["Q2"]
         self._d = self.cfg["D"]
         self._v = self.cfg["V"]
-        self._overcounting = self.cfg["overcounting"]
-        self._min_cost_paths = self.cfg["min_cost_paths"]
-        self._use_confidence = self.cfg["use_confidence"]
-        self._piecewise_optimization_layer = self.cfg["piecewise_optimization_layer"]
         self._directions = directions
 
     def check_conf(self, **cfg: Union[str, int, float, bool]) -> Dict[str, Union[str, int, float, bool]]:
@@ -98,22 +89,9 @@ class MccnnPenalty(penalty.AbstractPenalty):
             cfg["D"] = self._D
         if "V" not in cfg:
             cfg["V"] = self._V
-        if "overcounting" not in cfg:
-            cfg["overcounting"] = self._OVERCOUNTING
-        if "min_cost_paths" not in cfg:
-            cfg["min_cost_paths"] = self._MIN_COST_PATH
-        if "use_confidence" not in cfg:
-            cfg["use_confidence"] = self._USE_CONFIDENCE
-        if "piecewise_optimization_layer" not in cfg:
-            cfg["piecewise_optimization_layer"] = self._PIECEWISE_OPTIMIZATION_LAYER
 
         p1_value = cfg["P1"]
         schema = {
-            "sgm_version": And(
-                str,
-                lambda x: is_method(x, ["c++", "python_libsgm", "python_libsgm_parall"]),
-            ),
-            "optimization_method": And(str, lambda x: is_method(x, ["sgm"])),
             "penalty_method": And(
                 str,
                 lambda x: is_method(x, ["mc_cnn_fast_penalty"]),
@@ -124,10 +102,6 @@ class MccnnPenalty(penalty.AbstractPenalty):
             "Q2": And(Or(int, float), lambda x: x > 0),
             "D": And(Or(int, float), lambda x: x >= 0),
             "V": And(Or(int, float), lambda x: x > 0),
-            "overcounting": bool,
-            "min_cost_paths": bool,
-            "use_confidence": bool,
-            "piecewise_optimization_layer": And(str, lambda x: is_method(x, ["None", "classif", "segm"])),
         }
 
         checker = Checker(schema)

@@ -42,16 +42,12 @@ class TestPenalitySGM(unittest.TestCase):
 
         """
         self.cfg = {
-            "sgm_version": "c++",
-            "optimization_method": "sgm",
             "P1": 8,
             "P2": 10,
             "alpha": 1.0,
             "gamma": 1,
             "beta": 1,
             "p2_method": "constant",
-            "overcounting": False,
-            "min_cost_paths": False,
             "penalty_method": "sgm_penalty",
         }
 

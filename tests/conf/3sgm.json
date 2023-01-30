@@ -5,26 +5,26 @@
       "method": "accurate"
     },
     "matching_cost" : {
-      "matching_cost_method": "zncc",
+      "matching_cost_method": "census",
       "window_size": 5,
       "subpix": 1
     },
-
+    "cost_volume_confidence" : {
+      "confidence_method": "std_intensity"
+    },
     "optimization" : {
-      "optimization_method": "sgm",
-      "sgm_version": "python_libsgm_parall",
+      "optimization_method": "3sgm",
       "overcounting": false,
       "penalty": {
-        "P1": 2,
-        "P2": 4,
+        "P1": 8,
+        "P2": 32,
         "p2_method": "constant",
         "penalty_method": "sgm_penalty"
       }
     },
-
     "disparity": {
       "disparity_method": "wta",
-      "invalid_disparity": -9999
+      "invalid_disparity": "NaN"
     },
     "refinement": {
       "refinement_method": "vfit"
@@ -44,3 +44,4 @@
     }
   }
 }
+

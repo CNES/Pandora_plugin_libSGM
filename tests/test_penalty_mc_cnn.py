@@ -41,16 +41,12 @@ class TestPenalitySGM(unittest.TestCase):
 
         """
         self.cfg = {
-            "sgm_version": "c++",
-            "optimization_method": "sgm",
             "P1": 8,
             "P2": 10,
             "Q1": 1.0,
             "Q2": 1.0,
             "D": 1.0,
             "V": 1.0,
-            "overcounting": False,
-            "min_cost_paths": False,
             "penalty_method": "mc_cnn_fast_penalty",
         }
 
@@ -207,10 +203,6 @@ class TestPenalitySGM(unittest.TestCase):
         """
         # Check with fast mc-cnn
         cfg = {
-            "sgm_version": "c++",
-            "optimization_method": "sgm",
-            "overcounting": False,
-            "min_cost_paths": False,
             "penalty_method": "mc_cnn_fast_penalty",
         }
 
