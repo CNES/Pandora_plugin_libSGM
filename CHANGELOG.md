@@ -13,6 +13,7 @@
 - Force python version >= 3.7. [#63]
 - Delete MCCNN accurate penalties. [#67]
 - Change values for default penalties of MC CNN fast [#65]
+- Udpate dependency to Pandora 1.3.0 
 
 ## 1.1.1 (December 2021)
 
