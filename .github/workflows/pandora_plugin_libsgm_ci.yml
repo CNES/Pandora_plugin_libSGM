@@ -39,11 +39,13 @@ jobs:
         pytest --junitxml=pytest-report.xml --cov-config=.coveragerc --cov-report xml --cov
     - name: Test with pytest pandora's notebooks
       run: |
-        pip install ipyvolume
+        pip install ipykernel
         pip install bokeh
         pip install matplotlib
         pip install graphviz
         pip install notebook
+        pip install plotly
+        pip install jupyter-dash
         pip install ipython
         hash -r
         cd submodule/pandora
