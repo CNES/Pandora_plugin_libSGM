@@ -204,6 +204,59 @@ class TestPluginPython(unittest.TestCase):
         # If the disparity maps are not equal, raise an error
         np.testing.assert_allclose(right["disparity_map"].data, self.disp_right_zncc, rtol=1e-04)
 
+    def test_libsgm_multiband(self):
+        """
+        Test pandora + plugin_libsgm with multiband input images
+
+        """
+        user_cfg = pandora.read_config_file("tests/conf/sgm_python.json")
+
+        # Add band parameter on matching_cost configuration
+        # This is also the correlation band that will be used in the plugin
+        user_cfg["pipeline"]["matching_cost"]["band"] = "g"
+
+        # Read input rgb images
+        left_rgb = pandora.read_img("tests/inputs/left_rgb.png", band_list=["r", "g", "b"], no_data=np.nan, mask=None)
+        right_rgb = pandora.read_img("tests/inputs/right_rgb.png", band_list=["r", "g", "b"], no_data=np.nan, mask=None)
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Run the pandora pipeline
+        left, right = pandora.run(pandora_machine, left_rgb, right_rgb, -60, 0, user_cfg["pipeline"])
+
+        # Compares the calculated left disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated left disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
+            raise AssertionError
+
+        # Check the left validity mask cross checking ( bit 8 and 9 )
+        # Compares the calculated validity mask with the ground truth ( occlusion mask )
+        occlusion = np.ones((left["validity_mask"].shape[0], left["validity_mask"].shape[1]))
+        occlusion[left["validity_mask"].data >= 512] = 0
+
+        # If the percentage of errors is > 0.15, raise an error
+        if common.error_mask(occlusion, self.occlusion) > 0.16:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
+            raise AssertionError
+
 
 if __name__ == "__main__":
     unittest.main()
