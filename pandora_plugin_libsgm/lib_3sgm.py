@@ -84,7 +84,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         self, cv: xr.Dataset, img_left: xr.Dataset, img_shape: Tuple[int, ...]
     ) -> np.ndarray:
         """
-        Compute optimization layer for sgm or 3sgm optimization method
+        Compute optimization layer for optimization method
 
         :param cv: the cost volume, with the data variables:
 
@@ -93,7 +93,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         :type cv: xarray.Dataset
         :param img_left: left Dataset image containing :
 
-                - im : 2D (row, col) or 3D (row, col, band) xarray.DataArray
+                - im : 2D (row, col) or 3D (band, row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
         :type img_left: xarray
         :param img_shape: shape of the input image

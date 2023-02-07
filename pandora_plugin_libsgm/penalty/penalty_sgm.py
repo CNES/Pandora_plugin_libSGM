@@ -107,7 +107,7 @@ class SgmPenalty(penalty.AbstractPenalty):
 
     def desc(self):
         """
-        Describes the penality method
+        Describes the penalty method
 
         """
         print("SGM penalty method description")
@@ -127,8 +127,8 @@ class SgmPenalty(penalty.AbstractPenalty):
         :type img_left_array: np.ndarray
         :param img_right_array: right  image
         :type img_right_array: np.ndarray
-        :return: P1 and P2 penalties
-        :rtype: tuple(numpy array, numpy array)
+        :return: invalid disp, P1 and P2 penalties
+        :rtype: tuple(float, numpy array, numpy array)
         """
 
         # Calculation of the invalid value according to the chosen P2 estimation method

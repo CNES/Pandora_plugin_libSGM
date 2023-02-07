@@ -45,7 +45,7 @@ class AbstractPenalty:
         cls, directions: List[List[int]], **cfg: Union[str, int, float, bool]
     ):  # pylint: disable=unused-argument
         """
-        Return the plugin associated with the penality_method given in the configuration
+        Return the plugin associated with the penalty_method given in the configuration
 
         :param directions: directions to
         :type directions: list of [x offset, y offset]
@@ -121,8 +121,8 @@ class AbstractPenalty:
         :type img_left_array: np.ndarray
         :param img_right_array: right  image
         :type img_right_array: np.ndarray
-        :return: P1 and P2 penalties
-        :rtype: tuple(numpy array, numpy array)
+        :return: invalid values, P1 and P2 penalties
+        :rtype: tuple(float, numpy array, numpy array)
         """
 
     @staticmethod

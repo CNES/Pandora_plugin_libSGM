@@ -110,7 +110,7 @@ class MccnnPenalty(penalty.AbstractPenalty):
 
     def desc(self):
         """
-        Describes the penality method
+        Describes the penalty method
 
         """
         print("MC-CNN penalty method description")
@@ -130,8 +130,8 @@ class MccnnPenalty(penalty.AbstractPenalty):
         :type img_left_array: np.ndarray
         :param img_right_array: right  image
         :type img_right_array: np.ndarray
-        :return: P1 and P2 penalities
-        :rtype: tuple(numpy array, numpy array)
+        :return: invalid disp, P1 and P2 penalties
+        :rtype: tuple(float, numpy array, numpy array)
         """
 
         # Calculation of the invalid value
