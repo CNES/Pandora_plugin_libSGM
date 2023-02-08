@@ -32,7 +32,7 @@ import rasterio
 import xarray as xr
 from pandora import optimization
 from pandora.state_machine import PandoraMachine
-
+import pandora.check_json as JSON_checker
 from tests import common
 
 
@@ -408,6 +408,70 @@ class TestPlugin3SGM(unittest.TestCase):
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         if common.error(right["disparity_map"].data, gt_right, 2) > 0.15:
             raise AssertionError
+
+    def test_user_initiate_3sgm_and_validation_with_one_geomprior_segmentation(self):
+        """
+        Test that user can't implement 3SGM and validation if only one segmentation is given
+        """
+
+        # Prepare the SGM configuration. It contains cross_checking validation and 3SGM optimization
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Create input cfg where only the left segmentation is present
+        input_cfg = {
+            "img_left": "tests/inputs/left.png",
+            "img_right": "tests/inputs/right.png",
+            "left_segm": "tests/inputs/white_band_mask.png",
+            "disp_min": -60,
+            "disp_max": 0,
+        }
+
+        # Add a segmentation geometric_prior
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
+
+        # Create full configuration
+        cfg = {"input": input_cfg, "pipeline": user_cfg["pipeline"]}
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        self.assertRaises(SystemExit, JSON_checker.check_conf, cfg, pandora_machine)
+
+    def test_user_initiate_3sgm_and_validation_with_one_geomprior_classification(self):
+        """
+        Test that user can't implement 3SGM and validation if only one classification is given
+        """
+
+        # Prepare the SGM configuration. It contains cross_checking validation
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Create input cfg where only the right classification is present
+        input_cfg = {
+            "img_left": "tests/inputs/left.png",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/white_band_mask.png",
+            "disp_min": -60,
+            "disp_max": 0,
+        }
+
+        # Add a geometric_prior
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
+
+        # Create full configuration
+        cfg = {"input": input_cfg, "pipeline": user_cfg["pipeline"]}
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        self.assertRaises(SystemExit, JSON_checker.check_conf, cfg, pandora_machine)
 
 
 if __name__ == "__main__":
