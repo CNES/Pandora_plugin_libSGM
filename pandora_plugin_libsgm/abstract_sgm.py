@@ -307,7 +307,7 @@ class AbstractSGM(optimization.AbstractOptimization):
 
         # Allocate the confidence measure
         _, cv = AbstractCostVolumeConfidence.allocate_confidence_map(
-            "optimization_pluginlibSGM_nbOfDisp", conf_map, None, cv
+            "optimization_plugin_libsgm_nb_of_directions", conf_map, None, cv
         )
 
         del invalid_mc

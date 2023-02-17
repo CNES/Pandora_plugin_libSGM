@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Rename confidence name and adapt it to snakecase [#73]
+
 ## 1.2.0 (January 2023)
 
 ### Added
