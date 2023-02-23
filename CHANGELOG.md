@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Multiband images compatibility. [#72]
+
 ### Changed
 
 - Rename confidence name and adapt it to snakecase [#73]

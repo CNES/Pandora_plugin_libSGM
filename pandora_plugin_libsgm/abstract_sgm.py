@@ -152,8 +152,8 @@ class AbstractSGM(optimization.AbstractOptimization):
         # If the input images were multiband, the band used for the correlation is used
         if cv.attrs["band_correl"] is not None:
             # Obtain correlation band from cost_volume attributes
-            band_index_left = img_left.attrs["band_list"].index(cv.attrs["band_correl"])
-            band_index_right = img_left.attrs["band_list"].index(cv.attrs["band_correl"])
+            band_index_left = list(img_left.band.data).index(cv.attrs["band_correl"])
+            band_index_right = list(img_right.band.data).index(cv.attrs["band_correl"])
             # Get the image band
             img_left_array = np.ascontiguousarray(img_left["im"].data[band_index_left, :, :], dtype=np.float32)
             img_right_array = np.ascontiguousarray(img_right["im"].data[band_index_right, :, :], dtype=np.float32)

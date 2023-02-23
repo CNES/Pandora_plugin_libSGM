@@ -216,8 +216,8 @@ class TestPluginPython(unittest.TestCase):
         user_cfg["pipeline"]["matching_cost"]["band"] = "g"
 
         # Read input rgb images
-        left_rgb = pandora.read_img("tests/inputs/left_rgb.png", band_list=["r", "g", "b"], no_data=np.nan, mask=None)
-        right_rgb = pandora.read_img("tests/inputs/right_rgb.png", band_list=["r", "g", "b"], no_data=np.nan, mask=None)
+        left_rgb = pandora.read_img("tests/inputs/left_rgb.tif", no_data=np.nan, mask=None)
+        right_rgb = pandora.read_img("tests/inputs/right_rgb.tif", no_data=np.nan, mask=None)
 
         # Instantiate machine
         pandora_machine = PandoraMachine()

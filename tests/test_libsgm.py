@@ -581,8 +581,8 @@ class TestPluginSGM(unittest.TestCase):
         Test the optimization layer function with multiband input images
         """
         # Read input rgb images
-        left_rgb = pandora.read_img("tests/inputs/left_rgb.png", band_list=["r", "g", "b"], no_data=np.nan, mask=None)
-        right_rgb = pandora.read_img("tests/inputs/right_rgb.png", band_list=["r", "g", "b"], no_data=np.nan, mask=None)
+        left_rgb = pandora.read_img("tests/inputs/left_rgb.tif", no_data=np.nan, mask=None)
+        right_rgb = pandora.read_img("tests/inputs/right_rgb.tif", no_data=np.nan, mask=None)
 
         # Prepare the configuration for multiband
         user_cfg = pandora.read_config_file("tests/conf/sgm.json")
@@ -607,10 +607,10 @@ class TestPluginSGM(unittest.TestCase):
         # Get invalid disparities of the cost volume
         invalid_disp = np.isnan(cv["cost_volume"].data)
 
-        # Obtain ground truth optimized cost volume for a multiband input
-        out_gt_cv = optimization_.optimize_cv(cv, left_rgb, right_rgb)
+        # Obtain optimized cost volume for a multiband input
+        out_cv = optimization_.optimize_cv(cv, left_rgb, right_rgb)
         # Invalid disparities of the cost volume as set as -9999
-        out_gt_cv["cost_volume"].data[invalid_disp] = -9999
+        out_cv["cost_volume"].data[invalid_disp] = -9999
 
         # To verify if the correct band is being used, we perform the optimize_cv steps
         # selecting manually the band
@@ -619,17 +619,21 @@ class TestPluginSGM(unittest.TestCase):
         # Get the image band and optimize cv
         img_left_array = np.ascontiguousarray(left_rgb["im"].data[band, :, :], dtype=np.float32)
         img_right_array = np.ascontiguousarray(right_rgb["im"].data[band, :, :], dtype=np.float32)
-        invalid_value, p1_mat, p2_mat = optimization_._penalty.compute_penalty(cv_in, img_left_array, img_right_array)
-        cv_in, confidence_is_int = optimization_.apply_confidence(cv_in, optimization_._use_confidence)
+        invalid_value, p1_mat, p2_mat = optimization_._penalty.compute_penalty(  # pylint:disable=protected-access
+            cv_in, img_left_array, img_right_array
+        )
+        cv_in, confidence_is_int = optimization_.apply_confidence(
+            cv_in, optimization_._use_confidence  # pylint:disable=protected-access
+        )
         optimization_layer = optimization_.compute_optimization_layer(cv_in, left_rgb, img_left_array.shape)
-        cost_volumes_out = optimization_.sgm_cpp(
+        cost_volumes_gt = optimization_.sgm_cpp(
             cv_in, invalid_value, confidence_is_int, p1_mat, p2_mat, optimization_layer, invalid_disp
         )
         # Invalid disparities of the cost volume as set as -9999
-        cost_volumes_out["cv"][invalid_disp] = -9999
+        cost_volumes_gt["cv"][invalid_disp] = -9999
 
         # Check if the calculated optimized cv is equal to the ground truth
-        np.testing.assert_array_equal(cost_volumes_out["cv"], out_gt_cv["cost_volume"].data)
+        np.testing.assert_array_equal(cost_volumes_gt["cv"], out_cv["cost_volume"].data)
 
 
 if __name__ == "__main__":
