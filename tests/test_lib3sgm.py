@@ -30,7 +30,7 @@ import numpy as np
 import pandora
 import rasterio
 import xarray as xr
-from pandora import optimization
+from pandora import optimization, check_conf
 from pandora.state_machine import PandoraMachine
 import pandora.check_json as JSON_checker
 from tests import common
@@ -49,6 +49,20 @@ class TestPlugin3SGM(unittest.TestCase):
         # Cones images
         self.left_cones = pandora.read_img("tests/inputs/left.png", no_data=np.nan, mask=None)
         self.right_cones = pandora.read_img("tests/inputs/right.png", no_data=np.nan, mask=None)
+        # Cones images with classification
+        self.left_cones_classif = pandora.read_img(
+            "tests/inputs/left.png", no_data=np.nan, mask=None, classif="tests/inputs/left_classif.tif"
+        )
+        self.right_cones_classif = pandora.read_img(
+            "tests/inputs/right.png", no_data=np.nan, mask=None, classif="tests/inputs/right_classif.tif"
+        )
+        # Cones images with segmentation
+        self.left_cones_segm = pandora.read_img(
+            "tests/inputs/left.png", no_data=np.nan, mask=None, segm="tests/inputs/left_classif.tif"
+        )
+        self.right_cones_segm = pandora.read_img(
+            "tests/inputs/right.png", no_data=np.nan, mask=None, segm="tests/inputs/right_classif.tif"
+        )
 
         # Manually computed images
         data = np.array(([1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]), dtype=np.float32)
@@ -80,7 +94,7 @@ class TestPlugin3SGM(unittest.TestCase):
                 "row": np.arange(data_cv.shape[0]),
                 "col": np.arange(data_cv.shape[1]),
                 "disp": np.arange(data_cv.shape[2]),
-                "indicator": ["ambiguity_confidence"],
+                "indicator": ["confidence_from_ambiguity"],
             },
             attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
         )
@@ -125,38 +139,6 @@ class TestPlugin3SGM(unittest.TestCase):
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
             raise AssertionError
-
-    def test_compute_optimization_layer_in_dataset(self):
-        """
-        Test plugin_lib3sgm compute_optimization_layer function,
-        with user asking for piecewise optimization, present in image dataset
-        """
-
-        # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-        # add internal geometric_prior source
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
-
-        # Import pandora plugins
-        pandora.import_plugin()
-
-        # Load plugins
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
-
-        # Create input dataset
-        data_img_left = np.random.rand(3, 2)
-        img_left = xr.Dataset(
-            {"im": (["row", "col"], data_img_left)},
-            coords={"row": np.arange(data_img_left.shape[0]), "col": np.arange(data_img_left.shape[1])},
-        )
-
-        data_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
-        img_left["classif"] = xr.DataArray(data_classif, dims=["row", "col"])
-
-        classif_arr = optimization_.compute_optimization_layer(self.cv, img_left, img_left["im"].data.shape)
-
-        gt_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]), dtype=np.float32)
-        np.testing.assert_array_equal(classif_arr, gt_classif)
 
     def test_compute_optimization_layer_none_layer_in_dataset(self):
         """
@@ -356,32 +338,28 @@ class TestPlugin3SGM(unittest.TestCase):
         if common.error(right["disparity_map"].data, gt_right, 2) > 0.15:
             raise AssertionError
 
-    @staticmethod
-    def test_user_initiate_3sgm_with_geomprior_classif():
+    def test_classif_on_right_and_left_with_one_class(self):
         """
-        Test that user can implement classification geometric_prior with a 3sgm configuration
-        and classification in image dataset
+        Optimization on one existing band for left and right classification with validation step.
         """
 
         # Prepare the SGM configuration
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
-        # Add mask to left data
-        masked_left = pandora.read_img(
-            "tests/inputs/left.png", no_data=np.nan, mask=None, classif="tests/inputs/white_band_mask.png"
-        )
-        masked_right = pandora.read_img(
-            "tests/inputs/right.png", no_data=np.nan, mask=None, classif="tests/inputs/white_band_mask.png"
-        )
+        # Add a classification and one class
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier"]}
 
-        # Ground truth
-        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
-        gt_right = rasterio.open("tests/outputs/right_disparity_3sgm.tif").read(1)
-
-        # Add a geometric_prior
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
-        # Because the pipeline isn't correctly checked in this test
-        user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -389,7 +367,16 @@ class TestPlugin3SGM(unittest.TestCase):
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        left, right = pandora.run(pandora_machine, masked_left, masked_right, -60, 0, user_cfg["pipeline"])
+        # Check configuration
+        user_cfg = check_conf(user_cfg, pandora_machine)
+
+        left, right = pandora.run(
+            pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg["pipeline"]
+        )
+
+        # Ground truth
+        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+        gt_right = rasterio.open("tests/outputs/right_disparity_3sgm.tif").read(1)
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -410,6 +397,896 @@ class TestPlugin3SGM(unittest.TestCase):
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         if common.error(right["disparity_map"].data, gt_right, 2) > 0.15:
             raise AssertionError
+
+    def test_classif_on_right_and_left_with_two_classes(self):
+        """
+        Optimization on two existing bands for left and right classification with validation step.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and two classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier", "mais"]}
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Check configuration
+        user_cfg = check_conf(user_cfg, pandora_machine)
+
+        left, right = pandora.run(
+            pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg["pipeline"]
+        )
+
+        # Ground truth
+        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+        gt_right = rasterio.open("tests/outputs/right_disparity_3sgm.tif").read(1)
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(right["disparity_map"].data, gt_right, 1) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(right["disparity_map"].data, gt_right, 2) > 0.15:
+            raise AssertionError
+
+    def test_classif_on_right_and_left_with_wrong_class(self):
+        """
+        Optimization on wrong band for left and right classification with validation step.
+        "peuplier" band doesn't exists.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and a wrong class
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["peuplier"]}
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Check configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_classif_on_right_and_left_with_no_class(self):
+        """
+        Optimization for left and right classification with wrong configuration with validation step.
+        Classes are required for source as "classif" in geometric_prior.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Check configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_classif_on_right_with_validation(self):
+        """
+        Optimization with only right classification present
+        Validation step requires both left and right classifications
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["mais"]}
+        # Because the pipeline isn't correctly checked in this test
+        user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_classif_on_left_with_validation(self):
+        """
+        Optimization for left classification with validation step.
+        Validation step requires both left and right classifications
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["mais"]}
+        # Because the pipeline isn't correctly checked in this test
+        user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_segm_on_right_and_left(self):
+        """
+        Optimization left and right segmentation with validation step.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a segmentation and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_segm": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_segm": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Check configuration
+        user_cfg = check_conf(user_cfg, pandora_machine)
+
+        left, right = pandora.run(
+            pandora_machine, self.left_cones_segm, self.right_cones_segm, -60, 0, user_cfg["pipeline"]
+        )
+
+        # Ground truth
+        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+        gt_right = rasterio.open("tests/outputs/right_disparity_3sgm.tif").read(1)
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(right["disparity_map"].data, gt_right, 1) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(right["disparity_map"].data, gt_right, 2) > 0.15:
+            raise AssertionError
+
+    def test_segm_with_classes(self):
+        """
+        Optimization left and right segmentation with validation step and classes instantiated.
+        Classes are not available for segmentation step
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm", "classes": ["mais"]}
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Check configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_segm_on_right(self):
+        """
+        Optimization right segmentation with validation step.
+        Validation step requires both left and right segmentation.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
+        # Because the pipeline isn't correctly checked in this test
+        user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "img_right": "tests/inputs/right.png",
+            "right_segm": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_segm_on_left(self):
+        """
+        Optimization left segmentation with validation step.
+        Validation step requires both left and right segmentation.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
+        # Because the pipeline isn't correctly checked in this test
+        user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_segm": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_classif_on_left_with_correct_class(self):
+        """
+        Optimization on one existing band left classification without validation step.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add a segmentation and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier"]}
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Check configuration
+        user_cfg = check_conf(user_cfg, pandora_machine)
+
+        left, right = pandora.run(
+            pandora_machine, self.left_cones_classif, self.right_cones, -60, 0, user_cfg["pipeline"]
+        )
+
+        # Ground truth
+        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
+            raise AssertionError
+
+    def test_classif_on_left_and_right_with_correct_class(self):
+        """
+        Optimization on one existing band for left and right classification without validation step.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a segmentation and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier"]}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Check configuration
+        user_cfg = check_conf(user_cfg, pandora_machine)
+
+        left, right = pandora.run(
+            pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg["pipeline"]
+        )
+
+        # Ground truth
+        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
+            raise AssertionError
+
+    def test_classif_on_right_with_correct_class(self):
+        """
+        Optimization with right classification without validation step.
+        Classification without validation step requires left classification.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a segmentation and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier"]}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        # Because the pipeline isn't correctly checked in this test
+        user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_segm_on_left_without_validation(self):
+        """
+        Optimization on left image with segmentation without validation step.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a segmentation and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "img_right": "tests/inputs/right.png",
+            "left_segm": "tests/inputs/left_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        user_cfg = check_conf(user_cfg, pandora_machine)
+
+        left, right = pandora.run(
+            pandora_machine, self.left_cones_segm, self.right_cones, -60, 0, user_cfg["pipeline"]
+        )
+
+        # Ground truth
+        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
+            raise AssertionError
+
+    def test_segm_on_left_and_right_without_validation(self):
+        """
+        Optimization on left and right image with segmentation without validation step.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a segmentation and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_segm": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_segm": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Check configuration
+        user_cfg = check_conf(user_cfg, pandora_machine)
+
+        left, right = pandora.run(
+            pandora_machine, self.left_cones_segm, self.right_cones_segm, -60, 0, user_cfg["pipeline"]
+        )
+
+        # Ground truth
+        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors is > 0.20, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
+            raise AssertionError
+
+        # Compares the calculated right disparity map with the ground truth
+        # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
+        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
+            raise AssertionError
+
+    def test_segm_on_right_without_validation(self):
+        """
+        Optimization with right segmentation without validation step.
+        Segmentation without validation step requires left segmentation.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a segmentation and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        # Because the pipeline isn't correctly checked in this test
+        user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "img_right": "tests/inputs/right.png",
+            "right_segm": "tests/inputs/left_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_segm_on_left_and_right_with_classes(self):
+        """
+        Optimization with right and left segmentation with classes without validation step.
+        Classes are not available for segmentation step
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a segmentation and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm", "classes": ["olivier"]}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_segm": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_segm": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_segm_on_left_with_classes(self):
+        """
+        Optimization with left segmentation with classes without validation step.
+        Classes are not available for segmentation step
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a segmentation and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm", "classes": ["olivier"]}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_segm": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_segm": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_classif_on_left_with_false_classes(self):
+        """
+        Optimization with left classification with false classes without validation step.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and false classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["pin"]}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_classif_on_left_without_classes(self):
+        """
+        Optimization with left classification with no classes without validation step.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and false classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_classif_on_left_and_right_with_wrong_classes(self):
+        """
+        Optimization with left and right classification with wrong classes without validation step.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and false classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["pin"]}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
+
+    def test_classif_on_left_and_right_without_classes(self):
+        """
+        Optimization with left and right classification without classes without validation step.
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
+
+        # Add a classification and false classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
+        # Remove validation step
+        del user_cfg["pipeline"]["validation"]
+        del user_cfg["pipeline"]["filter.after.validation"]
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
+
+        # Add inputs
+        user_cfg["input"] = {
+            "img_left": "tests/inputs/left.png",
+            "left_classif": "tests/inputs/left_classif.tif",
+            "img_right": "tests/inputs/right.png",
+            "right_classif": "tests/inputs/right_classif.tif",
+            "disp_min": -60,
+            "disp_max": 0,
+            "nodata_left": "NaN",
+            "nodata_right": "NaN"
+        }
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # check the configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
 
     def test_user_initiate_3sgm_and_validation_with_one_geomprior_segmentation(self):
         """

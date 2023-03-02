@@ -9,3 +9,6 @@ Our data test sample is based on the 2003 Middleburry dataset (D. Scharstein & R
 
 * **white_band_mask.png** 
 Manually computed binary mask with strides for segmentation and classification for 3sgm optimization method tests. 
+
+* **left_classif.tif and right_classif.tif** 
+Manually computed 3 dimensions binary classification for 3sgm classification method tests.
