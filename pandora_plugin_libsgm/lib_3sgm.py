@@ -30,7 +30,7 @@ from typing import Union, Tuple
 
 import numpy as np
 import xarray as xr
-
+from pandora.img_tools import fuse_classification_bands
 from . import abstract_sgm
 
 
@@ -56,6 +56,8 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         super().__init__(**cfg)
         self.cfg = self.check_geometric_prior(cfg)
         self._geometric_prior = self.cfg["geometric_prior"]
+        if self._geometric_prior["source"] == "classif":
+            self._classes = self._geometric_prior["classes"]
 
     def check_geometric_prior(self, cfg: dict) -> dict:
         """
@@ -66,11 +68,34 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         :rtype cfg: dict
         """
 
+        # Geometric prior is internal if not mentioned
         if "geometric_prior" not in cfg:
             cfg["geometric_prior"] = self._GEOMETRIC_PRIOR
         elif isinstance(cfg["geometric_prior"], dict):
             if not cfg["geometric_prior"]["source"] in self._AVAILABLE_GEOMETRIC_PRIOR:
                 logging.error("%s is not available as a geometric prior", cfg["geometric_prior"]["source"])
+
+        # Must be classif, segm or internal
+        if cfg["geometric_prior"]["source"] not in self._AVAILABLE_GEOMETRIC_PRIOR:
+            logging.error("%s is not available as a geometric prior source", cfg['geometric_prior']['source'])
+            sys.exit(1)
+
+        # If source is classif, classes must be instantiated
+        if cfg["geometric_prior"]["source"] == "classif":
+            if "classes" not in cfg["geometric_prior"]:
+                logging.error("Classes must be instantiated if source is classif")
+                sys.exit(1)
+            else:
+                # If source is classif, classes must be instantiated as a list of string
+                if not isinstance(cfg["geometric_prior"]["classes"], list) and \
+                        not all(isinstance(item, str) for item in cfg["geometric_prior"]["classes"]):
+                    logging.error("Classes must be a list of string")
+                    sys.exit(1)
+
+        if cfg["geometric_prior"]["source"] == "segm":
+            if "classes" in cfg["geometric_prior"]:
+                logging.error("Classes can't be instantiated if source is segm")
+                sys.exit(1)
 
         return cfg
 
@@ -108,6 +133,8 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
             # if geometric_prior comes from the image (segm or classif)
             if mode in img_left:
                 geometric_prior_array = img_left[mode].data
+                if mode == "classif":
+                    geometric_prior_array = fuse_classification_bands(img_left, self._classes)
             else:
                 logging.warning("%s not in image dataset.", mode)
                 sys.exit(1)
