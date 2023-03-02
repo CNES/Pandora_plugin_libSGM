@@ -109,9 +109,7 @@ class AbstractSGM(optimization.AbstractOptimization):
             "min_cost_paths": bool,
             "use_confidence": bool,
             "penalty": dict,
-            OptionalKey("geometric_prior"): And(
-                dict, lambda x: cfg["geometric_prior"]["source"] in ["internal", "classif", "segm"]  # type: ignore
-            ),
+            OptionalKey("geometric_prior"): dict,
         }
 
         checker = Checker(schema)
