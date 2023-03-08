@@ -128,12 +128,12 @@ class AbstractSGM(optimization.AbstractOptimization):
         :type cv: xarray.Dataset
         :param img_left: left Dataset image containing :
 
-                - im : 2D (row, col) xarray.DataArray
+                - im : 2D (row, col) or 3D (band, row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
         :type img_left: xarray
         :param img_right: right Dataset image containing :
 
-                - im : 2D (row, col) xarray.DataArray
+                - im : 2D (row, col) or 3D (band, row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
         :type img_right: xarray
         :return: the optimized cost volume with the data variables:
@@ -149,17 +149,26 @@ class AbstractSGM(optimization.AbstractOptimization):
         if cv.attrs["type_measure"] == "max":
             cv["cost_volume"].data *= -1
 
-        img_left["im"].data = np.ascontiguousarray(img_left["im"].data, dtype=np.float32)
-        img_right["im"].data = np.ascontiguousarray(img_right["im"].data, dtype=np.float32)
+        # If the input images were multiband, the band used for the correlation is used
+        if cv.attrs["band_correl"] is not None:
+            # Obtain correlation band from cost_volume attributes
+            band_index_left = list(img_left.band.data).index(cv.attrs["band_correl"])
+            band_index_right = list(img_right.band.data).index(cv.attrs["band_correl"])
+            # Get the image band
+            img_left_array = np.ascontiguousarray(img_left["im"].data[band_index_left, :, :], dtype=np.float32)
+            img_right_array = np.ascontiguousarray(img_right["im"].data[band_index_right, :, :], dtype=np.float32)
+        else:
+            img_left_array = np.ascontiguousarray(img_left["im"].data, dtype=np.float32)
+            img_right_array = np.ascontiguousarray(img_right["im"].data, dtype=np.float32)
 
         # Compute penalties
-        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left, img_right)
+        invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left_array, img_right_array)
 
         # Apply confidence to cost volume
         cv, confidence_is_int = self.apply_confidence(cv, self._use_confidence)  # type:ignore
 
         # get optimization layer and add optimization layer to cost volume if necessary
-        optimization_layer = self.compute_optimization_layer(cv, img_left)
+        optimization_layer = self.compute_optimization_layer(cv, img_left, img_left_array.shape)
 
         if self._sgm_version == "c++":
             cost_volumes_out = self.sgm_cpp(
@@ -207,9 +216,11 @@ class AbstractSGM(optimization.AbstractOptimization):
 
         return cv
 
-    def compute_optimization_layer(self, cv: xr.Dataset, img_left: xr.Dataset) -> np.ndarray:
+    def compute_optimization_layer(
+        self, cv: xr.Dataset, img_left: xr.Dataset, img_shape: Tuple[int, ...]
+    ) -> np.ndarray:
         """
-        Compute optimization layer for sgm or 3sgm optimization method method
+        Compute optimization layer for optimization method
 
         :param cv: the cost volume, with the data variables:
 
@@ -218,9 +229,11 @@ class AbstractSGM(optimization.AbstractOptimization):
         :type cv: xarray.Dataset
         :param img_left: left Dataset image containing :
 
-                - im : 2D (row, col) xarray.DataArray
+                - im : 2D (row, col) or 3D (band, row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
         :type img_left: xarray
+        :param img_shape: shape of the input image
+        :type img_shape: Tuple[int, ...]
         :return: the optimization layer array
         :rtype: np.ndarray
         """
@@ -369,6 +382,7 @@ class AbstractSGM(optimization.AbstractOptimization):
     ):
         """
         Compute aggregated cost volume using C++ library where sgm method is implemented
+
         :param cv: the cost volume, with the data variables:
 
                 - cost_volume 3D xarray.DataArray (row, col, disp)

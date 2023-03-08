@@ -107,13 +107,13 @@ class SgmPenalty(penalty.AbstractPenalty):
 
     def desc(self):
         """
-        Describes the penality method
+        Describes the penalty method
 
         """
         print("SGM penalty method description")
 
     def compute_penalty(
-        self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset
+        self, cv: xr.Dataset, img_left_array: np.ndarray, img_right_array: np.ndarray
     ) -> Tuple[float, np.ndarray, np.ndarray]:
         """
         Compute penalty
@@ -123,16 +123,13 @@ class SgmPenalty(penalty.AbstractPenalty):
             - cost_volume 3D xarray.DataArray (row, col, disp)
             - confidence_measure 3D xarray.DataArray (row, col, indicator)
         :type cv: xarray.Dataset
-        :param img_left: left  image
-        :type img_left: xarray.Dataset
-        :param img_right: right  image
-        :type img_right: xarray.Dataset
-        :return: P1 and P2 penalties
-        :rtype: tuple(numpy array, numpy array)
+        :param img_left_array: left  image
+        :type img_left_array: np.ndarray
+        :param img_right_array: right  image
+        :type img_right_array: np.ndarray
+        :return: invalid disp, P1 and P2 penalties
+        :rtype: tuple(float, numpy array, numpy array)
         """
-
-        # Get array
-        img_left_array = img_left["im"].data
 
         # Calculation of the invalid value according to the chosen P2 estimation method
         invalid_value = None

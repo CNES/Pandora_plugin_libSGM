@@ -57,14 +57,28 @@ class TestPluginSGM(unittest.TestCase):
         self.left_crafted = xr.Dataset(
             {"im": (["row", "col"], data)},
             coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+            attrs={
+                "no_data_img": 0,
+                "valid_pixels": 0,
+                "no_data_mask": 1,
+                "crs": None,
+                "transform": None,
+                "band_list": None,
+            },
         )
 
         data = np.array(([1, 1, 1, 2, 2], [1, 1, 1, 4, 2], [1, 1, 1, 4, 4], [1, 1, 1, 1, 1]), dtype=np.float32)
         self.right_crafted = xr.Dataset(
             {"im": (["row", "col"], data)},
             coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
-            attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
+            attrs={
+                "no_data_img": 0,
+                "valid_pixels": 0,
+                "no_data_mask": 1,
+                "crs": None,
+                "transform": None,
+                "band_list": None,
+            },
         )
 
         # Create cost volume
@@ -530,7 +544,9 @@ class TestPluginSGM(unittest.TestCase):
 
         cv_in = copy.deepcopy(self.cv)
 
-        prior_array_out = optimization_.compute_optimization_layer(cv_in, self.left_crafted)
+        prior_array_out = optimization_.compute_optimization_layer(
+            cv_in, self.left_crafted, self.left_crafted["im"].shape
+        )
 
         # Check that cost volume isn't changed
         with pytest.raises(KeyError):
@@ -559,6 +575,65 @@ class TestPluginSGM(unittest.TestCase):
         # Pandora pipeline should fail
         with pytest.raises(SystemExit):
             _, _ = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, -1, user_cfg["pipeline"])
+
+    def test_optimization_layer_with_multiband(self):
+        """
+        Test the optimization layer function with multiband input images
+        """
+        # Read input rgb images
+        left_rgb = pandora.read_img("tests/inputs/left_rgb.tif", no_data=np.nan, mask=None)
+        right_rgb = pandora.read_img("tests/inputs/right_rgb.tif", no_data=np.nan, mask=None)
+
+        # Prepare the configuration for multiband
+        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
+        user_cfg["pipeline"]["matching_cost"]["band"] = "g"
+        # We choose the mccnn penalty to verify that the correct band is being used
+        user_cfg["pipeline"]["optimization"]["penalty"]["penalty_method"] = "mc_cnn_fast_penalty"
+        user_cfg["pipeline"]["optimization"]["penalty"].pop("p2_method")
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Load plugins
+        matching_cost_ = matching_cost.AbstractMatchingCost(**user_cfg["pipeline"]["matching_cost"])
+        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+
+        # Import pandora plugins
+        pandora.import_plugin()
+
+        # Computes the cost volume dataset
+        cv = matching_cost_.compute_cost_volume(img_left=left_rgb, img_right=right_rgb, disp_min=-60, disp_max=0)
+        cv_in = copy.deepcopy(cv)
+        # Get invalid disparities of the cost volume
+        invalid_disp = np.isnan(cv["cost_volume"].data)
+
+        # Obtain optimized cost volume for a multiband input
+        out_cv = optimization_.optimize_cv(cv, left_rgb, right_rgb)
+        # Invalid disparities of the cost volume as set as -9999
+        out_cv["cost_volume"].data[invalid_disp] = -9999
+
+        # To verify if the correct band is being used, we perform the optimize_cv steps
+        # selecting manually the band
+        # Image bands are "r","g","b". "g" has been chosen for matching cost, hence the band is 1
+        band = 1
+        # Get the image band and optimize cv
+        img_left_array = np.ascontiguousarray(left_rgb["im"].data[band, :, :], dtype=np.float32)
+        img_right_array = np.ascontiguousarray(right_rgb["im"].data[band, :, :], dtype=np.float32)
+        invalid_value, p1_mat, p2_mat = optimization_._penalty.compute_penalty(  # pylint:disable=protected-access
+            cv_in, img_left_array, img_right_array
+        )
+        cv_in, confidence_is_int = optimization_.apply_confidence(
+            cv_in, optimization_._use_confidence  # pylint:disable=protected-access
+        )
+        optimization_layer = optimization_.compute_optimization_layer(cv_in, left_rgb, img_left_array.shape)
+        cost_volumes_gt = optimization_.sgm_cpp(
+            cv_in, invalid_value, confidence_is_int, p1_mat, p2_mat, optimization_layer, invalid_disp
+        )
+        # Invalid disparities of the cost volume as set as -9999
+        cost_volumes_gt["cv"][invalid_disp] = -9999
+
+        # Check if the calculated optimized cv is equal to the ground truth
+        np.testing.assert_array_equal(cost_volumes_gt["cv"], out_cv["cost_volume"].data)
 
 
 if __name__ == "__main__":

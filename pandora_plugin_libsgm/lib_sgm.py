@@ -25,7 +25,7 @@ This module provides functions to optimize the cost volume using the LibSGM libr
 
 import numpy as np
 import xarray as xr
-
+from typing import Tuple
 from . import abstract_sgm
 
 
@@ -43,9 +43,11 @@ class SGM(abstract_sgm.AbstractSGM):
         """
         print("Optimization with SGM")
 
-    def compute_optimization_layer(self, cv: xr.Dataset, img_left: xr.Dataset) -> np.ndarray:
+    def compute_optimization_layer(
+        self, cv: xr.Dataset, img_left: xr.Dataset, img_shape: Tuple[int, ...]
+    ) -> np.ndarray:
         """
-        Compute optimization layer for sgm or 3sgm optimization method
+        Compute optimization layer for optimization method
 
         :param cv: the cost volume, with the data variables:
 
@@ -54,14 +56,16 @@ class SGM(abstract_sgm.AbstractSGM):
         :type cv: xarray.Dataset
         :param img_left: left Dataset image containing :
 
-                - im : 2D (row, col) xarray.DataArray
+                - im : 2D (row, col) or 3D (band, row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
         :type img_left: xarray
+        :param img_shape: shape of the input image
+        :type img_shape: Tuple[int, ...]
         :return: the optimization layer array
         :rtype: np.ndarray
         """
 
         # Default optimization layer, for a piecewise optimization layer array use 3sgm method
-        optimization_layer = np.ones(img_left["im"].data.shape, dtype=np.float32)
+        optimization_layer = np.ones(img_shape, dtype=np.float32)
 
         return optimization_layer

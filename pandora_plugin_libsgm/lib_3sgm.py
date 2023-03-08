@@ -80,9 +80,11 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         """
         print("Optimization with 3SGM")
 
-    def compute_optimization_layer(self, cv: xr.Dataset, img_left: xr.Dataset) -> np.ndarray:
+    def compute_optimization_layer(
+        self, cv: xr.Dataset, img_left: xr.Dataset, img_shape: Tuple[int, ...]
+    ) -> np.ndarray:
         """
-        Compute optimization layer for sgm or 3sgm optimization method
+        Compute optimization layer for optimization method
 
         :param cv: the cost volume, with the data variables:
 
@@ -91,13 +93,14 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         :type cv: xarray.Dataset
         :param img_left: left Dataset image containing :
 
-                - im : 2D (row, col) xarray.DataArray
+                - im : 2D (row, col) or 3D (band, row, col) xarray.DataArray
                 - msk (optional): 2D (row, col) xarray.DataArray
         :type img_left: xarray
+        :param img_shape: shape of the input image
+        :type img_shape: Tuple[int, ...]
         :return: the optimization layer array
         :rtype: np.ndarray
         """
-        nb_rows, nb_cols = img_left["im"].data.shape
         # internal (from cv), segm or classif (from image)
         mode = self._geometric_prior["source"]  # type: ignore
 
@@ -110,7 +113,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
                 sys.exit(1)
         # if user wants to use another type of geometric prior
         else:
-            geometric_prior_array = np.ones(img_left["im"].data.shape)
+            geometric_prior_array = np.ones(img_shape)
             if mode != "internal":
                 logging.warning(
                     "User wants to use a mode not in image dataset. \n "
@@ -122,7 +125,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
                 if "internal" not in cv:
                     prior_array = xr.DataArray(
                         data=geometric_prior_array,
-                        coords=[("row", np.arange(nb_rows)), ("col", np.arange(nb_cols))],
+                        coords=[("row", np.arange(img_shape[0])), ("col", np.arange(img_shape[1]))],
                     )
                     logging.warning(
                         "User wants to use a mode not in cost volume. \n "

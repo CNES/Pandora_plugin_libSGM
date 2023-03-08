@@ -153,7 +153,7 @@ class TestPlugin3SGM(unittest.TestCase):
         data_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]))
         img_left["classif"] = xr.DataArray(data_classif, dims=["row", "col"])
 
-        classif_arr = optimization_.compute_optimization_layer(self.cv, img_left)
+        classif_arr = optimization_.compute_optimization_layer(self.cv, img_left, img_left["im"].data.shape)
 
         gt_classif = np.array(([[2, 1], [1, 3], [2, 2.6]]), dtype=np.float32)
         np.testing.assert_array_equal(classif_arr, gt_classif)
@@ -175,7 +175,9 @@ class TestPlugin3SGM(unittest.TestCase):
         # Load plugins
         optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
 
-        classif_arr = optimization_.compute_optimization_layer(self.cv, self.left_crafted)
+        classif_arr = optimization_.compute_optimization_layer(
+            self.cv, self.left_crafted, self.left_crafted["im"].data.shape
+        )
 
         gt_classif = np.ones((4, 5))
         np.testing.assert_array_equal(classif_arr, gt_classif)
@@ -204,7 +206,7 @@ class TestPlugin3SGM(unittest.TestCase):
 
         cv_in = copy.deepcopy(self.cv)
 
-        prior_array_out = optimization_.compute_optimization_layer(cv_in, left)
+        prior_array_out = optimization_.compute_optimization_layer(cv_in, left, left["im"].data.shape)
 
         # check that added array in cv is correct
         np.testing.assert_array_equal(cv_in["internal"], gt_default_prior_array)
