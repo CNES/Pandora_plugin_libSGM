@@ -19,13 +19,12 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
-        pip install pytest-cov
         pip install codecov
-        pip install numpy
+        pip freeze
     - name: Install Pandora plugin libSGM
       run: |
-        pip install .
+        pip install .[dev]
+        pip freeze
     - name: Clone Pandora submodule
       run: |
         mkdir submodule
