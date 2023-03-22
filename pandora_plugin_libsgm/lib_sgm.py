@@ -23,9 +23,11 @@
 This module provides functions to optimize the cost volume using the LibSGM library
 """
 
+from typing import Tuple
+
 import numpy as np
 import xarray as xr
-from typing import Tuple
+
 from . import abstract_sgm
 
 

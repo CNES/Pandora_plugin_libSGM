@@ -23,7 +23,7 @@
 This module provides functions to optimize the cost volume using the 3SGM method
 
 """
-import copy
+
 import logging
 import sys
 from typing import Union, Tuple
@@ -70,7 +70,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
             cfg["geometric_prior"] = self._GEOMETRIC_PRIOR
         elif isinstance(cfg["geometric_prior"], dict):
             if not cfg["geometric_prior"]["source"] in self._AVAILABLE_GEOMETRIC_PRIOR:
-                logging.error(f"{cfg['geometric_prior']['source']} is not available as a geometric prior")
+                logging.error("%s is not available as a geometric prior", cfg["geometric_prior"]["source"])
 
         return cfg
 
