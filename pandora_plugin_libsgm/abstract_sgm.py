@@ -26,6 +26,7 @@ This module contains classes and functions associated to the cost volume optimiz
 import copy
 import logging
 import sys
+from abc import abstractmethod
 from typing import Dict, Union, Tuple
 
 import numpy as np
@@ -216,6 +217,7 @@ class AbstractSGM(optimization.AbstractOptimization):
 
         return cv
 
+    @abstractmethod
     def compute_optimization_layer(
         self, cv: xr.Dataset, img_left: xr.Dataset, img_shape: Tuple[int, ...]
     ) -> np.ndarray:
