@@ -2,9 +2,23 @@
 
 ## Unreleased
 
+### Added
+
+### Changed
+
+## 1.3.0 (March 2023)
+
+### Added
+
+- Multiband images compatibility. [#72]
+
 ### Changed
 
 - Rename confidence name and adapt it to snakecase [#73]
+
+### Fixed
+
+- Test notebook from githubAction [#70]
 
 ## 1.2.0 (January 2023)
 

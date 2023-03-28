@@ -1,5 +1,8 @@
 [MASTER]
 
+# Extend Recursion limit for RecursionError in big files
+init-hook='import sys; sys.setrecursionlimit(8 * sys.getrecursionlimit())'
+
 # Specify a score threshold to be exceeded before program exits with error.
 fail-under=10
 
@@ -61,6 +64,7 @@ disable=raw-checker-failed,
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once). See also the "--disable" option for examples.
 enable=c-extension-no-member
+extension-pkg-allow-list=sgm_wrapper
 
 
 [REPORTS]
