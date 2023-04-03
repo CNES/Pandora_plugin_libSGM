@@ -35,6 +35,8 @@ from pandora.state_machine import PandoraMachine
 import pandora.check_json as JSON_checker
 from tests import common
 
+# pylint: disable=too-many-lines, too-many-public-methods
+
 
 class TestPlugin3SGM(unittest.TestCase):
     """
@@ -347,7 +349,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a classification and one class
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olive tree"]}
 
         # Add inputs
         user_cfg["input"] = {
@@ -358,7 +360,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -407,7 +409,10 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a classification and two classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier", "mais"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
+            "source": "classif",
+            "classes": ["olive tree", "cornfields"],
+        }
 
         # Add inputs
         user_cfg["input"] = {
@@ -418,7 +423,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -480,7 +485,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -515,7 +520,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -539,7 +544,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a classification and classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["mais"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["cornfields"]}
         # Because the pipeline isn't correctly checked in this test
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
@@ -551,7 +556,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -575,7 +580,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a classification and classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["mais"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["cornfields"]}
         # Because the pipeline isn't correctly checked in this test
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
@@ -587,7 +592,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -620,7 +625,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -671,7 +676,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a classification and classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm", "classes": ["mais"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm", "classes": ["cornfields"]}
 
         # Add inputs
         user_cfg["input"] = {
@@ -682,7 +687,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -718,7 +723,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -754,7 +759,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -781,7 +786,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add a segmentation and classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olive tree"]}
 
         # Add inputs
         user_cfg["input"] = {
@@ -791,7 +796,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -803,9 +808,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Check configuration
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, right = pandora.run(
-            pandora_machine, self.left_cones_classif, self.right_cones, -60, 0, user_cfg["pipeline"]
-        )
+        left, _ = pandora.run(pandora_machine, self.left_cones_classif, self.right_cones, -60, 0, user_cfg["pipeline"])
 
         # Ground truth
         gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
@@ -829,7 +832,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a segmentation and classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olive tree"]}
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
@@ -844,7 +847,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -856,7 +859,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Check configuration
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, right = pandora.run(
+        left, _ = pandora.run(
             pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg["pipeline"]
         )
 
@@ -884,7 +887,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a segmentation and classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olivier"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["olive tree"]}
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
@@ -899,7 +902,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -935,7 +938,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -946,9 +949,7 @@ class TestPlugin3SGM(unittest.TestCase):
 
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, right = pandora.run(
-            pandora_machine, self.left_cones_segm, self.right_cones, -60, 0, user_cfg["pipeline"]
-        )
+        left, _ = pandora.run(pandora_machine, self.left_cones_segm, self.right_cones, -60, 0, user_cfg["pipeline"])
 
         # Ground truth
         gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
@@ -987,7 +988,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -999,7 +1000,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Check configuration
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, right = pandora.run(
+        left, _ = pandora.run(
             pandora_machine, self.left_cones_segm, self.right_cones_segm, -60, 0, user_cfg["pipeline"]
         )
 
@@ -1042,7 +1043,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -1066,7 +1067,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a segmentation and classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm", "classes": ["olivier"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm", "classes": ["olive tree"]}
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
@@ -1081,7 +1082,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -1105,7 +1106,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a segmentation and classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm", "classes": ["olivier"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm", "classes": ["olive tree"]}
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
@@ -1121,7 +1122,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -1144,7 +1145,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a classification and false classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["pin"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["pine"]}
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
@@ -1159,7 +1160,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -1197,7 +1198,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -1220,7 +1221,7 @@ class TestPlugin3SGM(unittest.TestCase):
         user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Add a classification and false classes
-        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["pin"]}
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif", "classes": ["pine"]}
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
@@ -1236,7 +1237,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins
@@ -1275,7 +1276,7 @@ class TestPlugin3SGM(unittest.TestCase):
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
-            "nodata_right": "NaN"
+            "nodata_right": "NaN",
         }
 
         # Import pandora plugins

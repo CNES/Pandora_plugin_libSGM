@@ -56,8 +56,8 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         super().__init__(**cfg)
         self.cfg = self.check_geometric_prior(cfg)
         self._geometric_prior = self.cfg["geometric_prior"]
-        if self._geometric_prior["source"] == "classif":
-            self._classes = self._geometric_prior["classes"]
+        if self._geometric_prior["source"] == "classif":  # type: ignore
+            self._classes = self._geometric_prior["classes"]  # type: ignore
 
     def check_geometric_prior(self, cfg: dict) -> dict:
         """
@@ -77,7 +77,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
 
         # Must be classif, segm or internal
         if cfg["geometric_prior"]["source"] not in self._AVAILABLE_GEOMETRIC_PRIOR:
-            logging.error("%s is not available as a geometric prior source", cfg['geometric_prior']['source'])
+            logging.error("%s is not available as a geometric prior source", cfg["geometric_prior"]["source"])
             sys.exit(1)
 
         # If source is classif, classes must be instantiated
@@ -87,8 +87,9 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
                 sys.exit(1)
             else:
                 # If source is classif, classes must be instantiated as a list of string
-                if not isinstance(cfg["geometric_prior"]["classes"], list) and \
-                        not all(isinstance(item, str) for item in cfg["geometric_prior"]["classes"]):
+                if not isinstance(cfg["geometric_prior"]["classes"], list) and not all(
+                    isinstance(item, str) for item in cfg["geometric_prior"]["classes"]
+                ):
                     logging.error("Classes must be a list of string")
                     sys.exit(1)
 
