@@ -123,7 +123,7 @@ class TestPluginSGM(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -168,7 +168,7 @@ class TestPluginSGM(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, -1, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, -1, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -212,7 +212,7 @@ class TestPluginSGM(unittest.TestCase):
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        right, left = pandora.run(pandora_machine, self.right_cones, self.left_cones, 1, 60, user_cfg["pipeline"])
+        right, left = pandora.run(pandora_machine, self.right_cones, self.left_cones, 1, 60, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -249,7 +249,7 @@ class TestPluginSGM(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
@@ -574,7 +574,7 @@ class TestPluginSGM(unittest.TestCase):
 
         # Pandora pipeline should fail
         with pytest.raises(SystemExit):
-            _, _ = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, -1, user_cfg["pipeline"])
+            _, _ = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, -1, user_cfg)
 
     def test_optimization_layer_with_multiband(self):
         """
