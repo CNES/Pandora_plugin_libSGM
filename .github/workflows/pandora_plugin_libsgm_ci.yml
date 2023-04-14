@@ -19,7 +19,6 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install codecov
         pip freeze
     - name: Install Pandora plugin libSGM
       run: |
