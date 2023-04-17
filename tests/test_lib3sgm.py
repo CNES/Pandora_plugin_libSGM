@@ -120,7 +120,7 @@ class TestPlugin3SGM(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -217,7 +217,7 @@ class TestPlugin3SGM(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -260,7 +260,7 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Pandora pipeline should fail
         with pytest.raises(SystemExit):
-            _, _ = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
+            _, _ = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg)
 
     def test_user_initiate_3sgm_with_none_geomprior_segmentation(self):
         """
@@ -283,7 +283,7 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Pandora pipeline should fail
         with pytest.raises(SystemExit):
-            _, _ = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg["pipeline"])
+            _, _ = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg)
 
     @staticmethod
     def test_user_initiate_3sgm_with_geomprior_segmentation():
@@ -318,7 +318,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        left, right = pandora.run(pandora_machine, masked_left, masked_right, -60, 0, user_cfg["pipeline"])
+        left, right = pandora.run(pandora_machine, masked_left, masked_right, -60, 0, user_cfg)
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -372,9 +372,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Check configuration
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, right = pandora.run(
-            pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg["pipeline"]
-        )
+        left, right = pandora.run(pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg)
 
         # Ground truth
         gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
@@ -435,9 +433,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Check configuration
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, right = pandora.run(
-            pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg["pipeline"]
-        )
+        left, right = pandora.run(pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg)
 
         # Ground truth
         gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
@@ -637,9 +633,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Check configuration
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, right = pandora.run(
-            pandora_machine, self.left_cones_segm, self.right_cones_segm, -60, 0, user_cfg["pipeline"]
-        )
+        left, right = pandora.run(pandora_machine, self.left_cones_segm, self.right_cones_segm, -60, 0, user_cfg)
 
         # Ground truth
         gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
@@ -808,7 +802,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Check configuration
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, _ = pandora.run(pandora_machine, self.left_cones_classif, self.right_cones, -60, 0, user_cfg["pipeline"])
+        left, _ = pandora.run(pandora_machine, self.left_cones_classif, self.right_cones, -60, 0, user_cfg)
 
         # Ground truth
         gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
@@ -859,9 +853,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Check configuration
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, _ = pandora.run(
-            pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg["pipeline"]
-        )
+        left, _ = pandora.run(pandora_machine, self.left_cones_classif, self.right_cones_classif, -60, 0, user_cfg)
 
         # Ground truth
         gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
@@ -949,7 +941,7 @@ class TestPlugin3SGM(unittest.TestCase):
 
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, _ = pandora.run(pandora_machine, self.left_cones_segm, self.right_cones, -60, 0, user_cfg["pipeline"])
+        left, _ = pandora.run(pandora_machine, self.left_cones_segm, self.right_cones, -60, 0, user_cfg)
 
         # Ground truth
         gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
@@ -1000,9 +992,7 @@ class TestPlugin3SGM(unittest.TestCase):
         # Check configuration
         user_cfg = check_conf(user_cfg, pandora_machine)
 
-        left, _ = pandora.run(
-            pandora_machine, self.left_cones_segm, self.right_cones_segm, -60, 0, user_cfg["pipeline"]
-        )
+        left, _ = pandora.run(pandora_machine, self.left_cones_segm, self.right_cones_segm, -60, 0, user_cfg)
 
         # Ground truth
         gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
