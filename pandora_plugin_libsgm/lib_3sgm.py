@@ -148,9 +148,8 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
                     "Default is used : no optimization with 3sgm will be performed."
                 )
             else:
-                # if layer not computed we add a default one
-                logging.warning("For now, 3SGM doesn't compute piecewise layer from internal mode.")
                 if "internal" not in cv:
+                    # if layer not computed we add a default one
                     prior_array = xr.DataArray(
                         data=geometric_prior_array,
                         coords=[("row", np.arange(img_shape[0])), ("col", np.arange(img_shape[1]))],
@@ -158,6 +157,10 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
                     logging.warning(
                         "User wants to use a mode not in cost volume. \n "
                         "Default is used : no optimization with 3sgm will be performed."
+                    )
+                    logging.warning(
+                        "If semantic_segmentation is present in the pipeline, \n "
+                        "it should be placed before the 3SGM optimization step."
                     )
                     # Apply geometric prior to cost volume
                     cv["internal"] = prior_array
