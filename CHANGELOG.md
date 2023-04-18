@@ -1,10 +1,16 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 (April 2023)
+
+### Added 
+
+- Update warnings mentioning semantic_segmentation step in pipeline. 
+- Adapt tests to new check conf pandora's format. [#77]
+- Add multiband classifications. [#76]
 
 ### Fixed
 
- - Deletion of the pip install codecov of githubAction CI.
+- Deletion of the pip install codecov of githubAction CI.
 
 ## 1.3.0 (March 2023)
 
