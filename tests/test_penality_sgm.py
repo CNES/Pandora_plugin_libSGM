@@ -24,19 +24,19 @@ This module provides functions to test sgm penalties
 """
 
 
-import unittest
-
 import numpy as np
+import pytest
 
 from pandora_plugin_libsgm.penalty import penalty_sgm
 
 
-class TestPenalitySGM(unittest.TestCase):
+class TestPenalitySGM:
     """
     TestPenalitySGM class allows to test penality_sgm
     """
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setUp(self):  # pylint: disable=invalid-name
         """
         Method called to prepare the configuration
 

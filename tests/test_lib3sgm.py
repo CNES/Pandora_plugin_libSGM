@@ -24,7 +24,6 @@ This module provides functions to test Pandora + plugin_LibSGM
 """
 
 import copy
-import unittest
 import pytest
 import numpy as np
 import pandora
@@ -38,12 +37,13 @@ from tests import common
 # pylint: disable=too-many-lines, too-many-public-methods
 
 
-class TestPlugin3SGM(unittest.TestCase):
+class TestPlugin3SGM:
     """
     TestPlugin class allows to test pandora + plugin_lib3sgm
     """
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setUp(self):  # pylint: disable=invalid-name
         """
         Method called to prepare the test fixture
 
@@ -124,23 +124,19 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) <= 0.20
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 2) <= 0.15
 
     def test_compute_optimization_layer_none_layer_in_dataset(self):
         """
@@ -221,23 +217,19 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) <= 0.20
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 2) <= 0.15
 
     def test_user_initiate_3sgm_with_none_geomprior_classif(self):
         """
@@ -322,23 +314,19 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(right["disparity_map"].data, gt_right, 1) > 0.20:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, gt_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(right["disparity_map"].data, gt_right, 2) > 0.15:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
     def test_classif_on_right_and_left_with_one_class(self):
         """
@@ -380,23 +368,19 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(right["disparity_map"].data, gt_right, 1) > 0.20:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, gt_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(right["disparity_map"].data, gt_right, 2) > 0.15:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
     def test_classif_on_right_and_left_with_two_classes(self):
         """
@@ -441,23 +425,19 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(right["disparity_map"].data, gt_right, 1) > 0.20:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, gt_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(right["disparity_map"].data, gt_right, 2) > 0.15:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
     def test_classif_on_right_and_left_with_wrong_class(self):
         """
@@ -641,23 +621,19 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(right["disparity_map"].data, gt_right, 1) > 0.20:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, gt_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(right["disparity_map"].data, gt_right, 2) > 0.15:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
     def test_segm_with_classes(self):
         """
@@ -809,13 +785,11 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
     def test_classif_on_left_and_right_with_correct_class(self):
         """
@@ -860,13 +834,11 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
     def test_classif_on_right_with_correct_class(self):
         """
@@ -948,13 +920,11 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
     def test_segm_on_left_and_right_without_validation(self):
         """
@@ -999,13 +969,11 @@ class TestPlugin3SGM(unittest.TestCase):
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 1) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, gt_left, 2) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
     def test_segm_on_right_without_validation(self):
         """
@@ -1309,7 +1277,8 @@ class TestPlugin3SGM(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # check the configuration
-        self.assertRaises(SystemExit, JSON_checker.check_conf, cfg, pandora_machine)
+        with pytest.raises(SystemExit):
+            _ = JSON_checker.check_conf(cfg, pandora_machine)
 
     def test_user_initiate_3sgm_and_validation_with_one_geomprior_classification(self):
         """
@@ -1341,8 +1310,5 @@ class TestPlugin3SGM(unittest.TestCase):
         pandora_machine = PandoraMachine()
 
         # check the configuration
-        self.assertRaises(SystemExit, JSON_checker.check_conf, cfg, pandora_machine)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        with pytest.raises(SystemExit):
+            _ = JSON_checker.check_conf(cfg, pandora_machine)

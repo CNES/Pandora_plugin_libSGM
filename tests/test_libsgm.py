@@ -24,7 +24,6 @@ This module provides functions to test Pandora + plugin_LibSGM
 """
 
 import copy
-import unittest
 
 import numpy as np
 import pandora
@@ -37,12 +36,13 @@ from pandora.state_machine import PandoraMachine
 from tests import common
 
 
-class TestPluginSGM(unittest.TestCase):
+class TestPluginSGM:
     """
     TestPlugin class allows to test pandora + plugin_libsgm
     """
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setUp(self):  # pylint: disable=invalid-name
         """
         Method called to prepare the test fixture
 
@@ -127,13 +127,11 @@ class TestPluginSGM(unittest.TestCase):
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) <= 0.20
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) <= 0.15
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
         # Compares the calculated validity mask with the ground truth ( occlusion mask )
@@ -141,18 +139,15 @@ class TestPluginSGM(unittest.TestCase):
         occlusion[left["validity_mask"].data >= 512] = 0
 
         # If the percentage of errors is > 0.15, raise an error
-        if common.error_mask(occlusion, self.occlusion) > 0.15:
-            raise AssertionError
+        assert common.error_mask(occlusion, self.occlusion) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 2) <= 0.15
 
     def test_libsgm_negative_disparities(self):
         """
@@ -172,13 +167,11 @@ class TestPluginSGM(unittest.TestCase):
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) <= 0.20
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) <= 0.15
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
         # Compares the calculated validity mask with the ground truth ( occlusion mask )
@@ -186,18 +179,15 @@ class TestPluginSGM(unittest.TestCase):
         occlusion[left["validity_mask"].data >= 512] = 0
 
         # If the percentage of errors is > 0.15, raise an error
-        if common.error_mask(occlusion, self.occlusion) > 0.15:
-            raise AssertionError
+        assert common.error_mask(occlusion, self.occlusion) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 2) <= 0.15
 
     def test_libsgm_positive_disparities(self):
         """
@@ -216,23 +206,19 @@ class TestPluginSGM(unittest.TestCase):
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) > 0.20:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) <= 0.20
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) > 0.15:
-            raise AssertionError
+        assert common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 1) > 0.20:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        if common.error(right["disparity_map"].data, self.disp_right, 2) > 0.15:
-            raise AssertionError
+        assert common.error(right["disparity_map"].data, self.disp_right, 2) <= 0.15
 
     def test_libsgm_zncc(self):
         """
@@ -254,13 +240,11 @@ class TestPluginSGM(unittest.TestCase):
         # Compares the calculated left disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
 
-        if common.strict_error(left["disparity_map"].data[61:-61, 61:-61], self.disp_left_zncc[61:-61, 61:-61]) > 0:
-            raise AssertionError
+        assert common.strict_error(left["disparity_map"].data[61:-61, 61:-61], self.disp_left_zncc[61:-61, 61:-61]) <= 0
 
         # Compares the calculated right disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
-        if common.strict_error(right["disparity_map"].data, self.disp_right_zncc) > 0:
-            raise AssertionError
+        assert common.strict_error(right["disparity_map"].data, self.disp_right_zncc) <= 0
 
     def test_number_of_disp(self):
         """
@@ -447,7 +431,7 @@ class TestPluginSGM(unittest.TestCase):
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
 
         # Check if confidence_is_int is right
-        self.assertEqual(confidence_is_int, True)
+        assert confidence_is_int
 
     def test_apply_confidence_no_confidence_dataarray(self):
         """
@@ -483,7 +467,7 @@ class TestPluginSGM(unittest.TestCase):
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
 
         # Check if confidence_is_int is right
-        self.assertEqual(confidence_is_int, True)
+        assert confidence_is_int
 
     def test_apply_confidence_with_confidence_dataarray(self):
         """
@@ -526,7 +510,7 @@ class TestPluginSGM(unittest.TestCase):
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
 
         # Check if confidence_is_int is right
-        self.assertEqual(confidence_is_int, False)
+        assert confidence_is_int is False
 
     def test_optimization_layer_with_sgm(self):
         """
@@ -634,7 +618,3 @@ class TestPluginSGM(unittest.TestCase):
 
         # Check if the calculated optimized cv is equal to the ground truth
         np.testing.assert_array_equal(cost_volumes_gt["cv"], out_cv["cost_volume"].data)
-
-
-if __name__ == "__main__":
-    unittest.main()
