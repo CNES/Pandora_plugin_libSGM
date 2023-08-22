@@ -67,16 +67,20 @@ def cost_volume():
     return result
 
 
+@pytest.fixture()
+def user_cfg(configurations_path):
+    return pandora.read_config_file(str(configurations_path / "3sgm.json"))
+
+
 class TestPlugin3SGM:
     """
     TestPlugin class allows to test pandora + plugin_lib3sgm
     """
 
-    def test_lib3sgm(self, left_cones, right_cones, disp_left, disp_right):
+    def test_lib3sgm(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_lib3sgm
         """
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
         # Because the pipeline isn't correctly checked in this test
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
@@ -105,14 +109,13 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_compute_optimization_layer_none_layer_in_dataset(self, left_crafted, cost_volume):
+    def test_compute_optimization_layer_none_layer_in_dataset(self, left_crafted, cost_volume, user_cfg):
         """
         Test plugin_libsgm compute_optimization_layer function,
         with user asking for piecewise optimization, without any in dataset
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
         # add internal geometric_prior source
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "internal"}
 
@@ -127,13 +130,10 @@ class TestPlugin3SGM:
         gt_classif = np.ones((4, 5))
         np.testing.assert_array_equal(classif_arr, gt_classif)
 
-    def test_optimization_layer_with_3sgm(self, cost_volume):
+    def test_optimization_layer_with_3sgm(self, cost_volume, user_cfg):
         """
         Test the optimization layer function with 3sgm default configuration
         """
-
-        # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -165,13 +165,12 @@ class TestPlugin3SGM:
         # Check that prior array is the default one
         np.testing.assert_array_equal(gt_default_prior_array, prior_array_out)
 
-    def test_user_initiate_3sgm_with_geomprior_internal(self, left_cones, right_cones, disp_left, disp_right):
+    def test_user_initiate_3sgm_with_geomprior_internal(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test that user can implement internal geometric_prior with a 3sgm configuration
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
         # Add a geometric_prior
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "internal"}
         # Because the pipeline isn't correctly checked in this test
@@ -202,14 +201,13 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_user_initiate_3sgm_with_none_geomprior_classif(self, left_cones, right_cones):
+    def test_user_initiate_3sgm_with_none_geomprior_classif(self, left_cones, right_cones, user_cfg):
         """
         Test that user can't implement classif geometric_prior with a 3sgm configuration
         and no classification in image dataset
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
         # Add a geometric_prior
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
         # Because the pipeline isn't correctly checked in this test
@@ -225,14 +223,13 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _, _ = pandora.run(pandora_machine, left_cones, right_cones, -60, 0, user_cfg)
 
-    def test_user_initiate_3sgm_with_none_geomprior_segmentation(self, left_cones, right_cones):
+    def test_user_initiate_3sgm_with_none_geomprior_segmentation(self, left_cones, right_cones, user_cfg):
         """
         Test that user can't implement segmentation geometric_prior with a 3sgm configuration
         and no segmentation in image dataset
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
         # Add a geometric_prior
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
         # Because the pipeline isn't correctly checked in this test
@@ -249,32 +246,29 @@ class TestPlugin3SGM:
             _, _ = pandora.run(pandora_machine, left_cones, right_cones, -60, 0, user_cfg)
 
     @staticmethod
-    def test_user_initiate_3sgm_with_geomprior_segmentation():
+    def test_user_initiate_3sgm_with_geomprior_segmentation(user_cfg, inputs_path, outputs_path):
         """
         Test that user can implement segmentation geometric_prior with a 3sgm configuration
         and segmentation in image dataset
         """
 
-        # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add mask to left data
         masked_left = pandora.read_img(
-            "tests/inputs/left.png",
+            str(inputs_path / "left.png"),
             no_data=np.nan,
             mask=None,
-            segm="tests/inputs/white_band_mask.png",
+            segm=str(inputs_path / "white_band_mask.png"),
         )
         masked_right = pandora.read_img(
-            "tests/inputs/right.png",
+            str(inputs_path / "right.png"),
             no_data=np.nan,
             mask=None,
-            segm="tests/inputs/white_band_mask.png",
+            segm=str(inputs_path / "white_band_mask.png"),
         )
 
         # Ground truth
-        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
-        gt_right = rasterio.open("tests/outputs/right_disparity_3sgm.tif").read(1)
+        gt_left = rasterio.open(outputs_path / "left_disparity_3sgm.tif").read(1)
+        gt_right = rasterio.open(outputs_path / "right_disparity_3sgm.tif").read(1)
 
         # Add a geometric_prior
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
@@ -305,14 +299,14 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
-    def test_classif_on_right_and_left_with_one_class(self, left_cones_classif, right_cones_classif):
+    def test_classif_on_right_and_left_with_one_class(
+        self, left_cones_classif, right_cones_classif, user_cfg, inputs_path, outputs_path
+    ):
         """
         Optimization on one existing band for left and right classification with validation step.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and one class
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "classif",
@@ -321,10 +315,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -343,8 +337,8 @@ class TestPlugin3SGM:
         left, right = pandora.run(pandora_machine, left_cones_classif, right_cones_classif, -60, 0, user_cfg)
 
         # Ground truth
-        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
-        gt_right = rasterio.open("tests/outputs/right_disparity_3sgm.tif").read(1)
+        gt_left = rasterio.open(outputs_path / "left_disparity_3sgm.tif").read(1)
+        gt_right = rasterio.open(outputs_path / "right_disparity_3sgm.tif").read(1)
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -362,14 +356,14 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
-    def test_classif_on_right_and_left_with_two_classes(self, left_cones_classif, right_cones_classif):
+    def test_classif_on_right_and_left_with_two_classes(
+        self, left_cones_classif, right_cones_classif, user_cfg, inputs_path, outputs_path
+    ):
         """
         Optimization on two existing bands for left and right classification with validation step.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and two classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "classif",
@@ -378,10 +372,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -400,8 +394,8 @@ class TestPlugin3SGM:
         left, right = pandora.run(pandora_machine, left_cones_classif, right_cones_classif, -60, 0, user_cfg)
 
         # Ground truth
-        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
-        gt_right = rasterio.open("tests/outputs/right_disparity_3sgm.tif").read(1)
+        gt_left = rasterio.open(outputs_path / "left_disparity_3sgm.tif").read(1)
+        gt_right = rasterio.open(outputs_path / "right_disparity_3sgm.tif").read(1)
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -419,7 +413,7 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
-    def test_classif_on_right_and_left_with_wrong_class(self):
+    def test_classif_on_right_and_left_with_wrong_class(self, user_cfg, inputs_path):
         """
         Optimization on wrong band for left and right classification with validation step.
         "peuplier" band doesn't exists.
@@ -427,8 +421,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and a wrong class
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "classif",
@@ -437,10 +429,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -457,7 +449,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_right_and_left_with_no_class(self):
+    def test_classif_on_right_and_left_with_no_class(self, user_cfg, inputs_path):
         """
         Optimization for left and right classification with wrong configuration with validation step.
         Classes are required for source as "classif" in geometric_prior.
@@ -465,17 +457,15 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -492,7 +482,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_right_with_validation(self):
+    def test_classif_on_right_with_validation(self, user_cfg, inputs_path):
         """
         Optimization with only right classification present
         Validation step requires both left and right classifications
@@ -500,8 +490,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "classif",
@@ -512,9 +500,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -531,7 +519,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_with_validation(self):
+    def test_classif_on_left_with_validation(self, user_cfg, inputs_path):
         """
         Optimization for left classification with validation step.
         Validation step requires both left and right classifications
@@ -539,8 +527,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "classif",
@@ -551,9 +537,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -570,23 +556,21 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_right_and_left(self, left_cones_segm, right_cones_segm):
+    def test_segm_on_right_and_left(self, left_cones_segm, right_cones_segm, user_cfg, inputs_path, outputs_path):
         """
         Optimization left and right segmentation with validation step.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a segmentation and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_segm": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_segm": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_segm": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_segm": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -605,8 +589,8 @@ class TestPlugin3SGM:
         left, right = pandora.run(pandora_machine, left_cones_segm, right_cones_segm, -60, 0, user_cfg)
 
         # Ground truth
-        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
-        gt_right = rasterio.open("tests/outputs/right_disparity_3sgm.tif").read(1)
+        gt_left = rasterio.open(outputs_path / "left_disparity_3sgm.tif").read(1)
+        gt_right = rasterio.open(outputs_path / "right_disparity_3sgm.tif").read(1)
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -624,7 +608,7 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
-    def test_segm_with_classes(self):
+    def test_segm_with_classes(self, user_cfg, inputs_path):
         """
         Optimization left and right segmentation with validation step and classes instantiated.
         Classes are not available for segmentation step
@@ -632,8 +616,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "segm",
@@ -642,10 +624,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -662,7 +644,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_right(self):
+    def test_segm_on_right(self, user_cfg, inputs_path):
         """
         Optimization right segmentation with validation step.
         Validation step requires both left and right segmentation.
@@ -670,8 +652,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
         # Because the pipeline isn't correctly checked in this test
@@ -679,9 +659,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "img_right": "tests/inputs/right.png",
-            "right_segm": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_segm": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -698,7 +678,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_left(self):
+    def test_segm_on_left(self, user_cfg, inputs_path):
         """
         Optimization left segmentation with validation step.
         Validation step requires both left and right segmentation.
@@ -706,8 +686,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
         # Because the pipeline isn't correctly checked in this test
@@ -715,9 +693,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_segm": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
+            "img_left": str(inputs_path / "left.png"),
+            "left_segm": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -734,14 +712,14 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_with_correct_class(self, left_cones_classif, right_cones):
+    def test_classif_on_left_with_correct_class(
+        self, left_cones_classif, right_cones, user_cfg, inputs_path, outputs_path
+    ):
         """
         Optimization on one existing band left classification without validation step.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
@@ -755,9 +733,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -776,7 +754,7 @@ class TestPlugin3SGM:
         left, _ = pandora.run(pandora_machine, left_cones_classif, right_cones, -60, 0, user_cfg)
 
         # Ground truth
-        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+        gt_left = rasterio.open(outputs_path / "left_disparity_3sgm.tif").read(1)
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -786,14 +764,14 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
-    def test_classif_on_left_and_right_with_correct_class(self, left_cones_classif, right_cones_classif):
+    def test_classif_on_left_and_right_with_correct_class(
+        self, left_cones_classif, right_cones_classif, user_cfg, inputs_path, outputs_path
+    ):
         """
         Optimization on one existing band for left and right classification without validation step.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a segmentation and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "classif",
@@ -806,10 +784,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -828,7 +806,7 @@ class TestPlugin3SGM:
         left, _ = pandora.run(pandora_machine, left_cones_classif, right_cones_classif, -60, 0, user_cfg)
 
         # Ground truth
-        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+        gt_left = rasterio.open(outputs_path / "left_disparity_3sgm.tif").read(1)
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -838,7 +816,7 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
-    def test_classif_on_right_with_correct_class(self):
+    def test_classif_on_right_with_correct_class(self, user_cfg, inputs_path):
         """
         Optimization with right classification without validation step.
         Classification without validation step requires left classification.
@@ -846,8 +824,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a segmentation and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "classif",
@@ -861,9 +837,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -880,14 +856,12 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_left_without_validation(self, left_cones_segm, right_cones):
+    def test_segm_on_left_without_validation(self, left_cones_segm, right_cones, user_cfg, inputs_path, outputs_path):
         """
         Optimization on left image with segmentation without validation step.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a segmentation and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
         # Remove validation step
@@ -897,9 +871,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "img_right": "tests/inputs/right.png",
-            "left_segm": "tests/inputs/left_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "img_right": str(inputs_path / "right.png"),
+            "left_segm": str(inputs_path / "left_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -917,7 +891,7 @@ class TestPlugin3SGM:
         left, _ = pandora.run(pandora_machine, left_cones_segm, right_cones, -60, 0, user_cfg)
 
         # Ground truth
-        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+        gt_left = rasterio.open(outputs_path / "left_disparity_3sgm.tif").read(1)
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -927,14 +901,14 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
-    def test_segm_on_left_and_right_without_validation(self, left_cones_segm, right_cones_segm):
+    def test_segm_on_left_and_right_without_validation(
+        self, left_cones_segm, right_cones_segm, user_cfg, inputs_path, outputs_path
+    ):
         """
         Optimization on left and right image with segmentation without validation step.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a segmentation and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
         # Remove validation step
@@ -944,10 +918,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_segm": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_segm": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_segm": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_segm": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -966,7 +940,7 @@ class TestPlugin3SGM:
         left, _ = pandora.run(pandora_machine, left_cones_segm, right_cones_segm, -60, 0, user_cfg)
 
         # Ground truth
-        gt_left = rasterio.open("tests/outputs/left_disparity_3sgm.tif").read(1)
+        gt_left = rasterio.open(outputs_path / "left_disparity_3sgm.tif").read(1)
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -976,7 +950,7 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
-    def test_segm_on_right_without_validation(self):
+    def test_segm_on_right_without_validation(self, user_cfg, inputs_path):
         """
         Optimization with right segmentation without validation step.
         Segmentation without validation step requires left segmentation.
@@ -984,8 +958,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a segmentation and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
         # Remove validation step
@@ -996,9 +968,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "img_right": "tests/inputs/right.png",
-            "right_segm": "tests/inputs/left_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_segm": str(inputs_path / "left_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -1015,7 +987,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_left_and_right_with_classes(self):
+    def test_segm_on_left_and_right_with_classes(self, user_cfg, inputs_path):
         """
         Optimization with right and left segmentation with classes without validation step.
         Classes are not available for segmentation step
@@ -1023,8 +995,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a segmentation and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "segm",
@@ -1037,10 +1007,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_segm": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_segm": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_segm": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_segm": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -1057,7 +1027,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_left_with_classes(self):
+    def test_segm_on_left_with_classes(self, user_cfg, inputs_path):
         """
         Optimization with left segmentation with classes without validation step.
         Classes are not available for segmentation step
@@ -1065,8 +1035,6 @@ class TestPlugin3SGM:
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a segmentation and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "segm",
@@ -1080,10 +1048,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_segm": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_segm": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_segm": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_segm": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -1100,15 +1068,13 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_with_false_classes(self):
+    def test_classif_on_left_with_false_classes(self, user_cfg, inputs_path):
         """
         Optimization with left classification with false classes without validation step.
         Check that the check_conf function raises an error.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and false classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "classif",
@@ -1122,9 +1088,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -1141,15 +1107,13 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_without_classes(self):
+    def test_classif_on_left_without_classes(self, user_cfg, inputs_path):
         """
         Optimization with left classification with no classes without validation step.
         Check that the check_conf function raises an error.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and false classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
         # Remove validation step
@@ -1160,9 +1124,9 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -1179,15 +1143,13 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_and_right_with_wrong_classes(self):
+    def test_classif_on_left_and_right_with_wrong_classes(self, user_cfg, inputs_path):
         """
         Optimization with left and right classification with wrong classes without validation step.
         Check that the check_conf function raises an error.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and false classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
             "source": "classif",
@@ -1201,10 +1163,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -1221,15 +1183,13 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_and_right_without_classes(self):
+    def test_classif_on_left_and_right_without_classes(self, user_cfg, inputs_path):
         """
         Optimization with left and right classification without classes without validation step.
         Check that the check_conf function raises an error.
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Add a classification and false classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
         # Remove validation step
@@ -1240,10 +1200,10 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = {
-            "img_left": "tests/inputs/left.png",
-            "left_classif": "tests/inputs/left_classif.tif",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/right_classif.tif",
+            "img_left": str(inputs_path / "left.png"),
+            "left_classif": str(inputs_path / "left_classif.tif"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "right_classif.tif"),
             "disp_min": -60,
             "disp_max": 0,
             "nodata_left": "NaN",
@@ -1260,19 +1220,17 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_user_initiate_3sgm_and_validation_with_one_geomprior_segmentation(self):
+    def test_user_initiate_3sgm_and_validation_with_one_geomprior_segmentation(self, user_cfg, inputs_path):
         """
         Test that user can't implement 3SGM and validation if only one segmentation is given
         """
 
         # Prepare the SGM configuration. It contains cross_checking validation and 3SGM optimization
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Create input cfg where only the left segmentation is present
         input_cfg = {
-            "img_left": "tests/inputs/left.png",
-            "img_right": "tests/inputs/right.png",
-            "left_segm": "tests/inputs/white_band_mask.png",
+            "img_left": str(inputs_path / "left.png"),
+            "img_right": str(inputs_path / "right.png"),
+            "left_segm": str(inputs_path / "white_band_mask.png"),
             "disp_min": -60,
             "disp_max": 0,
         }
@@ -1293,19 +1251,17 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = JSON_checker.check_conf(cfg, pandora_machine)
 
-    def test_user_initiate_3sgm_and_validation_with_one_geomprior_classification(self):
+    def test_user_initiate_3sgm_and_validation_with_one_geomprior_classification(self, user_cfg, inputs_path):
         """
         Test that user can't implement 3SGM and validation if only one classification is given
         """
 
         # Prepare the SGM configuration. It contains cross_checking validation
-        user_cfg = pandora.read_config_file("tests/conf/3sgm.json")
-
         # Create input cfg where only the right classification is present
         input_cfg = {
-            "img_left": "tests/inputs/left.png",
-            "img_right": "tests/inputs/right.png",
-            "right_classif": "tests/inputs/white_band_mask.png",
+            "img_left": str(inputs_path / "left.png"),
+            "img_right": str(inputs_path / "right.png"),
+            "right_classif": str(inputs_path / "white_band_mask.png"),
             "disp_min": -60,
             "disp_max": 0,
         }

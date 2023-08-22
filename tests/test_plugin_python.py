@@ -22,10 +22,12 @@
 """
 This module provides functions to test Pandora + plugin_LibSGM
 """
+# pylint: disable=redefined-outer-name
 
 import numpy as np
 
 import pandora
+import pytest
 from pandora.state_machine import PandoraMachine
 from tests import common
 
@@ -33,18 +35,28 @@ from tests import common
 # TODO: remove duplicated test with test_libsgm
 
 
+@pytest.fixture()
+def user_cfg(configurations_path):
+    """Configuration fixture."""
+    return pandora.read_config_file(str(configurations_path / "sgm_python.json"))
+
+
+@pytest.fixture()
+def user_zncc_cfg(configurations_path):
+    """Configuration fixture."""
+    return pandora.read_config_file(str(configurations_path / "sgm_zncc_python.json"))
+
+
 class TestPluginPython:
     """
     TestPlugin class allows to test pandora + plugin_libsgm
     """
 
-    def test_libsgm(self, left_cones, right_cones, disp_left, disp_right):
+    def test_libsgm(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_libsgm
 
         """
-        user_cfg = pandora.read_config_file("tests/conf/sgm_python.json")
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -78,13 +90,11 @@ class TestPluginPython:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right):
+    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_libsgm, with negative disparities
 
         """
-        user_cfg = pandora.read_config_file("tests/conf/sgm_python.json")
-
         # Import pandora plugins
         pandora.import_plugin()
 
@@ -118,13 +128,11 @@ class TestPluginPython:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_positive_disparities(self, left_cones, right_cones, disp_left, disp_right):
+    def test_libsgm_positive_disparities(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_libsgm, with positive disparities
 
         """
-        user_cfg = pandora.read_config_file("tests/conf/sgm_python.json")
-
         # Import pandora plugins
         pandora.import_plugin()
 
@@ -149,13 +157,13 @@ class TestPluginPython:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_zncc(self, left_cones, right_cones, disp_left_zncc, disp_right_zncc):
+    def test_libsgm_zncc(self, left_cones, right_cones, disp_left_zncc, disp_right_zncc, user_zncc_cfg):
         """
         Test pandora + plugin_libsgm if ZNCC measure is used
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm_zncc_python.json")
+        user_cfg = user_zncc_cfg
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -174,20 +182,14 @@ class TestPluginPython:
         # If the disparity maps are not equal, raise an error
         np.testing.assert_allclose(right["disparity_map"].data, disp_right_zncc, rtol=1e-04)
 
-    def test_libsgm_multiband(self, disp_left, disp_right):
+    def test_libsgm_multiband(self, disp_left, disp_right, user_cfg, left_rgb, right_rgb):
         """
         Test pandora + plugin_libsgm with multiband input images
 
         """
-        user_cfg = pandora.read_config_file("tests/conf/sgm_python.json")
-
         # Add band parameter on matching_cost configuration
         # This is also the correlation band that will be used in the plugin
         user_cfg["pipeline"]["matching_cost"]["band"] = "g"
-
-        # Read input rgb images
-        left_rgb = pandora.read_img("tests/inputs/left_rgb.tif", no_data=np.nan, mask=None)
-        right_rgb = pandora.read_img("tests/inputs/right_rgb.tif", no_data=np.nan, mask=None)
 
         # Instantiate machine
         pandora_machine = PandoraMachine()

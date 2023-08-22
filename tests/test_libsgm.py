@@ -39,6 +39,18 @@ from tests import common
 
 
 @pytest.fixture()
+def user_cfg(configurations_path):
+    """Configuration fixture."""
+    return pandora.read_config_file(str(configurations_path / "sgm.json"))
+
+
+@pytest.fixture()
+def user_zncc_cfg(configurations_path):
+    """Configuration fixture."""
+    return pandora.read_config_file(str(configurations_path / "sgm_zncc.json"))
+
+
+@pytest.fixture()
 def cost_volume():
     """Create cost volume."""
     data_cv = np.array(
@@ -73,11 +85,11 @@ class TestPluginSGM:
     TestPlugin class allows to test pandora + plugin_libsgm
     """
 
+    def test_libsgm(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_libsgm
 
         """
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -112,12 +124,11 @@ class TestPluginSGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right):
+    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_libsgm, with negative disparities
 
         """
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -152,12 +163,11 @@ class TestPluginSGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_positive_disparities(self, left_cones, right_cones, disp_left, disp_right):
+    def test_libsgm_positive_disparities(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_libsgm, with positive disparities
 
         """
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -183,13 +193,13 @@ class TestPluginSGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_zncc(self, left_cones, right_cones, disp_left_zncc, disp_right_zncc):
+    def test_libsgm_zncc(self, left_cones, right_cones, disp_left_zncc, disp_right_zncc, user_zncc_cfg):
         """
         Test pandora + plugin_libsgm if ZNCC measure is used
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm_zncc.json")
+        user_cfg = user_zncc_cfg
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -215,13 +225,12 @@ class TestPluginSGM:
         # If the disparity maps are not equal, raise an error
         assert common.strict_error(right["disparity_map"].data, disp_right_zncc) <= 0
 
-    def test_number_of_disp(self, left_crafted, right_crafted):
+    def test_number_of_disp(self, left_crafted, right_crafted, user_cfg):
         """
         Test plugin_libsgm number_of_disp function if min_cost_paths is activated
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
         user_cfg["pipeline"]["matching_cost"]["window_size"] = 3
         user_cfg["pipeline"]["optimization"]["min_cost_paths"] = True
 
@@ -287,13 +296,12 @@ class TestPluginSGM:
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["confidence_measure"].data[:, :, -1], gt_disp)
 
-    def test_number_of_disp_with_previous_confidence(self, left_crafted, right_crafted):
+    def test_number_of_disp_with_previous_confidence(self, left_crafted, right_crafted, user_cfg):
         """
         Test plugin_libsgm number_of_disp function if min_cost_paths is activated and the confidence measure was present
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
         user_cfg["pipeline"]["matching_cost"]["window_size"] = 3
         user_cfg["pipeline"]["optimization"]["min_cost_paths"] = True
 
@@ -362,13 +370,12 @@ class TestPluginSGM:
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["confidence_measure"].data[:, :, -1], gt_disp)
 
-    def test_apply_confidence_no_confidence(self, cost_volume):
+    def test_apply_confidence_no_confidence(self, cost_volume, user_cfg):
         """
         Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -398,13 +405,12 @@ class TestPluginSGM:
         # Check if confidence_is_int is right
         assert confidence_is_int
 
-    def test_apply_confidence_no_confidence_dataarray(self, cost_volume):
+    def test_apply_confidence_no_confidence_dataarray(self, cost_volume, user_cfg):
         """
         Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -434,13 +440,12 @@ class TestPluginSGM:
         # Check if confidence_is_int is right
         assert confidence_is_int
 
-    def test_apply_confidence_with_confidence_dataarray(self, cost_volume):
+    def test_apply_confidence_with_confidence_dataarray(self, cost_volume, user_cfg):
         """
         Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -488,13 +493,12 @@ class TestPluginSGM:
         # Check if confidence_is_int is right
         assert confidence_is_int is False
 
-    def test_optimization_layer_with_sgm(self, left_crafted, cost_volume):
+    def test_optimization_layer_with_sgm(self, left_crafted, cost_volume, user_cfg):
         """
         Test the optimization layer function with sgm default configuration
         """
 
         # Prepare the configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -514,13 +518,12 @@ class TestPluginSGM:
         default_prior_array = np.ones(left_crafted["im"].data.shape, dtype=np.float32)
         np.testing.assert_array_equal(default_prior_array, prior_array_out)
 
-    def test_user_initiate_sgm_with_geomprior(self, left_cones, right_cones):
+    def test_user_initiate_sgm_with_geomprior(self, left_cones, right_cones, user_cfg):
         """
         Test that user can't implement geometric_prior with a sgm configuration
         """
 
         # Prepare the SGM configuration
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
         # Add a geometric_prior
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "internal"}
 
@@ -534,16 +537,11 @@ class TestPluginSGM:
         with pytest.raises(SystemExit):
             _, _ = pandora.run(pandora_machine, left_cones, right_cones, -60, -1, user_cfg)
 
-    def test_optimization_layer_with_multiband(self):
+    def test_optimization_layer_with_multiband(self, user_cfg, left_rgb, right_rgb):
         """
         Test the optimization layer function with multiband input images
         """
-        # Read input rgb images
-        left_rgb = pandora.read_img("tests/inputs/left_rgb.tif", no_data=np.nan, mask=None)
-        right_rgb = pandora.read_img("tests/inputs/right_rgb.tif", no_data=np.nan, mask=None)
-
         # Prepare the configuration for multiband
-        user_cfg = pandora.read_config_file("tests/conf/sgm.json")
         user_cfg["pipeline"]["matching_cost"]["band"] = "g"
         # We choose the mccnn penalty to verify that the correct band is being used
         user_cfg["pipeline"]["optimization"]["penalty"]["penalty_method"] = "mc_cnn_fast_penalty"

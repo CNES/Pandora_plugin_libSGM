@@ -17,6 +17,8 @@
 # limitations under the License.
 #
 """Fixtures."""
+# pylint: disable=redefined-outer-name
+
 import pandora
 import pytest
 
@@ -26,84 +28,123 @@ import xarray as xr
 
 
 @pytest.fixture()
-def left_cones():
+def inputs_path(resource_path_root):
+    return resource_path_root / "inputs"
+
+
+@pytest.fixture()
+def outputs_path(resource_path_root):
+    return resource_path_root / "outputs"
+
+
+@pytest.fixture()
+def configurations_path(resource_path_root):
+    return resource_path_root / "conf"
+
+
+@pytest.fixture()
+def left_cones(inputs_path):
     """Cones images."""
-    return pandora.read_img("tests/inputs/left.png", no_data=np.nan, mask=None)
+    path = inputs_path / "left.png"
+    return pandora.read_img(str(path), no_data=np.nan, mask=None)
 
 
 @pytest.fixture()
-def right_cones():
+def right_cones(inputs_path):
     """Cones images."""
-    return pandora.read_img("tests/inputs/right.png", no_data=np.nan, mask=None)
+    path = inputs_path / "right.png"
+    return pandora.read_img(str(path), no_data=np.nan, mask=None)
 
 
 @pytest.fixture()
-def left_cones_classif():
+def left_rgb(inputs_path):
+    """Cones images."""
+    path = inputs_path / "left_rgb.tif"
+    return pandora.read_img(str(path), no_data=np.nan, mask=None)
+
+
+@pytest.fixture()
+def right_rgb(inputs_path):
+    """Cones images."""
+    path = inputs_path / "right_rgb.tif"
+    return pandora.read_img(str(path), no_data=np.nan, mask=None)
+
+
+@pytest.fixture()
+def left_cones_classif(inputs_path):
     """Cones images with classification."""
+    path = inputs_path / "left.png"
+    classif_path = inputs_path / "left_classif.tif"
     return pandora.read_img(
-        "tests/inputs/left.png",
+        str(path),
         no_data=np.nan,
         mask=None,
-        classif="tests/inputs/left_classif.tif",
+        classif=str(classif_path),
     )
 
 
 @pytest.fixture()
-def right_cones_classif():
+def right_cones_classif(inputs_path):
     """Cones images with classification."""
+    path = inputs_path / "right.png"
+    classif_path = inputs_path / "right_classif.tif"
     return pandora.read_img(
-        "tests/inputs/right.png",
+        str(path),
         no_data=np.nan,
         mask=None,
-        classif="tests/inputs/right_classif.tif",
+        classif=str(classif_path),
     )
 
 
 @pytest.fixture()
-def left_cones_segm():
+def left_cones_segm(inputs_path):
     """Cones images with segmentation."""
+    path = inputs_path / "left.png"
+    segment_path = inputs_path / "left_classif.tif"
     return pandora.read_img(
-        "tests/inputs/left.png",
+        str(path),
         no_data=np.nan,
         mask=None,
-        segm="tests/inputs/left_classif.tif",
+        segm=str(segment_path),
     )
 
 
 @pytest.fixture()
-def right_cones_segm():
+def right_cones_segm(inputs_path):
     """Cones images with segmentation."""
+    path = inputs_path / "right.png"
+    segment_path = inputs_path / "right_classif.tif"
     return pandora.read_img(
-        "tests/inputs/right.png",
+        str(path),
         no_data=np.nan,
         mask=None,
-        segm="tests/inputs/right_classif.tif",
+        segm=str(segment_path),
     )
 
 
 @pytest.fixture()
-def disp_left():
-    return rasterio.open("tests/outputs/disp_left.tif").read(1)
+def disp_left(outputs_path):
+    return rasterio.open(outputs_path / "disp_left.tif").read(1)
 
 
 @pytest.fixture()
-def disp_right():
-    return rasterio.open("tests/outputs/disp_right.tif").read(1)
+def disp_right(outputs_path):
+    return rasterio.open(outputs_path / "disp_right.tif").read(1)
 
 
 @pytest.fixture()
-def occlusion():
-    return rasterio.open("tests/outputs/occl.png").read(1)
+def occlusion(outputs_path):
+    return rasterio.open(outputs_path / "occl.png").read(1)
 
 
 @pytest.fixture()
-def disp_left_zncc():
-    return rasterio.open("tests/outputs/disp_left_zncc.tif").read(1)
+def disp_left_zncc(outputs_path):
+    return rasterio.open(outputs_path / "disp_left_zncc.tif").read(1)
 
 
 @pytest.fixture()
-def disp_right_zncc():
-    return rasterio.open("tests/outputs/disp_right_zncc.tif").read(1)
+def disp_right_zncc(outputs_path):
+    return rasterio.open(outputs_path / "disp_right_zncc.tif").read(1)
 
 
 @pytest.fixture()
