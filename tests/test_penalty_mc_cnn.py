@@ -23,10 +23,29 @@
 This module provides functions to test mc-cnn penalties
 """
 
+# pylint: disable=redefined-outer-name
 import numpy as np
 import pytest
 
 from pandora_plugin_libsgm.penalty import penalty_mc_cnn
+
+
+@pytest.fixture()
+def mccnn_penalty():
+    """Mc Cnn penalty fixture."""
+    cfg = {
+        "P1": 8,
+        "P2": 10,
+        "Q1": 1.0,
+        "Q2": 1.0,
+        "D": 1.0,
+        "V": 1.0,
+        "penalty_method": "mc_cnn_fast_penalty",
+    }
+
+    directions = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
+
+    return penalty_mc_cnn.MccnnPenalty(directions, **cfg)
 
 
 class TestPenalitySGM:
@@ -34,27 +53,7 @@ class TestPenalitySGM:
     TestPenalitySGM class allows to test penality_sgm
     """
 
-    @pytest.fixture(autouse=True)
-    def setUp(self):  # pylint: disable=invalid-name
-        """
-        Method called to prepare the configuration
-
-        """
-        self.cfg = {
-            "P1": 8,
-            "P2": 10,
-            "Q1": 1.0,
-            "Q2": 1.0,
-            "D": 1.0,
-            "V": 1.0,
-            "penalty_method": "mc_cnn_fast_penalty",
-        }
-
-        self._directions = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
-
-        self.penalty = penalty_mc_cnn.MccnnPenalty(self._directions, **self.cfg)
-
-    def test_gradient(self):
+    def test_gradient(self, mccnn_penalty):
         """
         Test Computation of gradient
 
@@ -65,7 +64,7 @@ class TestPenalitySGM:
         img_wanted = np.array([[3, 3, 3], [3, 3, 3]])
 
         direc = [1, 0]
-        computed_gradient = self.penalty.compute_gradient(img_left, direc)
+        computed_gradient = mccnn_penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -73,7 +72,7 @@ class TestPenalitySGM:
         img_wanted = np.array([[1, 1], [1, 1], [1, 1]])
 
         direc = [0, 1]
-        computed_gradient = self.penalty.compute_gradient(img_left, direc)
+        computed_gradient = mccnn_penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -81,7 +80,7 @@ class TestPenalitySGM:
         img_wanted = np.array([[4, 4], [4, 4]])
 
         direc = [1, 1]
-        computed_gradient = self.penalty.compute_gradient(img_left, direc)
+        computed_gradient = mccnn_penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -89,7 +88,7 @@ class TestPenalitySGM:
         img_wanted = np.array([[4, 4], [4, 4]])
 
         direc = [-1, -1]
-        computed_gradient = self.penalty.compute_gradient(img_left, direc)
+        computed_gradient = mccnn_penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
@@ -97,11 +96,11 @@ class TestPenalitySGM:
         img_wanted = np.array([[2, 2], [2, 2]])
 
         direc = [-1, 1]
-        computed_gradient = self.penalty.compute_gradient(img_left, direc)
+        computed_gradient = mccnn_penalty.compute_gradient(img_left, direc)
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_gradient, img_wanted)
 
-    def test_mc_cnn_penalty_function(self):
+    def test_mc_cnn_penalty_function(self, mccnn_penalty):
         """
         Test mc_cnn menalty
 
@@ -117,11 +116,23 @@ class TestPenalitySGM:
         q2_mccnn = 6
 
         img_right = np.array(
-            [[1, 6, 11, 16, 21], [2, 7, 12, 17, 22], [3, 8, 13, 18, 23], [4, 9, 14, 19, 24], [5, 10, 15, 20, 25]]
+            [
+                [1, 6, 11, 16, 21],
+                [2, 7, 12, 17, 22],
+                [3, 8, 13, 18, 23],
+                [4, 9, 14, 19, 24],
+                [5, 10, 15, 20, 25],
+            ]
         )
 
         img_left = np.array(
-            [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15], [16, 17, 18, 19, 20], [21, 22, 23, 24, 25]]
+            [
+                [1, 2, 3, 4, 5],
+                [6, 7, 8, 9, 10],
+                [11, 12, 13, 14, 15],
+                [16, 17, 18, 19, 20],
+                [21, 22, 23, 24, 25],
+            ]
         )
 
         p1_wanted_0 = np.array(
@@ -158,7 +169,15 @@ class TestPenalitySGM:
             dtype=np.float32,
         )
 
-        p2_wanted_1 = np.array([[4, 4, 4, 4, 4], [4, 4, 4, 4, 4], [4, 4, 4, 4, 4], [4, 4, 4, 4, 4], [4, 4, 4, 4, 4]])
+        p2_wanted_1 = np.array(
+            [
+                [4, 4, 4, 4, 4],
+                [4, 4, 4, 4, 4],
+                [4, 4, 4, 4, 4],
+                [4, 4, 4, 4, 4],
+                [4, 4, 4, 4, 4],
+            ]
+        )
 
         p1_wanted_2 = np.array(
             [
@@ -183,8 +202,16 @@ class TestPenalitySGM:
         )
 
         directions = [[1, 0], [-1, 1], [1, 1]]
-        computed_p1, computed_p2 = self.penalty.mc_cnn_penalty_function(
-            img_left, img_right, default_p1, default_p2, q1_mccnn, q2_mccnn, d_mccnn, v_mccnn, directions
+        computed_p1, computed_p2 = mccnn_penalty.mc_cnn_penalty_function(
+            img_left,
+            img_right,
+            default_p1,
+            default_p2,
+            q1_mccnn,
+            q2_mccnn,
+            d_mccnn,
+            v_mccnn,
+            directions,
         )
         # Check if the calculated gradient is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(computed_p1[:, :, 0], p1_wanted_0)
@@ -206,7 +233,16 @@ class TestPenalitySGM:
             "penalty_method": "mc_cnn_fast_penalty",
         }
 
-        _directions = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
+        _directions = [
+            [0, 1],
+            [1, 0],
+            [1, 1],
+            [1, -1],
+            [0, -1],
+            [-1, 0],
+            [-1, -1],
+            [-1, 1],
+        ]
         penalty = penalty_mc_cnn.MccnnPenalty(_directions, **cfg)
 
         # Checks that penalties correspond to the type of measure

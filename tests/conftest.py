@@ -1,0 +1,150 @@
+# Copyright (c) 2023 Centre National d'Etudes Spatiales (CNES).
+#
+# This file is part of Pandora plugin LibSGM
+#
+#     https://github.com/CNES/Pandora_plugin_libsgm
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+"""Fixtures."""
+import pandora
+import pytest
+
+import numpy as np
+import rasterio
+import xarray as xr
+
+
+@pytest.fixture()
+def left_cones():
+    """Cones images."""
+    return pandora.read_img("tests/inputs/left.png", no_data=np.nan, mask=None)
+
+
+@pytest.fixture()
+def right_cones():
+    """Cones images."""
+    return pandora.read_img("tests/inputs/right.png", no_data=np.nan, mask=None)
+
+
+@pytest.fixture()
+def left_cones_classif():
+    """Cones images with classification."""
+    return pandora.read_img(
+        "tests/inputs/left.png",
+        no_data=np.nan,
+        mask=None,
+        classif="tests/inputs/left_classif.tif",
+    )
+
+
+@pytest.fixture()
+def right_cones_classif():
+    """Cones images with classification."""
+    return pandora.read_img(
+        "tests/inputs/right.png",
+        no_data=np.nan,
+        mask=None,
+        classif="tests/inputs/right_classif.tif",
+    )
+
+
+@pytest.fixture()
+def left_cones_segm():
+    """Cones images with segmentation."""
+    return pandora.read_img(
+        "tests/inputs/left.png",
+        no_data=np.nan,
+        mask=None,
+        segm="tests/inputs/left_classif.tif",
+    )
+
+
+@pytest.fixture()
+def right_cones_segm():
+    """Cones images with segmentation."""
+    return pandora.read_img(
+        "tests/inputs/right.png",
+        no_data=np.nan,
+        mask=None,
+        segm="tests/inputs/right_classif.tif",
+    )
+
+
+@pytest.fixture()
+def disp_left():
+    return rasterio.open("tests/outputs/disp_left.tif").read(1)
+
+
+@pytest.fixture()
+def disp_right():
+    return rasterio.open("tests/outputs/disp_right.tif").read(1)
+
+
+@pytest.fixture()
+def occlusion():
+    return rasterio.open("tests/outputs/occl.png").read(1)
+
+
+@pytest.fixture()
+def disp_left_zncc():
+    return rasterio.open("tests/outputs/disp_left_zncc.tif").read(1)
+
+
+@pytest.fixture()
+def disp_right_zncc():
+    return rasterio.open("tests/outputs/disp_right_zncc.tif").read(1)
+
+
+@pytest.fixture()
+def left_crafted():
+    """Manually computed images."""
+    data = np.array(
+        ([1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]),
+        dtype=np.float32,
+    )
+    result = xr.Dataset(
+        {"im": (["row", "col"], data)},
+        coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
+        attrs={
+            "no_data_img": 0,
+            "valid_pixels": 0,
+            "no_data_mask": 1,
+            "crs": None,
+            "transform": None,
+            "band_list": None,
+        },
+    )
+    return result
+
+
+@pytest.fixture()
+def right_crafted():
+    """Manually computed images."""
+    data = np.array(
+        ([1, 1, 1, 2, 2], [1, 1, 1, 4, 2], [1, 1, 1, 4, 4], [1, 1, 1, 1, 1]),
+        dtype=np.float32,
+    )
+    result = xr.Dataset(
+        {"im": (["row", "col"], data)},
+        coords={"row": np.arange(data.shape[0]), "col": np.arange(data.shape[1])},
+        attrs={
+            "no_data_img": 0,
+            "valid_pixels": 0,
+            "no_data_mask": 1,
+            "crs": None,
+            "transform": None,
+            "band_list": None,
+        },
+    )
+    return result

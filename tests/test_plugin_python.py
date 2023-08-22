@@ -23,13 +23,14 @@
 This module provides functions to test Pandora + plugin_LibSGM
 """
 
-import pytest
-import rasterio
 import numpy as np
 
 import pandora
 from pandora.state_machine import PandoraMachine
 from tests import common
+
+# pylint: disable=duplicate-code, fixme
+# TODO: remove duplicated test with test_libsgm
 
 
 class TestPluginPython:
@@ -37,25 +38,7 @@ class TestPluginPython:
     TestPlugin class allows to test pandora + plugin_libsgm
     """
 
-    @pytest.fixture(autouse=True)
-    def setUp(self):  # pylint: disable=invalid-name
-        """
-        Method called to prepare the test fixture
-
-        """
-        # Cones images
-        self.left_cones = pandora.read_img("tests/inputs/left.png", no_data=np.nan, mask=None)
-        self.right_cones = pandora.read_img("tests/inputs/right.png", no_data=np.nan, mask=None)
-
-        # Cones outputs
-        self.disp_left = rasterio.open("tests/outputs/disp_left.tif").read(1)
-        self.disp_right = rasterio.open("tests/outputs/disp_right.tif").read(1)
-        self.occlusion = rasterio.open("tests/outputs/occl.png").read(1)
-
-        self.disp_left_zncc = rasterio.open("tests/outputs/disp_left_zncc.tif").read(1)
-        self.disp_right_zncc = rasterio.open("tests/outputs/disp_right_zncc.tif").read(1)
-
-    def test_libsgm(self):
+    def test_libsgm(self, left_cones, right_cones, disp_left, disp_right):
         """
         Test pandora + plugin_libsgm
 
@@ -69,15 +52,15 @@ class TestPluginPython:
         pandora.import_plugin()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, 0, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        assert common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) <= 0.20
+        assert common.error(left["disparity_map"].data, disp_left, 1, flag_inverse_value=False) <= 0.20
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        assert common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) <= 0.15
+        assert common.error(left["disparity_map"].data, disp_left, 2, flag_inverse_value=False) <= 0.15
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
         # Compares the calculated validity mask with the ground truth ( occlusion mask )
@@ -85,17 +68,17 @@ class TestPluginPython:
         occlusion[left["validity_mask"].data >= 512] = 0
 
         # If the percentage of errors is > 0.15, raise an error
-        assert common.error_mask(occlusion, self.occlusion) <= 0.15
+        assert common.error_mask(occlusion, occlusion) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        assert common.error(right["disparity_map"].data, self.disp_right, 1) <= 0.20
+        assert common.error(right["disparity_map"].data, disp_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        assert common.error(right["disparity_map"].data, self.disp_right, 2) <= 0.15
+        assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_negative_disparities(self):
+    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right):
         """
         Test pandora + plugin_libsgm, with negative disparities
 
@@ -109,15 +92,15 @@ class TestPluginPython:
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, -1, user_cfg)
+        left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, -1, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        assert common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) <= 0.20
+        assert common.error(left["disparity_map"].data, disp_left, 1, flag_inverse_value=False) <= 0.20
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        assert common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) <= 0.15
+        assert common.error(left["disparity_map"].data, disp_left, 2, flag_inverse_value=False) <= 0.15
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
         # Compares the calculated validity mask with the ground truth ( occlusion mask )
@@ -125,17 +108,17 @@ class TestPluginPython:
         occlusion[left["validity_mask"].data >= 512] = 0
 
         # If the percentage of errors is > 0.15, raise an error
-        assert common.error_mask(occlusion, self.occlusion) <= 0.15
+        assert common.error_mask(occlusion, occlusion) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        assert common.error(right["disparity_map"].data, self.disp_right, 1) <= 0.20
+        assert common.error(right["disparity_map"].data, disp_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        assert common.error(right["disparity_map"].data, self.disp_right, 2) <= 0.15
+        assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_positive_disparities(self):
+    def test_libsgm_positive_disparities(self, left_cones, right_cones, disp_left, disp_right):
         """
         Test pandora + plugin_libsgm, with positive disparities
 
@@ -148,25 +131,25 @@ class TestPluginPython:
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        right, left = pandora.run(pandora_machine, self.right_cones, self.left_cones, 1, 60, user_cfg)
+        right, left = pandora.run(pandora_machine, right_cones, left_cones, 1, 60, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        assert common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) <= 0.20
+        assert common.error(left["disparity_map"].data, disp_left, 1, flag_inverse_value=False) <= 0.20
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        assert common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) <= 0.15
+        assert common.error(left["disparity_map"].data, disp_left, 2, flag_inverse_value=False) <= 0.15
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        assert common.error(right["disparity_map"].data, self.disp_right, 1) <= 0.20
+        assert common.error(right["disparity_map"].data, disp_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        assert common.error(right["disparity_map"].data, self.disp_right, 2) <= 0.15
+        assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_zncc(self):
+    def test_libsgm_zncc(self, left_cones, right_cones, disp_left_zncc, disp_right_zncc):
         """
         Test pandora + plugin_libsgm if ZNCC measure is used
         """
@@ -181,17 +164,17 @@ class TestPluginPython:
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, self.left_cones, self.right_cones, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, 0, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
-        np.testing.assert_allclose(left["disparity_map"].data, self.disp_left_zncc, rtol=1e-04)
+        np.testing.assert_allclose(left["disparity_map"].data, disp_left_zncc, rtol=1e-04)
 
         # Compares the calculated right disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
-        np.testing.assert_allclose(right["disparity_map"].data, self.disp_right_zncc, rtol=1e-04)
+        np.testing.assert_allclose(right["disparity_map"].data, disp_right_zncc, rtol=1e-04)
 
-    def test_libsgm_multiband(self):
+    def test_libsgm_multiband(self, disp_left, disp_right):
         """
         Test pandora + plugin_libsgm with multiband input images
 
@@ -217,11 +200,11 @@ class TestPluginPython:
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        assert common.error(left["disparity_map"].data, self.disp_left, 1, flag_inverse_value=False) <= 0.20
+        assert common.error(left["disparity_map"].data, disp_left, 1, flag_inverse_value=False) <= 0.20
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        assert common.error(left["disparity_map"].data, self.disp_left, 2, flag_inverse_value=False) <= 0.15
+        assert common.error(left["disparity_map"].data, disp_left, 2, flag_inverse_value=False) <= 0.15
 
         # Check the left validity mask cross checking ( bit 8 and 9 )
         # Compares the calculated validity mask with the ground truth ( occlusion mask )
@@ -229,12 +212,12 @@ class TestPluginPython:
         occlusion[left["validity_mask"].data >= 512] = 0
 
         # If the percentage of errors is > 0.15, raise an error
-        assert common.error_mask(occlusion, self.occlusion) <= 0.16
+        assert common.error_mask(occlusion, occlusion) <= 0.16
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
-        assert common.error(right["disparity_map"].data, self.disp_right, 1) <= 0.20
+        assert common.error(right["disparity_map"].data, disp_right, 1) <= 0.20
 
         # Compares the calculated right disparity map with the ground truth
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
-        assert common.error(right["disparity_map"].data, self.disp_right, 2) <= 0.15
+        assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
