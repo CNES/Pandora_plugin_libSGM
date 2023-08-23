@@ -632,9 +632,9 @@ def test_get_band_values(band_name, expected):
         dtype=np.float32,
     )
     input_dataset = xr.Dataset(
-        {"im": (["band", "row", "col"], data)},
+        {"im": (["band_im", "row", "col"], data)},
         coords={
-            "band": ["r", "g", "b"],
+            "band_im": ["r", "g", "b"],
             "row": np.arange(2),
             "col": np.arange(2),
         },

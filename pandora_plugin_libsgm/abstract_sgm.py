@@ -434,5 +434,5 @@ def get_band_values(image_dataset: xr.Dataset, band_name: Optional[str] = None) 
     :param band_name: band_name to extract. If None selects all bands.
     :return: selected values.
     """
-    selection = image_dataset if band_name is None else image_dataset.sel(band=band_name)
+    selection = image_dataset if band_name is None else image_dataset.sel(band_im=band_name)
     return selection["im"].to_numpy()
