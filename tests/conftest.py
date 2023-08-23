@@ -163,7 +163,6 @@ def left_crafted():
             "no_data_mask": 1,
             "crs": None,
             "transform": None,
-            "band_list": None,
         },
     )
     return result
@@ -185,7 +184,6 @@ def right_crafted():
             "no_data_mask": 1,
             "crs": None,
             "transform": None,
-            "band_list": None,
         },
     )
     return result
