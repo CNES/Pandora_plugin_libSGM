@@ -31,6 +31,7 @@ import pytest
 import xarray as xr
 from pandora import matching_cost, optimization, cost_volume_confidence
 from pandora.state_machine import PandoraMachine
+from pandora_plugin_libsgm.abstract_sgm import get_band_values
 
 from tests import common
 
@@ -600,3 +601,45 @@ class TestPluginSGM:
 
         # Check if the calculated optimized cv is equal to the ground truth
         np.testing.assert_array_equal(cost_volumes_gt["cv"], out_cv["cost_volume"].data)
+
+
+@pytest.mark.parametrize(
+    ["band_name", "expected"],
+    [
+        (None, np.array([[[1, 1], [1, 1]], [[2, 2], [2, 2]], [[3, 3], [3, 3]]], dtype=np.float32)),
+        ("r", np.array([[1, 1], [1, 1]], dtype=np.float32)),
+        ("g", np.array([[2, 2], [2, 2]], dtype=np.float32)),
+        ("b", np.array([[3, 3], [3, 3]], dtype=np.float32)),
+    ],
+)
+def test_get_band_values(band_name, expected):
+    """Given a band_name, test we get expected band values."""
+    data = np.array(
+        [
+            [
+                [1, 1],
+                [1, 1],
+            ],
+            [
+                [2, 2],
+                [2, 2],
+            ],
+            [
+                [3, 3],
+                [3, 3],
+            ],
+        ],
+        dtype=np.float32,
+    )
+    input_dataset = xr.Dataset(
+        {"im": (["band", "row", "col"], data)},
+        coords={
+            "band": ["r", "g", "b"],
+            "row": np.arange(2),
+            "col": np.arange(2),
+        },
+    )
+
+    result = get_band_values(input_dataset, band_name)
+
+    np.testing.assert_array_equal(result, expected)
