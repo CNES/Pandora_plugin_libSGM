@@ -82,7 +82,7 @@ class TestPluginSGM(unittest.TestCase):
                 "row": np.arange(data_cv.shape[0]),
                 "col": np.arange(data_cv.shape[1]),
                 "disp": np.arange(data_cv.shape[2]),
-                "indicator": ["ambiguity_confidence"],
+                "indicator": ["confidence_from_ambiguity"],
             },
             attrs={"no_data_img": 0, "valid_pixels": 0, "no_data_mask": 1, "crs": None, "transform": None},
         )
