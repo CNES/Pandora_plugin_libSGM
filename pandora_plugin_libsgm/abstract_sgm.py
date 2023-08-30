@@ -351,9 +351,9 @@ class AbstractSGM(optimization.AbstractOptimization):
         # Initialise confidence ( in [0, 1])
         confidence_is_int = True
         if use_confidence:
-            if "confidence_measure" in cv and "ambiguity_confidence" in cv.coords["indicator"]:
+            if "confidence_measure" in cv and "confidence_from_ambiguity" in cv.coords["indicator"]:
                 confidence_is_int = False
-                confidence_array = cv["confidence_measure"].sel(indicator="ambiguity_confidence").data
+                confidence_array = cv["confidence_measure"].sel(indicator="confidence_from_ambiguity").data
             else:
                 confidence_array = np.ones((nb_rows, nb_cols))
                 logging.warning(
