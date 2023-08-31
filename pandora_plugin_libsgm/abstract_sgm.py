@@ -27,7 +27,7 @@ import copy
 import logging
 import sys
 from abc import abstractmethod
-from typing import Dict, Union, Tuple
+from typing import Dict, Union, Tuple, Optional
 
 import numpy as np
 import xarray as xr
@@ -149,16 +149,8 @@ class AbstractSGM(optimization.AbstractOptimization):
             cv["cost_volume"].data *= -1
 
         # If the input images were multiband, the band used for the correlation is used
-        if cv.attrs["band_correl"] is not None:
-            # Obtain correlation band from cost_volume attributes
-            band_index_left = list(img_left.band.data).index(cv.attrs["band_correl"])
-            band_index_right = list(img_right.band.data).index(cv.attrs["band_correl"])
-            # Get the image band
-            img_left_array = np.ascontiguousarray(img_left["im"].data[band_index_left, :, :], dtype=np.float32)
-            img_right_array = np.ascontiguousarray(img_right["im"].data[band_index_right, :, :], dtype=np.float32)
-        else:
-            img_left_array = np.ascontiguousarray(img_left["im"].data, dtype=np.float32)
-            img_right_array = np.ascontiguousarray(img_right["im"].data, dtype=np.float32)
+        img_left_array = get_band_values(img_left, cv.attrs["band_correl"])
+        img_right_array = get_band_values(img_right, cv.attrs["band_correl"])
 
         # Compute penalties
         invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left_array, img_right_array)
@@ -430,3 +422,17 @@ class AbstractSGM(optimization.AbstractOptimization):
         )
 
         return cost_volumes_out
+
+
+def get_band_values(image_dataset: xr.Dataset, band_name: Optional[str] = None) -> np.ndarray:
+    """
+    Get values of given band_name from image_dataset as numpy array.
+
+    if band_name is not provided or is None, returns all bands values.
+
+    :param image_dataset: dataset to extract data from.
+    :param band_name: band_name to extract. If None selects all bands.
+    :return: selected values.
+    """
+    selection = image_dataset if band_name is None else image_dataset.sel(band_im=band_name)
+    return selection["im"].to_numpy()
