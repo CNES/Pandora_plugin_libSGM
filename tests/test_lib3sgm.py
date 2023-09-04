@@ -29,9 +29,8 @@ import numpy as np
 import pandora
 import rasterio
 import xarray as xr
-from pandora import optimization, check_conf
+from pandora import optimization, check_conf, check_configuration
 from pandora.state_machine import PandoraMachine
-import pandora.check_json as JSON_checker
 from tests import common
 
 # pylint: disable=too-many-lines, too-many-public-methods, redefined-outer-name
@@ -1249,7 +1248,7 @@ class TestPlugin3SGM:
 
         # check the configuration
         with pytest.raises(SystemExit):
-            _ = JSON_checker.check_conf(cfg, pandora_machine)
+            _ = check_configuration.check_conf(cfg, pandora_machine)
 
     def test_user_initiate_3sgm_and_validation_with_one_geomprior_classification(self, user_cfg, inputs_path):
         """
@@ -1280,4 +1279,4 @@ class TestPlugin3SGM:
 
         # check the configuration
         with pytest.raises(SystemExit):
-            _ = JSON_checker.check_conf(cfg, pandora_machine)
+            _ = check_configuration.check_conf(cfg, pandora_machine)
