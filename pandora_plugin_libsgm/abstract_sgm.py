@@ -54,13 +54,15 @@ class AbstractSGM(optimization.AbstractOptimization):
     _DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
     _USE_CONFIDENCE = False
 
-    def __init__(self, **cfg: Union[str, int, float, bool, dict]):
+    def __init__(self, img: xr.Dataset, **cfg: Union[str, int, float, bool, dict]):
         """
+        :param img: xarray.Dataset of image with metadata
+        :type img: xarray.Dataset
         :param cfg: optional configuration, {'P1': value, 'P2': value, 'alpha': value, 'beta': value, 'gamma': value,
                                             'p2_method': value}
         :type cfg: dict
         """
-        self.cfg = self.check_conf(**cfg)
+        self.cfg = self.check_conf(img, **cfg)
         self._sgm_version = self.cfg["sgm_version"]
         self._overcounting = self.cfg["overcounting"]
         self._min_cost_paths = self.cfg["min_cost_paths"]
@@ -78,10 +80,14 @@ class AbstractSGM(optimization.AbstractOptimization):
         Describes the optimization method
         """
 
-    def check_conf(self, **cfg: Union[str, int, float, bool, dict]) -> Dict[str, Union[str, int, float, bool, dict]]:
+    def check_conf(
+            self, img: xr.Dataset, **cfg: Union[str, int, float, bool, dict]
+        ) -> Dict[str, Union[str, int, float, bool, dict]]:
         """
         Add default values to the dictionary if there are missing elements and check if the dictionary is correct
 
+        :param img: xarray.Dataset of image with metadata
+        :type img: xarray.Dataset
         :param cfg: optimization configuration
         :type cfg: dict
         :return cfg: optimization configuration updated
@@ -101,6 +107,14 @@ class AbstractSGM(optimization.AbstractOptimization):
         if cfg["optimization_method"] == "sgm" and "geometric_prior" in cfg:
             logging.error("Geometric prior not available for SGM optimization")
             sys.exit(1)
+        
+        if "geometric_prior" in cfg:
+            source = cfg["geometric_prior"]["source"]
+            if source in ["classif", "segm"] and not source in img.data_vars:
+                    logging.error(
+                        "For performing the 3SGM optimization step in the pipeline, left %s must be present.", source
+                    )
+                    sys.exit(1)
 
         schema = {
             "sgm_version": And(str, lambda x: is_method(x, ["c++", "python_libsgm", "python_libsgm_parall"])),

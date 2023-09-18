@@ -237,7 +237,7 @@ class TestPluginSGM:
 
         # Load plugins
         matching_cost_ = matching_cost.AbstractMatchingCost(**user_cfg["pipeline"]["matching_cost"])
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -308,7 +308,7 @@ class TestPluginSGM:
 
         # Load plugins
         matching_cost_ = matching_cost.AbstractMatchingCost(**user_cfg["pipeline"]["matching_cost"])
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
         confidence_ = cost_volume_confidence.AbstractCostVolumeConfidence(
             **user_cfg["pipeline"]["cost_volume_confidence"]
         )
@@ -371,7 +371,7 @@ class TestPluginSGM:
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["confidence_measure"].data[:, :, -1], gt_disp)
 
-    def test_apply_confidence_no_confidence(self, cost_volume, user_cfg):
+    def test_apply_confidence_no_confidence(self, left_crafted, cost_volume, user_cfg):
         """
         Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
         """
@@ -382,7 +382,7 @@ class TestPluginSGM:
         pandora.import_plugin()
 
         # Load plugins
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
         # Test
         use_confidence = False
@@ -406,7 +406,7 @@ class TestPluginSGM:
         # Check if confidence_is_int is right
         assert confidence_is_int
 
-    def test_apply_confidence_no_confidence_dataarray(self, cost_volume, user_cfg):
+    def test_apply_confidence_no_confidence_dataarray(self, left_crafted, cost_volume, user_cfg):
         """
         Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
         """
@@ -417,7 +417,7 @@ class TestPluginSGM:
         pandora.import_plugin()
 
         # Load plugins
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
         # Test
         use_confidence = True
@@ -441,7 +441,7 @@ class TestPluginSGM:
         # Check if confidence_is_int is right
         assert confidence_is_int
 
-    def test_apply_confidence_with_confidence_dataarray(self, cost_volume, user_cfg):
+    def test_apply_confidence_with_confidence_dataarray(self, left_crafted, cost_volume, user_cfg):
         """
         Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
         """
@@ -452,7 +452,7 @@ class TestPluginSGM:
         pandora.import_plugin()
 
         # Load plugins
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
         # Test
         use_confidence = True
@@ -505,7 +505,7 @@ class TestPluginSGM:
         pandora.import_plugin()
 
         # Load plugins
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
         cv_in = copy.deepcopy(cost_volume)
 
@@ -553,7 +553,7 @@ class TestPluginSGM:
 
         # Load plugins
         matching_cost_ = matching_cost.AbstractMatchingCost(**user_cfg["pipeline"]["matching_cost"])
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+        optimization_ = optimization.AbstractOptimization(left_rgb, **user_cfg["pipeline"]["optimization"])
 
         # Import pandora plugins
         pandora.import_plugin()

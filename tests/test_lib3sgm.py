@@ -122,7 +122,7 @@ class TestPlugin3SGM:
         pandora.import_plugin()
 
         # Load plugins
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
+        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
         classif_arr = optimization_.compute_optimization_layer(cost_volume, left_crafted, left_crafted["im"].data.shape)
 
@@ -137,9 +137,6 @@ class TestPlugin3SGM:
         # Import pandora plugins
         pandora.import_plugin()
 
-        # Load plugins
-        optimization_ = optimization.AbstractOptimization(**user_cfg["pipeline"]["optimization"])
-
         data = np.array(([1, 1, 1, 1], [1, 1, 2, 1], [1, 1, 4, 1]), dtype=np.float32)
         left = xr.Dataset(
             {"im": (["row", "col"], data)},
@@ -153,6 +150,9 @@ class TestPlugin3SGM:
             },
         )
         gt_default_prior_array = np.ones(left["im"].shape, dtype=np.float32)
+
+        # Load plugins
+        optimization_ = optimization.AbstractOptimization(left, **user_cfg["pipeline"]["optimization"])
 
         cv_in = copy.deepcopy(cost_volume)
 
