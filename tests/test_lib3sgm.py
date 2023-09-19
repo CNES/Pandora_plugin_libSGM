@@ -318,8 +318,7 @@ class TestPlugin3SGM:
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -375,8 +374,7 @@ class TestPlugin3SGM:
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -432,8 +430,7 @@ class TestPlugin3SGM:
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -465,8 +462,7 @@ class TestPlugin3SGM:
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -502,8 +498,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -539,8 +534,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -570,8 +564,7 @@ class TestPlugin3SGM:
             "left_segm": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -627,8 +620,7 @@ class TestPlugin3SGM:
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -661,8 +653,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "img_right": str(inputs_path / "right.png"),
             "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -695,8 +686,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "left_segm": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -735,8 +725,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -787,8 +776,7 @@ class TestPlugin3SGM:
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -839,8 +827,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -873,8 +860,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "img_right": str(inputs_path / "right.png"),
             "left_segm": str(inputs_path / "left_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -921,8 +907,7 @@ class TestPlugin3SGM:
             "left_segm": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -970,8 +955,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "img_right": str(inputs_path / "right.png"),
             "right_segm": str(inputs_path / "left_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -1010,8 +994,7 @@ class TestPlugin3SGM:
             "left_segm": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -1051,8 +1034,7 @@ class TestPlugin3SGM:
             "left_segm": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -1090,8 +1072,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -1126,8 +1107,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -1166,8 +1146,7 @@ class TestPlugin3SGM:
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -1203,8 +1182,7 @@ class TestPlugin3SGM:
             "left_classif": str(inputs_path / "left_classif.tif"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
             "nodata_left": "NaN",
             "nodata_right": "NaN",
         }
@@ -1230,8 +1208,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "img_right": str(inputs_path / "right.png"),
             "left_segm": str(inputs_path / "white_band_mask.png"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
         }
 
         # Add a segmentation geometric_prior
@@ -1261,8 +1238,7 @@ class TestPlugin3SGM:
             "img_left": str(inputs_path / "left.png"),
             "img_right": str(inputs_path / "right.png"),
             "right_classif": str(inputs_path / "white_band_mask.png"),
-            "disp_min": -60,
-            "disp_max": 0,
+            "disp_left": [-60, 0],
         }
 
         # Add a geometric_prior
