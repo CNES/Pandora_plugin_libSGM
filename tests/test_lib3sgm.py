@@ -71,6 +71,32 @@ def user_cfg(configurations_path):
     return pandora.read_config_file(str(configurations_path / "3sgm.json"))
 
 
+@pytest.fixture()
+def inputs_with_classif(inputs_path):
+    return {
+        "img_left": str(inputs_path / "left.png"),
+        "left_classif": str(inputs_path / "left_classif.tif"),
+        "disp_left": [-60, 0],
+        "nodata_left": "NaN",
+        "img_right": str(inputs_path / "right.png"),
+        "right_classif": str(inputs_path / "right_classif.tif"),
+        "nodata_right": "NaN",
+    }
+
+
+@pytest.fixture()
+def inputs_with_segment(inputs_path):
+    return {
+        "img_left": str(inputs_path / "left.png"),
+        "left_segm": str(inputs_path / "left_classif.tif"),
+        "disp_left": [-60, 0],
+        "nodata_left": "NaN",
+        "img_right": str(inputs_path / "right.png"),
+        "right_segm": str(inputs_path / "right_classif.tif"),
+        "nodata_right": "NaN",
+    }
+
+
 class TestPlugin3SGM:
     """
     TestPlugin class allows to test pandora + plugin_lib3sgm
@@ -299,7 +325,7 @@ class TestPlugin3SGM:
         assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
     def test_classif_on_right_and_left_with_one_class(
-        self, left_cones_classif, right_cones_classif, user_cfg, inputs_path, outputs_path
+        self, left_cones_classif, right_cones_classif, user_cfg, inputs_with_classif, outputs_path
     ):
         """
         Optimization on one existing band for left and right classification with validation step.
@@ -313,15 +339,7 @@ class TestPlugin3SGM:
         }
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -355,7 +373,7 @@ class TestPlugin3SGM:
         assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
     def test_classif_on_right_and_left_with_two_classes(
-        self, left_cones_classif, right_cones_classif, user_cfg, inputs_path, outputs_path
+        self, left_cones_classif, right_cones_classif, user_cfg, inputs_with_classif, outputs_path
     ):
         """
         Optimization on two existing bands for left and right classification with validation step.
@@ -369,15 +387,7 @@ class TestPlugin3SGM:
         }
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -410,7 +420,7 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
-    def test_classif_on_right_and_left_with_wrong_class(self, user_cfg, inputs_path):
+    def test_classif_on_right_and_left_with_wrong_class(self, user_cfg, inputs_with_classif):
         """
         Optimization on wrong band for left and right classification with validation step.
         "peuplier" band doesn't exists.
@@ -425,15 +435,7 @@ class TestPlugin3SGM:
         }
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -445,7 +447,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_right_and_left_with_no_class(self, user_cfg, inputs_path):
+    def test_classif_on_right_and_left_with_no_class(self, user_cfg, inputs_with_classif):
         """
         Optimization for left and right classification with wrong configuration with validation step.
         Classes are required for source as "classif" in geometric_prior.
@@ -457,15 +459,7 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "classif"}
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -477,7 +471,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_right_with_validation(self, user_cfg, inputs_path):
+    def test_classif_on_right_with_validation(self, user_cfg, inputs_with_classif):
         """
         Optimization with only right classification present
         Validation step requires both left and right classifications
@@ -494,14 +488,8 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
+        del user_cfg["input"]["left_classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -513,7 +501,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_with_validation(self, user_cfg, inputs_path):
+    def test_classif_on_left_with_validation(self, user_cfg, inputs_with_classif):
         """
         Optimization for left classification with validation step.
         Validation step requires both left and right classifications
@@ -530,14 +518,8 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
+        del user_cfg["input"]["right_classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -549,7 +531,9 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_right_and_left(self, left_cones_segm, right_cones_segm, user_cfg, inputs_path, outputs_path):
+    def test_segm_on_right_and_left(
+        self, left_cones_segm, right_cones_segm, user_cfg, inputs_with_segment, outputs_path
+    ):
         """
         Optimization left and right segmentation with validation step.
         """
@@ -559,15 +543,7 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_segm": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_segment
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -600,7 +576,7 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, gt_right, 2) <= 0.15
 
-    def test_segm_with_classes(self, user_cfg, inputs_path):
+    def test_segm_with_classes(self, user_cfg, inputs_with_classif):
         """
         Optimization left and right segmentation with validation step and classes instantiated.
         Classes are not available for segmentation step
@@ -615,15 +591,7 @@ class TestPlugin3SGM:
         }
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -635,7 +603,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_right(self, user_cfg, inputs_path):
+    def test_segm_on_right(self, user_cfg, inputs_with_segment):
         """
         Optimization right segmentation with validation step.
         Validation step requires both left and right segmentation.
@@ -649,14 +617,8 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_segment
+        del user_cfg["input"]["left_segm"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -668,7 +630,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_left(self, user_cfg, inputs_path):
+    def test_segm_on_left(self, user_cfg, inputs_with_segment):
         """
         Optimization left segmentation with validation step.
         Validation step requires both left and right segmentation.
@@ -682,14 +644,8 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_segm": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_segment
+        del user_cfg["input"]["right_segm"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -702,7 +658,7 @@ class TestPlugin3SGM:
             _ = check_conf(user_cfg, pandora_machine)
 
     def test_classif_on_left_with_correct_class(
-        self, left_cones_classif, right_cones, user_cfg, inputs_path, outputs_path
+        self, left_cones_classif, right_cones, user_cfg, inputs_with_classif, outputs_path
     ):
         """
         Optimization on one existing band left classification without validation step.
@@ -721,14 +677,8 @@ class TestPlugin3SGM:
         }
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
+        del user_cfg["input"]["right_classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -753,7 +703,7 @@ class TestPlugin3SGM:
         assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
     def test_classif_on_left_and_right_with_correct_class(
-        self, left_cones_classif, right_cones_classif, user_cfg, inputs_path, outputs_path
+        self, left_cones_classif, right_cones_classif, user_cfg, inputs_with_classif, outputs_path
     ):
         """
         Optimization on one existing band for left and right classification without validation step.
@@ -771,15 +721,7 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -803,7 +745,7 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
-    def test_classif_on_right_with_correct_class(self, user_cfg, inputs_path):
+    def test_classif_on_right_with_correct_class(self, user_cfg, inputs_with_classif):
         """
         Optimization with right classification without validation step.
         Classification without validation step requires left classification.
@@ -823,14 +765,8 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
+        del user_cfg["input"]["left_classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -842,7 +778,9 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_left_without_validation(self, left_cones_segm, right_cones, user_cfg, inputs_path, outputs_path):
+    def test_segm_on_left_without_validation(
+        self, left_cones_segm, right_cones, user_cfg, inputs_with_segment, outputs_path
+    ):
         """
         Optimization on left image with segmentation without validation step.
         """
@@ -856,14 +794,8 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "img_right": str(inputs_path / "right.png"),
-            "left_segm": str(inputs_path / "left_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_segment
+        del user_cfg["input"]["right_segm"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -887,7 +819,7 @@ class TestPlugin3SGM:
         assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
     def test_segm_on_left_and_right_without_validation(
-        self, left_cones_segm, right_cones_segm, user_cfg, inputs_path, outputs_path
+        self, left_cones_segm, right_cones_segm, user_cfg, inputs_with_segment, outputs_path
     ):
         """
         Optimization on left and right image with segmentation without validation step.
@@ -902,15 +834,7 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_segm": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_segment
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -934,7 +858,7 @@ class TestPlugin3SGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(left["disparity_map"].data, gt_left, 2) <= 0.15
 
-    def test_segm_on_right_without_validation(self, user_cfg, inputs_path):
+    def test_segm_on_right_without_validation(self, user_cfg, inputs_with_segment):
         """
         Optimization with right segmentation without validation step.
         Segmentation without validation step requires left segmentation.
@@ -951,14 +875,8 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_segm": str(inputs_path / "left_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_segment
+        del user_cfg["input"]["left_segm"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -970,7 +888,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_left_and_right_with_classes(self, user_cfg, inputs_path):
+    def test_segm_on_left_and_right_with_classes(self, user_cfg, inputs_with_segment):
         """
         Optimization with right and left segmentation with classes without validation step.
         Classes are not available for segmentation step
@@ -989,15 +907,7 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_segm": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_segment
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -1009,7 +919,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_segm_on_left_with_classes(self, user_cfg, inputs_path):
+    def test_segm_on_left_with_classes(self, user_cfg, inputs_with_segment):
         """
         Optimization with left segmentation with classes without validation step.
         Classes are not available for segmentation step
@@ -1029,15 +939,7 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_segm": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_segm": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_segment
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -1049,7 +951,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_with_false_classes(self, user_cfg, inputs_path):
+    def test_classif_on_left_with_false_classes(self, user_cfg, inputs_with_classif):
         """
         Optimization with left classification with false classes without validation step.
         Check that the check_conf function raises an error.
@@ -1068,14 +970,8 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
+        del user_cfg["input"]["right_classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -1087,7 +983,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_without_classes(self, user_cfg, inputs_path):
+    def test_classif_on_left_without_classes(self, user_cfg, inputs_with_classif):
         """
         Optimization with left classification with no classes without validation step.
         Check that the check_conf function raises an error.
@@ -1103,14 +999,8 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
+        del user_cfg["input"]["right_classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -1122,7 +1012,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_and_right_with_wrong_classes(self, user_cfg, inputs_path):
+    def test_classif_on_left_and_right_with_wrong_classes(self, user_cfg, inputs_with_classif):
         """
         Optimization with left and right classification with wrong classes without validation step.
         Check that the check_conf function raises an error.
@@ -1141,15 +1031,7 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -1161,7 +1043,7 @@ class TestPlugin3SGM:
         with pytest.raises(SystemExit):
             _ = check_conf(user_cfg, pandora_machine)
 
-    def test_classif_on_left_and_right_without_classes(self, user_cfg, inputs_path):
+    def test_classif_on_left_and_right_without_classes(self, user_cfg, inputs_with_classif):
         """
         Optimization with left and right classification without classes without validation step.
         Check that the check_conf function raises an error.
@@ -1177,15 +1059,7 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
-        user_cfg["input"] = {
-            "img_left": str(inputs_path / "left.png"),
-            "left_classif": str(inputs_path / "left_classif.tif"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "right_classif.tif"),
-            "disp_left": [-60, 0],
-            "nodata_left": "NaN",
-            "nodata_right": "NaN",
-        }
+        user_cfg["input"] = inputs_with_classif
 
         # Import pandora plugins
         pandora.import_plugin()
