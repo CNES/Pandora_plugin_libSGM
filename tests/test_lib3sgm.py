@@ -278,17 +278,21 @@ class TestPlugin3SGM:
         """
 
         # Add mask to left data
-        masked_left = pandora.read_img(
-            str(inputs_path / "left.png"),
-            no_data=np.nan,
-            mask=None,
-            segm=str(inputs_path / "white_band_mask.png"),
+        masked_left = pandora.create_dataset_from_inputs(
+            {
+                "img": str(inputs_path / "left.png"),
+                "nodata": np.nan,
+                "mask": None,
+                "segm": str(inputs_path / "white_band_mask.png"),
+            }
         )
-        masked_right = pandora.read_img(
-            str(inputs_path / "right.png"),
-            no_data=np.nan,
-            mask=None,
-            segm=str(inputs_path / "white_band_mask.png"),
+        masked_right = pandora.create_dataset_from_inputs(
+            {
+                "img": str(inputs_path / "right.png"),
+                "nodata": np.nan,
+                "mask": None,
+                "segm": str(inputs_path / "white_band_mask.png"),
+            }
         )
 
         # Ground truth
