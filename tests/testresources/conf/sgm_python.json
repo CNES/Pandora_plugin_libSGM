@@ -5,8 +5,7 @@
       "window_size": 5,
       "subpix": 1
     },
-
-    "optimization" : {
+    "optimization": {
       "optimization_method": "sgm",
       "sgm_version": "python_libsgm",
       "overcounting": false,
@@ -17,7 +16,6 @@
         "penalty_method": "sgm_penalty"
       }
     },
-
     "disparity": {
       "disparity_method": "wta",
       "invalid_disparity": -9999
@@ -25,19 +23,17 @@
     "refinement": {
       "refinement_method": "vfit"
     },
-    "filter" : {
+    "filter": {
       "filter_method": "median",
       "filter_size": 3
     },
-
-    "validation" : {
+    "validation": {
       "validation_method": "cross_checking",
       "cross_checking_threshold": 1
     },
-    "filter.after.validation" : {
+    "filter.after.validation": {
       "filter_method": "median",
       "filter_size": 3
     }
   }
 }
-

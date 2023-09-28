@@ -5,10 +5,10 @@
       "window_size": 5,
       "subpix": 1
     },
-    "cost_volume_confidence" : {
+    "cost_volume_confidence": {
       "confidence_method": "std_intensity"
     },
-    "optimization" : {
+    "optimization": {
       "optimization_method": "sgm",
       "overcounting": false,
       "penalty": {
@@ -25,19 +25,17 @@
     "refinement": {
       "refinement_method": "vfit"
     },
-    "filter" : {
+    "filter": {
       "filter_method": "median",
       "filter_size": 3
     },
-
-    "validation" : {
+    "validation": {
       "validation_method": "cross_checking",
       "cross_checking_threshold": 1
     },
-    "filter.after.validation" : {
+    "filter.after.validation": {
       "filter_method": "median",
       "filter_size": 3
     }
   }
 }
-
