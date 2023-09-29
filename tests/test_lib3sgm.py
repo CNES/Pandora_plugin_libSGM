@@ -278,17 +278,21 @@ class TestPlugin3SGM:
         """
 
         # Add mask to left data
-        masked_left = pandora.read_img(
-            str(inputs_path / "left.png"),
-            no_data=np.nan,
-            mask=None,
-            segm=str(inputs_path / "white_band_mask.png"),
+        masked_left = pandora.create_dataset_from_inputs(
+            {
+                "img": str(inputs_path / "left.png"),
+                "nodata": np.nan,
+                "mask": None,
+                "segm": str(inputs_path / "white_band_mask.png"),
+            }
         )
-        masked_right = pandora.read_img(
-            str(inputs_path / "right.png"),
-            no_data=np.nan,
-            mask=None,
-            segm=str(inputs_path / "white_band_mask.png"),
+        masked_right = pandora.create_dataset_from_inputs(
+            {
+                "img": str(inputs_path / "right.png"),
+                "nodata": np.nan,
+                "mask": None,
+                "segm": str(inputs_path / "white_band_mask.png"),
+            }
         )
 
         # Ground truth
@@ -668,7 +672,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add a segmentation and classes
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
@@ -718,7 +721,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
@@ -791,7 +793,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
@@ -831,7 +832,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
@@ -904,7 +904,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
@@ -935,8 +934,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
@@ -966,8 +963,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
@@ -995,8 +990,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
@@ -1027,8 +1020,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
@@ -1055,8 +1046,6 @@ class TestPlugin3SGM:
         # Remove validation step
         del user_cfg["pipeline"]["validation"]
         del user_cfg["pipeline"]["filter.after.validation"]
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
-        user_cfg["pipeline"]["right_disp_map"]["method"] = "none"
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
