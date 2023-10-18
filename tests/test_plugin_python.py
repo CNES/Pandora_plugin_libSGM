@@ -64,7 +64,7 @@ class TestPluginPython:
         pandora.import_plugin()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, left_cones, right_cones, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -90,7 +90,9 @@ class TestPluginPython:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
+    def test_libsgm_negative_disparities(
+        self, left_cones, right_cones, disp_left, disp_right, user_cfg
+    ):
         """
         Test pandora + plugin_libsgm, with negative disparities
 
@@ -102,7 +104,7 @@ class TestPluginPython:
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, -1, user_cfg)
+        left, right = pandora.run(pandora_machine, left_cones, right_cones, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -139,7 +141,7 @@ class TestPluginPython:
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        right, left = pandora.run(pandora_machine, right_cones, left_cones, 1, 60, user_cfg)
+        right, left = pandora.run(pandora_machine, right_cones, left_cones, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -172,7 +174,7 @@ class TestPluginPython:
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, left_cones, right_cones, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
@@ -198,7 +200,7 @@ class TestPluginPython:
         pandora.import_plugin()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, left_rgb, right_rgb, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, left_rgb, right_rgb, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
