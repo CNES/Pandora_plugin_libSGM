@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.2.1 (October 2023)
+
+### Fixed
+
+Update ambiguity indicator
+
 ## 1.2.0 (January 2023)
 
 ### Added
