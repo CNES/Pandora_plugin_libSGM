@@ -99,7 +99,7 @@ class TestPluginSGM:
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, left_cones, right_cones, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -125,7 +125,9 @@ class TestPluginSGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
+    def test_libsgm_negative_disparities(
+        self, left_cones, right_cones, disp_left, disp_right, user_cfg
+    ):
         """
         Test pandora + plugin_libsgm, with negative disparities
 
@@ -138,7 +140,7 @@ class TestPluginSGM:
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, -1, user_cfg)
+        left, right = pandora.run(pandora_machine, left_cones, right_cones, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -176,7 +178,7 @@ class TestPluginSGM:
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
-        right, left = pandora.run(pandora_machine, right_cones, left_cones, 1, 60, user_cfg)
+        right, left = pandora.run(pandora_machine, right_cones, left_cones, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the percentage of pixel errors is > 0.20, raise an error
@@ -209,7 +211,7 @@ class TestPluginSGM:
         pandora_machine = PandoraMachine()
 
         # Run the pandora pipeline
-        left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, 0, user_cfg)
+        left, right = pandora.run(pandora_machine, left_cones, right_cones, user_cfg)
 
         # Compares the calculated left disparity map with the ground truth
         # If the disparity maps are not equal, raise an error
@@ -243,7 +245,12 @@ class TestPluginSGM:
         pandora.import_plugin()
 
         # Computes the cost volume dataset
-        cv = matching_cost_.compute_cost_volume(img_left=left_crafted, img_right=right_crafted, disp_min=-2, disp_max=2)
+        cv = matching_cost_.compute_cost_volume(
+            img_left=left_crafted,
+            img_right=right_crafted,
+            grid_disp_min=np.full((left_crafted.dims["row"], left_crafted.dims["col"]), -2),
+            grid_disp_max=np.full((left_crafted.dims["row"], left_crafted.dims["col"]), 2),
+        )
 
         # Disparities which give a minimum local cost, in indices
         disp_path = np.array(
@@ -317,7 +324,12 @@ class TestPluginSGM:
         pandora.import_plugin()
 
         # Computes the cost volume dataset
-        cv = matching_cost_.compute_cost_volume(img_left=left_crafted, img_right=right_crafted, disp_min=-2, disp_max=2)
+        cv = matching_cost_.compute_cost_volume(
+            img_left=left_crafted,
+            img_right=right_crafted,
+            grid_disp_min=np.full((left_crafted.dims["row"], left_crafted.dims["col"]), -2),
+            grid_disp_max=np.full((left_crafted.dims["row"], left_crafted.dims["col"]), 2),
+        )
         _, cv = confidence_.confidence_prediction(None, left_crafted, right_crafted, cv)
         # Disparities which give a minimum local cost, in indices
         disp_path = np.array(
@@ -536,7 +548,7 @@ class TestPluginSGM:
 
         # Pandora pipeline should fail
         with pytest.raises(SystemExit):
-            _, _ = pandora.run(pandora_machine, left_cones, right_cones, -60, -1, user_cfg)
+            _, _ = pandora.run(pandora_machine, left_cones, right_cones, user_cfg)
 
     def test_optimization_layer_with_multiband(self, user_cfg, left_rgb, right_rgb):
         """
@@ -559,7 +571,12 @@ class TestPluginSGM:
         pandora.import_plugin()
 
         # Computes the cost volume dataset
-        cv = matching_cost_.compute_cost_volume(img_left=left_rgb, img_right=right_rgb, disp_min=-60, disp_max=0)
+        cv = matching_cost_.compute_cost_volume(
+            img_left=left_rgb,
+            img_right=right_rgb,
+            grid_disp_min=np.full((left_rgb.dims["row"], left_rgb.dims["col"]), -60),
+            grid_disp_max=np.full((left_rgb.dims["row"], left_rgb.dims["col"]), 0),
+        )
         cv_in = copy.deepcopy(cv)
         # Get invalid disparities of the cost volume
         invalid_disp = np.isnan(cv["cost_volume"].data)
