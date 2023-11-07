@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0a1 (Novembre 2023)
+
+### Changed
+- Adding check for geometric_prior option in check_conf function. [#88]
+- New format for disparity in the user configuration file. [#87]
+- Change read_img function to create_dataset_from_inputs. [#83]
+- Update with new API of Pandora run and compute_cost_volume function. [#94]
+
+
 ## 1.4.0 (April 2023)
 
 ### Added 
