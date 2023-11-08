@@ -47,13 +47,15 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
     _GEOMETRIC_PRIOR = {"source": "internal"}
     _AVAILABLE_GEOMETRIC_PRIOR = ["internal", "classif", "segm"]
 
-    def __init__(self, **cfg: Union[str, int, float, bool]):
+    def __init__(self, img: xr.Dataset, **cfg: Union[str, int, float, bool]):
         """
+        :param img: xarray.Dataset of image with metadata
+        :type img: xarray.Dataset
         :param cfg: optional configuration, {}
         :type cfg: dict
         :return: None
         """
-        super().__init__(**cfg)
+        super().__init__(img, **cfg)
         self.cfg = self.check_geometric_prior(cfg)
         self._geometric_prior = self.cfg["geometric_prior"]
         if self._geometric_prior["source"] == "classif":  # type: ignore

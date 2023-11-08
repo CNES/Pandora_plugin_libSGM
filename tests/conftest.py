@@ -45,80 +45,86 @@ def configurations_path(resource_path_root):
 @pytest.fixture()
 def left_cones(inputs_path):
     """Cones images."""
-    path = inputs_path / "left.png"
-    return pandora.read_img(str(path), no_data=np.nan, mask=None)
+    return pandora.create_dataset_from_inputs(
+        {"img": str(inputs_path / "left.png"), "nodata": np.nan, "mask": None, "disp": [-60, 0]}
+    )
 
 
 @pytest.fixture()
 def right_cones(inputs_path):
     """Cones images."""
-    path = inputs_path / "right.png"
-    return pandora.read_img(str(path), no_data=np.nan, mask=None)
+    return pandora.create_dataset_from_inputs(
+        {"img": str(inputs_path / "right.png"), "nodata": np.nan, "mask": None, "disp": [0, 60]}
+    )
 
 
 @pytest.fixture()
 def left_rgb(inputs_path):
     """Cones images."""
-    path = inputs_path / "left_rgb.tif"
-    return pandora.read_img(str(path), no_data=np.nan, mask=None)
+    return pandora.create_dataset_from_inputs(
+        {"img": str(inputs_path / "left_rgb.tif"), "nodata": np.nan, "mask": None, "disp": [-60, 0]}
+    )
 
 
 @pytest.fixture()
 def right_rgb(inputs_path):
     """Cones images."""
-    path = inputs_path / "right_rgb.tif"
-    return pandora.read_img(str(path), no_data=np.nan, mask=None)
+    return pandora.create_dataset_from_inputs(
+        {"img": str(inputs_path / "right_rgb.tif"), "nodata": np.nan, "mask": None}
+    )
 
 
 @pytest.fixture()
 def left_cones_classif(inputs_path):
     """Cones images with classification."""
-    path = inputs_path / "left.png"
-    classif_path = inputs_path / "left_classif.tif"
-    return pandora.read_img(
-        str(path),
-        no_data=np.nan,
-        mask=None,
-        classif=str(classif_path),
+    return pandora.create_dataset_from_inputs(
+        {
+            "img": str(inputs_path / "left.png"),
+            "nodata": np.nan,
+            "mask": None,
+            "classif": str(inputs_path / "left_classif.tif"),
+            "disp": [-60, 0],
+        }
     )
 
 
 @pytest.fixture()
 def right_cones_classif(inputs_path):
     """Cones images with classification."""
-    path = inputs_path / "right.png"
-    classif_path = inputs_path / "right_classif.tif"
-    return pandora.read_img(
-        str(path),
-        no_data=np.nan,
-        mask=None,
-        classif=str(classif_path),
+    return pandora.create_dataset_from_inputs(
+        {
+            "img": str(inputs_path / "right.png"),
+            "nodata": np.nan,
+            "mask": None,
+            "classif": str(inputs_path / "right_classif.tif"),
+        }
     )
 
 
 @pytest.fixture()
 def left_cones_segm(inputs_path):
     """Cones images with segmentation."""
-    path = inputs_path / "left.png"
-    segment_path = inputs_path / "left_classif.tif"
-    return pandora.read_img(
-        str(path),
-        no_data=np.nan,
-        mask=None,
-        segm=str(segment_path),
+    return pandora.create_dataset_from_inputs(
+        {
+            "img": str(inputs_path / "left.png"),
+            "nodata": np.nan,
+            "mask": None,
+            "segm": str(inputs_path / "left_classif.tif"),
+            "disp": [-60, 0],
+        }
     )
 
 
 @pytest.fixture()
 def right_cones_segm(inputs_path):
     """Cones images with segmentation."""
-    path = inputs_path / "right.png"
-    segment_path = inputs_path / "right_classif.tif"
-    return pandora.read_img(
-        str(path),
-        no_data=np.nan,
-        mask=None,
-        segm=str(segment_path),
+    return pandora.create_dataset_from_inputs(
+        {
+            "img": str(inputs_path / "right.png"),
+            "nodata": np.nan,
+            "mask": None,
+            "segm": str(inputs_path / "right_classif.tif"),
+        }
     )
 
 
