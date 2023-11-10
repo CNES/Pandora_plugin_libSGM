@@ -74,26 +74,34 @@ def user_cfg(configurations_path):
 @pytest.fixture()
 def inputs_with_classif(inputs_path):
     return {
-        "img_left": str(inputs_path / "left.png"),
-        "left_classif": str(inputs_path / "left_classif.tif"),
-        "disp_left": [-60, 0],
-        "nodata_left": "NaN",
-        "img_right": str(inputs_path / "right.png"),
-        "right_classif": str(inputs_path / "right_classif.tif"),
-        "nodata_right": "NaN",
+        "left": {
+            "img": str(inputs_path / "left.png"),
+            "classif": str(inputs_path / "left_classif.tif"),
+            "disp": [-60, 0],
+            "nodata": "NaN",
+        },
+        "right": {
+            "img": str(inputs_path / "right.png"),
+            "classif": str(inputs_path / "right_classif.tif"),
+            "nodata": "NaN",
+        }
     }
 
 
 @pytest.fixture()
 def inputs_with_segment(inputs_path):
     return {
-        "img_left": str(inputs_path / "left.png"),
-        "left_segm": str(inputs_path / "left_classif.tif"),
-        "disp_left": [-60, 0],
-        "nodata_left": "NaN",
-        "img_right": str(inputs_path / "right.png"),
-        "right_segm": str(inputs_path / "right_classif.tif"),
-        "nodata_right": "NaN",
+        "left": {
+            "img": str(inputs_path / "left.png"),
+            "segm": str(inputs_path / "left_classif.tif"),
+            "disp": [-60, 0],
+            "nodata": "NaN",
+        },
+        "right": {
+            "img": str(inputs_path / "right.png"),
+            "segm": str(inputs_path / "right_classif.tif"),
+            "nodata": "NaN",
+        }
     }
 
 
@@ -494,7 +502,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-        del user_cfg["input"]["left_classif"]
+        del user_cfg["input"]["left"]["classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -524,7 +532,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-        del user_cfg["input"]["right_classif"]
+        del user_cfg["input"]["right"]["classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -623,7 +631,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
-        del user_cfg["input"]["left_segm"]
+        del user_cfg["input"]["left"]["segm"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -650,7 +658,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
-        del user_cfg["input"]["right_segm"]
+        del user_cfg["input"]["right"]["segm"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -682,7 +690,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-        del user_cfg["input"]["right_classif"]
+        del user_cfg["input"]["right"]["classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -769,7 +777,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-        del user_cfg["input"]["left_classif"]
+        del user_cfg["input"]["left"]["classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -797,7 +805,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
-        del user_cfg["input"]["right_segm"]
+        del user_cfg["input"]["right"]["segm"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -877,7 +885,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
-        del user_cfg["input"]["left_segm"]
+        del user_cfg["input"]["left"]["segm"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -967,7 +975,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-        del user_cfg["input"]["right_classif"]
+        del user_cfg["input"]["right"]["classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -994,7 +1002,7 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-        del user_cfg["input"]["right_classif"]
+        del user_cfg["input"]["right"]["classif"]
 
         # Import pandora plugins
         pandora.import_plugin()
@@ -1069,10 +1077,14 @@ class TestPlugin3SGM:
         # Prepare the SGM configuration. It contains cross_checking validation and 3SGM optimization
         # Create input cfg where only the left segmentation is present
         input_cfg = {
-            "img_left": str(inputs_path / "left.png"),
-            "img_right": str(inputs_path / "right.png"),
-            "left_segm": str(inputs_path / "white_band_mask.png"),
-            "disp_left": [-60, 0],
+            "left": {
+                "img": str(inputs_path / "left.png"),
+                "segm": str(inputs_path / "white_band_mask.png"),
+                "disp": [-60, 0],
+            },
+            "right": {
+                "img": str(inputs_path / "right.png"),
+            }
         }
 
         # Add a segmentation geometric_prior
@@ -1099,10 +1111,14 @@ class TestPlugin3SGM:
         # Prepare the SGM configuration. It contains cross_checking validation
         # Create input cfg where only the right classification is present
         input_cfg = {
-            "img_left": str(inputs_path / "left.png"),
-            "img_right": str(inputs_path / "right.png"),
-            "right_classif": str(inputs_path / "white_band_mask.png"),
-            "disp_left": [-60, 0],
+            "left": {
+                "img": str(inputs_path / "left.png"),
+                "disp": [-60, 0],
+            },
+            "right": {
+                "img": str(inputs_path / "right.png"),
+                "classif": str(inputs_path / "white_band_mask.png"),
+            }
         }
 
         # Add a geometric_prior
