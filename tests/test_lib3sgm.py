@@ -30,6 +30,7 @@ import pandora
 import rasterio
 import xarray as xr
 from pandora import optimization, check_conf, check_configuration
+from pandora.margins import Margins
 from pandora.state_machine import PandoraMachine
 from tests import common
 
@@ -107,10 +108,69 @@ def inputs_with_segment(inputs_path):
     }
 
 
+@pytest.fixture()
+def monoband_image():
+    """Return a 2D dataset builder of a given shape."""
+
+    def inner(shape):
+        return xr.Dataset(
+            {},
+            coords={"band_im": [None], "row": np.arange(shape[0]), "col": np.arange(shape[1])},
+            attrs={"disparity_source": None},
+        )
+
+    return inner
+
+
+@pytest.fixture()
+def pandora_machine_builder():
+    """Return a pandora machine builder which expects an image shape."""
+
+    def builder(image_shape, image_builder):
+        machine = PandoraMachine()
+        machine.left_img = image_builder(image_shape)
+        machine.right_img = image_builder(image_shape)
+        return machine
+
+    return builder
+
+
 class TestPlugin3SGM:
     """
     TestPlugin class allows to test pandora + plugin_lib3sgm
     """
+
+    @pytest.mark.parametrize(
+        ["image_shape", "configuration", "expected"],
+        [
+            pytest.param(
+                (10, 10),
+                {
+                    "pipeline": {
+                        "matching_cost": {
+                            "matching_cost_method": "zncc",
+                            "window_size": 11,
+                            "subpix": 2,
+                            "band": None,
+                            "step": 1,
+                        },  # Margins(5, 5, 5, 5)
+                        "optimization": {"optimization_method": "sgm"},  # Margins(40, 40, 40, 40)
+                    },
+                },
+                Margins(45, 45, 45, 45),
+                id="Only matching_cost margins with optimization",
+            )
+        ],
+    )
+    def test_margins(self, pandora_machine_builder, image_shape, monoband_image, configuration, expected):
+        """
+        Given a pipeline with steps, each step with margins should contribute to global margins.
+        """
+        # NOTE: actual code is in Pandora, not Pandora2D
+        pandora_machine = pandora_machine_builder(image_shape, monoband_image)
+        pandora_machine.check_conf(configuration, pandora_machine.left_img, pandora_machine.right_img)
+
+        assert pandora_machine.margins.global_margins == expected
 
     def test_lib3sgm(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
