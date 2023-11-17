@@ -193,3 +193,9 @@ def right_crafted():
         },
     )
     return result
+
+
+@pytest.fixture()
+def import_plugin():
+    """Import plugins in all tests without calling it."""
+    pandora.import_plugin()

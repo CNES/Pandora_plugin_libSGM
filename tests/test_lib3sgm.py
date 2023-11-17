@@ -35,6 +35,8 @@ from tests import common
 
 # pylint: disable=too-many-lines, too-many-public-methods, redefined-outer-name
 
+pytestmark = pytest.mark.usefixtures("import_plugin")
+
 
 @pytest.fixture()
 def cost_volume():
@@ -117,9 +119,6 @@ class TestPlugin3SGM:
         # Because the pipeline isn't correctly checked in this test
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -152,9 +151,6 @@ class TestPlugin3SGM:
         # add internal geometric_prior source
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "internal"}
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Load plugins
         optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
@@ -167,9 +163,6 @@ class TestPlugin3SGM:
         """
         Test the optimization layer function with 3sgm default configuration
         """
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         data = np.array(([1, 1, 1, 1], [1, 1, 2, 1], [1, 1, 4, 1]), dtype=np.float32)
         left = xr.Dataset(
@@ -209,9 +202,6 @@ class TestPlugin3SGM:
         # Because the pipeline isn't correctly checked in this test
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -246,9 +236,6 @@ class TestPlugin3SGM:
         # Because the pipeline isn't correctly checked in this test
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -267,9 +254,6 @@ class TestPlugin3SGM:
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "segm"}
         # Because the pipeline isn't correctly checked in this test
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -313,9 +297,6 @@ class TestPlugin3SGM:
         # Because the pipeline isn't correctly checked in this test
         user_cfg["pipeline"]["disparity"]["invalid_disparity"] = np.nan
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -353,9 +334,6 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -402,9 +380,6 @@ class TestPlugin3SGM:
         # Add inputs
         user_cfg["input"] = inputs_with_classif
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -450,9 +425,6 @@ class TestPlugin3SGM:
         # Add inputs
         user_cfg["input"] = inputs_with_classif
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -473,9 +445,6 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -504,9 +473,6 @@ class TestPlugin3SGM:
         user_cfg["input"] = inputs_with_classif
         del user_cfg["input"]["left"]["classif"]
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -534,9 +500,6 @@ class TestPlugin3SGM:
         user_cfg["input"] = inputs_with_classif
         del user_cfg["input"]["right"]["classif"]
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -557,9 +520,6 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -606,9 +566,6 @@ class TestPlugin3SGM:
         # Add inputs
         user_cfg["input"] = inputs_with_classif
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -633,9 +590,6 @@ class TestPlugin3SGM:
         user_cfg["input"] = inputs_with_segment
         del user_cfg["input"]["left"]["segm"]
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -659,9 +613,6 @@ class TestPlugin3SGM:
         # Add inputs
         user_cfg["input"] = inputs_with_segment
         del user_cfg["input"]["right"]["segm"]
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -691,9 +642,6 @@ class TestPlugin3SGM:
         # Add inputs
         user_cfg["input"] = inputs_with_classif
         del user_cfg["input"]["right"]["classif"]
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -733,9 +681,6 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -779,9 +724,6 @@ class TestPlugin3SGM:
         user_cfg["input"] = inputs_with_classif
         del user_cfg["input"]["left"]["classif"]
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -806,9 +748,6 @@ class TestPlugin3SGM:
         # Add inputs
         user_cfg["input"] = inputs_with_segment
         del user_cfg["input"]["right"]["segm"]
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -844,9 +783,6 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -887,9 +823,6 @@ class TestPlugin3SGM:
         user_cfg["input"] = inputs_with_segment
         del user_cfg["input"]["left"]["segm"]
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -916,9 +849,6 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_segment
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -947,9 +877,6 @@ class TestPlugin3SGM:
         # Add inputs
         user_cfg["input"] = inputs_with_segment
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -977,9 +904,6 @@ class TestPlugin3SGM:
         user_cfg["input"] = inputs_with_classif
         del user_cfg["input"]["right"]["classif"]
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -1003,9 +927,6 @@ class TestPlugin3SGM:
         # Add inputs
         user_cfg["input"] = inputs_with_classif
         del user_cfg["input"]["right"]["classif"]
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -1033,9 +954,6 @@ class TestPlugin3SGM:
         # Add inputs
         user_cfg["input"] = inputs_with_classif
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -1058,9 +976,6 @@ class TestPlugin3SGM:
 
         # Add inputs
         user_cfg["input"] = inputs_with_classif
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -1093,9 +1008,6 @@ class TestPlugin3SGM:
         # Create full configuration
         cfg = {"input": input_cfg, "pipeline": user_cfg["pipeline"]}
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -1126,9 +1038,6 @@ class TestPlugin3SGM:
 
         # Create full configuration
         cfg = {"input": input_cfg, "pipeline": user_cfg["pipeline"]}
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
