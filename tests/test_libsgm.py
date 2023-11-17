@@ -123,9 +123,7 @@ class TestPluginSGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_negative_disparities(
-        self, left_cones, right_cones, disp_left, disp_right, user_cfg
-    ):
+    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_libsgm, with negative disparities
 

@@ -86,7 +86,7 @@ def inputs_with_classif(inputs_path):
             "img": str(inputs_path / "right.png"),
             "classif": str(inputs_path / "right_classif.tif"),
             "nodata": "NaN",
-        }
+        },
     }
 
 
@@ -103,7 +103,7 @@ def inputs_with_segment(inputs_path):
             "img": str(inputs_path / "right.png"),
             "segm": str(inputs_path / "right_classif.tif"),
             "nodata": "NaN",
-        }
+        },
     }
 
 
@@ -999,7 +999,7 @@ class TestPlugin3SGM:
             },
             "right": {
                 "img": str(inputs_path / "right.png"),
-            }
+            },
         }
 
         # Add a segmentation geometric_prior
@@ -1030,7 +1030,7 @@ class TestPlugin3SGM:
             "right": {
                 "img": str(inputs_path / "right.png"),
                 "classif": str(inputs_path / "white_band_mask.png"),
-            }
+            },
         }
 
         # Add a geometric_prior
