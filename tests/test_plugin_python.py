@@ -35,6 +35,9 @@ from tests import common
 # TODO: remove duplicated test with test_libsgm
 
 
+pytestmark = pytest.mark.usefixtures("import_plugin")
+
+
 @pytest.fixture()
 def user_cfg(configurations_path):
     """Configuration fixture."""
@@ -59,9 +62,6 @@ class TestPluginPython:
         """
         # Instantiate machine
         pandora_machine = PandoraMachine()
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Run the pandora pipeline
         left, right = pandora.run(pandora_machine, left_cones, right_cones, user_cfg)
@@ -90,16 +90,11 @@ class TestPluginPython:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_negative_disparities(
-        self, left_cones, right_cones, disp_left, disp_right, user_cfg
-    ):
+    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_libsgm, with negative disparities
 
         """
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -135,9 +130,6 @@ class TestPluginPython:
         Test pandora + plugin_libsgm, with positive disparities
 
         """
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -167,9 +159,6 @@ class TestPluginPython:
         # Prepare the configuration
         user_cfg = user_zncc_cfg
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -195,9 +184,6 @@ class TestPluginPython:
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Run the pandora pipeline
         left, right = pandora.run(pandora_machine, left_rgb, right_rgb, user_cfg)
