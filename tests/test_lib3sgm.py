@@ -345,6 +345,7 @@ class TestPlugin3SGM:
                 "nodata": np.nan,
                 "mask": None,
                 "segm": str(inputs_path / "white_band_mask.png"),
+                "disp": [0, 60],
             }
         )
 
