@@ -29,6 +29,7 @@ import numpy as np
 import pandora
 import rasterio
 import xarray as xr
+from transitions import MachineError
 from pandora import optimization, check_conf, check_configuration
 from pandora.margins import Margins
 from pandora.state_machine import PandoraMachine
@@ -490,7 +491,7 @@ class TestPlugin3SGM:
         pandora_machine = PandoraMachine()
 
         # Check configuration
-        with pytest.raises(SystemExit):
+        with pytest.raises(MachineError, match="A problem occurs during Pandora checking. Be sure of your sequencing"):
             _ = check_conf(user_cfg, pandora_machine)
 
     def test_classif_on_right_and_left_with_no_class(self, user_cfg, inputs_with_classif):
@@ -969,7 +970,7 @@ class TestPlugin3SGM:
         pandora_machine = PandoraMachine()
 
         # check the configuration
-        with pytest.raises(SystemExit):
+        with pytest.raises(MachineError, match="A problem occurs during Pandora checking. Be sure of your sequencing"):
             _ = check_conf(user_cfg, pandora_machine)
 
     def test_classif_on_left_without_classes(self, user_cfg, inputs_with_classif):
@@ -1019,7 +1020,7 @@ class TestPlugin3SGM:
         pandora_machine = PandoraMachine()
 
         # check the configuration
-        with pytest.raises(SystemExit):
+        with pytest.raises(MachineError, match="A problem occurs during Pandora checking. Be sure of your sequencing"):
             _ = check_conf(user_cfg, pandora_machine)
 
     def test_classif_on_left_and_right_without_classes(self, user_cfg, inputs_with_classif):
