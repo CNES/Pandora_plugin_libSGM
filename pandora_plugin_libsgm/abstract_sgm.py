@@ -81,8 +81,8 @@ class AbstractSGM(optimization.AbstractOptimization):
         """
 
     def check_conf(
-            self, img: xr.Dataset, **cfg: Union[str, int, float, bool, dict]
-        ) -> Dict[str, Union[str, int, float, bool, dict]]:
+        self, img: xr.Dataset, **cfg: Union[str, int, float, bool, dict]
+    ) -> Dict[str, Union[str, int, float, bool, dict]]:
         """
         Add default values to the dictionary if there are missing elements and check if the dictionary is correct
 
@@ -107,14 +107,14 @@ class AbstractSGM(optimization.AbstractOptimization):
         if cfg["optimization_method"] == "sgm" and "geometric_prior" in cfg:
             logging.error("Geometric prior not available for SGM optimization")
             sys.exit(1)
-        
+
         if "geometric_prior" in cfg:
             source = cfg["geometric_prior"]["source"]
             if source in ["classif", "segm"] and not source in img.data_vars:
-                    logging.error(
-                        "For performing the 3SGM optimization step in the pipeline, left %s must be present.", source
-                    )
-                    sys.exit(1)
+                logging.error(
+                    "For performing the 3SGM optimization step in the pipeline, left %s must be present.", source
+                )
+                sys.exit(1)
 
         schema = {
             "sgm_version": And(str, lambda x: is_method(x, ["c++", "python_libsgm", "python_libsgm_parall"])),
