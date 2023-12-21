@@ -27,7 +27,7 @@ import copy
 import logging
 import sys
 from abc import abstractmethod
-from typing import Dict, Union, Tuple, Optional
+from typing import Dict, Union, Tuple, Optional, cast
 
 import numpy as np
 import xarray as xr
@@ -36,9 +36,13 @@ from libSGM import sgm_wrapper
 from pandora.common import is_method
 from pandora.cost_volume_confidence import AbstractCostVolumeConfidence
 from pandora.optimization import optimization
-from pkg_resources import iter_entry_points
 
 from pandora_plugin_libsgm import penalty
+
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
 
 
 class AbstractSGM(optimization.AbstractOptimization):
@@ -63,7 +67,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         :type cfg: dict
         """
         self.cfg = self.check_conf(img, **cfg)
-        self._sgm_version = self.cfg["sgm_version"]
+        self._sgm_version = cast(str, self.cfg["sgm_version"])
         self._overcounting = self.cfg["overcounting"]
         self._min_cost_paths = self.cfg["min_cost_paths"]
         self._use_confidence = self.cfg["use_confidence"]
@@ -72,7 +76,7 @@ class AbstractSGM(optimization.AbstractOptimization):
 
         # Get Python versions of LibSGM
         self._method = []
-        for entry_point in iter_entry_points(group="libsgm", name=self._sgm_version):  # type: ignore
+        for entry_point in entry_points(group="libsgm", name=self._sgm_version):
             self._method.append(entry_point.load())
 
     def desc(self):
@@ -109,7 +113,7 @@ class AbstractSGM(optimization.AbstractOptimization):
             sys.exit(1)
 
         if "geometric_prior" in cfg:
-            source = cfg["geometric_prior"]["source"]
+            source = cfg["geometric_prior"]["source"]  # type: ignore[index]
             if source in ["classif", "segm"] and not source in img.data_vars:
                 logging.error(
                     "For performing the 3SGM optimization step in the pipeline, left %s must be present.", source
