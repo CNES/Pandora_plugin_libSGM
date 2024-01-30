@@ -30,6 +30,7 @@ import pandora
 import pytest
 import xarray as xr
 from pandora import matching_cost, optimization, cost_volume_confidence
+from pandora.img_tools import add_disparity
 from pandora.state_machine import PandoraMachine
 from pandora_plugin_libsgm.abstract_sgm import get_band_values
 
@@ -37,6 +38,8 @@ from tests import common
 
 # pylint: disable=redefined-outer-name, duplicate-code, fixme
 # TODO: remove duplicated test with test_libsgm
+
+pytestmark = pytest.mark.usefixtures("import_plugin")
 
 
 @pytest.fixture()
@@ -91,10 +94,6 @@ class TestPluginSGM:
         Test pandora + plugin_libsgm
 
         """
-
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -125,17 +124,11 @@ class TestPluginSGM:
         # If the percentage of pixel errors ( error if ground truth - calculate > 2) is > 0.15, raise an error
         assert common.error(right["disparity_map"].data, disp_right, 2) <= 0.15
 
-    def test_libsgm_negative_disparities(
-        self, left_cones, right_cones, disp_left, disp_right, user_cfg
-    ):
+    def test_libsgm_negative_disparities(self, left_cones, right_cones, disp_left, disp_right, user_cfg):
         """
         Test pandora + plugin_libsgm, with negative disparities
 
         """
-
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -171,10 +164,6 @@ class TestPluginSGM:
         Test pandora + plugin_libsgm, with positive disparities
 
         """
-
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -203,9 +192,6 @@ class TestPluginSGM:
 
         # Prepare the configuration
         user_cfg = user_zncc_cfg
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -241,16 +227,14 @@ class TestPluginSGM:
         matching_cost_ = matching_cost.AbstractMatchingCost(**user_cfg["pipeline"]["matching_cost"])
         optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
-        # Import pandora plugins
-        pandora.import_plugin()
+        left_crafted.pipe(add_disparity, disparity=[-2, 2], window=None)
 
-        # Computes the cost volume dataset
-        cv = matching_cost_.compute_cost_volume(
-            img_left=left_crafted,
-            img_right=right_crafted,
-            grid_disp_min=np.full((left_crafted.dims["row"], left_crafted.dims["col"]), -2),
-            grid_disp_max=np.full((left_crafted.dims["row"], left_crafted.dims["col"]), 2),
+        cost_volume = matching_cost_.allocate_cost_volume(
+            left_crafted,
+            (left_crafted["disparity"].sel(band_disp="min"), left_crafted["disparity"].sel(band_disp="max")),
         )
+        # Computes the cost volume dataset
+        cv = matching_cost_.compute_cost_volume(img_left=left_crafted, img_right=right_crafted, cost_volume=cost_volume)
 
         # Disparities which give a minimum local cost, in indices
         disp_path = np.array(
@@ -320,15 +304,17 @@ class TestPluginSGM:
             **user_cfg["pipeline"]["cost_volume_confidence"]
         )
 
-        # Import pandora plugins
-        pandora.import_plugin()
+        left_crafted.pipe(add_disparity, disparity=[-2, 2], window=None)
 
+        cost_volume = matching_cost_.allocate_cost_volume(
+            left_crafted,
+            (left_crafted["disparity"].sel(band_disp="min"), left_crafted["disparity"].sel(band_disp="max")),
+        )
         # Computes the cost volume dataset
         cv = matching_cost_.compute_cost_volume(
             img_left=left_crafted,
             img_right=right_crafted,
-            grid_disp_min=np.full((left_crafted.dims["row"], left_crafted.dims["col"]), -2),
-            grid_disp_max=np.full((left_crafted.dims["row"], left_crafted.dims["col"]), 2),
+            cost_volume=cost_volume,
         )
         _, cv = confidence_.confidence_prediction(None, left_crafted, right_crafted, cv)
         # Disparities which give a minimum local cost, in indices
@@ -390,9 +376,6 @@ class TestPluginSGM:
 
         # Prepare the configuration
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Load plugins
         optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
@@ -423,12 +406,6 @@ class TestPluginSGM:
         Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
         """
 
-        # Prepare the configuration
-
-        # Import pandora plugins
-        pandora.import_plugin()
-
-        # Load plugins
         optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
         # Test
@@ -457,13 +434,6 @@ class TestPluginSGM:
         """
         Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
         """
-
-        # Prepare the configuration
-
-        # Import pandora plugins
-        pandora.import_plugin()
-
-        # Load plugins
         optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
         # Test
@@ -510,13 +480,6 @@ class TestPluginSGM:
         """
         Test the optimization layer function with sgm default configuration
         """
-
-        # Prepare the configuration
-
-        # Import pandora plugins
-        pandora.import_plugin()
-
-        # Load plugins
         optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
         cv_in = copy.deepcopy(cost_volume)
@@ -540,9 +503,6 @@ class TestPluginSGM:
         # Add a geometric_prior
         user_cfg["pipeline"]["optimization"]["geometric_prior"] = {"source": "internal"}
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -560,22 +520,20 @@ class TestPluginSGM:
         user_cfg["pipeline"]["optimization"]["penalty"]["penalty_method"] = "mc_cnn_fast_penalty"
         user_cfg["pipeline"]["optimization"]["penalty"].pop("p2_method")
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
-        # Load plugins
         matching_cost_ = matching_cost.AbstractMatchingCost(**user_cfg["pipeline"]["matching_cost"])
         optimization_ = optimization.AbstractOptimization(left_rgb, **user_cfg["pipeline"]["optimization"])
 
-        # Import pandora plugins
-        pandora.import_plugin()
+        left_rgb.pipe(add_disparity, disparity=[-60, 0], window=None)
 
+        cost_volume = matching_cost_.allocate_cost_volume(
+            left_rgb,
+            (left_rgb["disparity"].sel(band_disp="min"), left_rgb["disparity"].sel(band_disp="max")),
+        )
         # Computes the cost volume dataset
         cv = matching_cost_.compute_cost_volume(
             img_left=left_rgb,
             img_right=right_rgb,
-            grid_disp_min=np.full((left_rgb.dims["row"], left_rgb.dims["col"]), -60),
-            grid_disp_max=np.full((left_rgb.dims["row"], left_rgb.dims["col"]), 0),
+            cost_volume=cost_volume,
         )
         cv_in = copy.deepcopy(cv)
         # Get invalid disparities of the cost volume

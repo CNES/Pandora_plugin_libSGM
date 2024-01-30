@@ -1,6 +1,19 @@
 # Changelog
 
-## 1.5.0a1 (Novembre 2023)
+## 1.5.0 (January 2024)
+
+### Added
+- Added margin calculation for the treatment chain with ROI image. [#85]
+
+### Changed
+- Update user configuration file with new keys : "left" & "right". [#84]
+- Updating information in the various xarrays. [#96]
+- Replacing sys.exit by raises. [#97]
+- Move allocate_cost_volume. [#86]
+- Change pkg_resources to importlib.metadata. [#99]
+- Update of the minimal version for python. [#100]
+
+## 1.5.0a1 (November 2023)
 
 ### Changed
 - Adding check for geometric_prior option in check_conf function. [#88]

@@ -70,7 +70,7 @@ def left_rgb(inputs_path):
 def right_rgb(inputs_path):
     """Cones images."""
     return pandora.create_dataset_from_inputs(
-        {"img": str(inputs_path / "right_rgb.tif"), "nodata": np.nan, "mask": None}
+        {"img": str(inputs_path / "right_rgb.tif"), "nodata": np.nan, "mask": None, "disp": [0, 60]}
     )
 
 
@@ -97,6 +97,7 @@ def right_cones_classif(inputs_path):
             "nodata": np.nan,
             "mask": None,
             "classif": str(inputs_path / "right_classif.tif"),
+            "disp": [0, 60],
         }
     )
 
@@ -124,6 +125,7 @@ def right_cones_segm(inputs_path):
             "nodata": np.nan,
             "mask": None,
             "segm": str(inputs_path / "right_classif.tif"),
+            "disp": [0, 60],
         }
     )
 
@@ -169,6 +171,7 @@ def left_crafted():
             "no_data_mask": 1,
             "crs": None,
             "transform": None,
+            "disparity_source": [-60, 0]
         },
     )
     return result
@@ -190,6 +193,13 @@ def right_crafted():
             "no_data_mask": 1,
             "crs": None,
             "transform": None,
+            "disparity_source": [0, 60]
         },
     )
     return result
+
+
+@pytest.fixture()
+def import_plugin():
+    """Import plugins in all tests without calling it."""
+    pandora.import_plugin()

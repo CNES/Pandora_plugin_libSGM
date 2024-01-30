@@ -22,11 +22,14 @@
 """
 This module provides functions to test Pandora + plugin_LibSGM
 """
+import pytest
 import numpy as np
 
 import pandora
 from pandora.state_machine import PandoraMachine
 from tests import common
+
+pytestmark = pytest.mark.usefixtures("import_plugin")
 
 
 class TestPluginPythonParall:
@@ -43,9 +46,6 @@ class TestPluginPythonParall:
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Run the pandora pipeline
         left, right = pandora.run(pandora_machine, left_cones, right_cones, -60, 0, user_cfg)
@@ -80,9 +80,6 @@ class TestPluginPythonParall:
 
         """
         user_cfg = pandora.read_config_file("tests/conf/sgm_python_parall.json")
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
@@ -121,9 +118,6 @@ class TestPluginPythonParall:
         """
         user_cfg = pandora.read_config_file("tests/conf/sgm_python_parall.json")
 
-        # Import pandora plugins
-        pandora.import_plugin()
-
         # Instantiate machine
         pandora_machine = PandoraMachine()
 
@@ -152,9 +146,6 @@ class TestPluginPythonParall:
 
         # Prepare the configuration
         user_cfg = pandora.read_config_file("tests/conf/sgm_zncc_python_parall.json")
-
-        # Import pandora plugins
-        pandora.import_plugin()
 
         # Instantiate machine
         pandora_machine = PandoraMachine()
