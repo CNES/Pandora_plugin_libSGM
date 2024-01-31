@@ -38,7 +38,7 @@ jobs:
     - name: Test with pytest pandora's notebooks
       run: |
         cd submodule/pandora
-        pip install .[notebook]
+        pip install .[notebook,dev]
         hash -r
         export NUMBA_DISABLE_JIT="0"
         pytest -m notebook_tests
