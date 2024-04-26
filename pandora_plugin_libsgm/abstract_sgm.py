@@ -56,7 +56,7 @@ class AbstractSGM(optimization.AbstractOptimization):
     _MIN_COST_PATH = False
     _PENALTY = {"penalty_method": "sgm_penalty", "P1": 4, "P2": 20}
     _DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
-    _USE_CONFIDENCE = False
+    _USE_CONFIDENCE = None
 
     def __init__(self, img: xr.Dataset, **cfg: Union[str, int, float, bool, dict]):
         """
@@ -70,7 +70,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         self._sgm_version = cast(str, self.cfg["sgm_version"])
         self._overcounting = self.cfg["overcounting"]
         self._min_cost_paths = self.cfg["min_cost_paths"]
-        self._use_confidence = self.cfg["use_confidence"]
+        self._use_confidence = self.cfg.get("use_confidence", self._USE_CONFIDENCE)
         self._directions = self._DIRECTIONS
         self._penalty = penalty.AbstractPenalty(self._directions, **self.cfg["penalty"])  # type: ignore
 
@@ -106,8 +106,6 @@ class AbstractSGM(optimization.AbstractOptimization):
             cfg["min_cost_paths"] = self._MIN_COST_PATH
         if "penalty" not in cfg:
             cfg["penalty"] = self._PENALTY
-        if "use_confidence" not in cfg:
-            cfg["use_confidence"] = self._USE_CONFIDENCE
         if cfg["optimization_method"] == "sgm" and "geometric_prior" in cfg:
             logging.error("Geometric prior not available for SGM optimization")
             sys.exit(1)
@@ -125,7 +123,7 @@ class AbstractSGM(optimization.AbstractOptimization):
             "optimization_method": And(str, lambda x: is_method(x, ["sgm", "3sgm"])),
             "overcounting": bool,
             "min_cost_paths": bool,
-            "use_confidence": bool,
+            OptionalKey("use_confidence"): str,
             "penalty": dict,
             OptionalKey("geometric_prior"): dict,
         }
@@ -339,7 +337,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         return cv
 
     @staticmethod
-    def apply_confidence(cv: xr.Dataset, use_confidence: bool) -> Tuple[xr.Dataset, bool]:
+    def apply_confidence(cv: xr.Dataset, use_confidence: str) -> Tuple[xr.Dataset, bool]:
         """
         Apply the confidence measure to cost volume,as weights.
 
@@ -349,7 +347,7 @@ class AbstractSGM(optimization.AbstractOptimization):
                 - confidence_measure 3D xarray.DataArray (row, col, indicator)
         :type cv: xarray.Dataset
         :param use_confidence: Apply or not confidence
-        :type use_confidence: bool
+        :type use_confidence: str
         :return: the cost volume dataset updated with a new indicator with the data variables:
 
                 - cost_volume 3D xarray.DataArray (row, col, disp)
@@ -360,15 +358,21 @@ class AbstractSGM(optimization.AbstractOptimization):
         nb_rows, nb_cols, _ = cv["cost_volume"].data.shape
         # Initialise confidence ( in [0, 1])
         confidence_is_int = True
-        if use_confidence:
-            if "confidence_measure" in cv and "confidence_from_ambiguity" in cv.coords["indicator"]:
+        if use_confidence is not None:
+            measure_coord = "confidence_from_ambiguity"
+            suffix_exists = use_confidence.find('.')
+            if suffix_exists >= 0:
+                measure_coord += use_confidence[suffix_exists:]
+            if "confidence_measure" in cv and measure_coord in cv.coords["indicator"]:
                 confidence_is_int = False
-                confidence_array = cv["confidence_measure"].sel(indicator="confidence_from_ambiguity").data
+                confidence_array = cv["confidence_measure"].sel(indicator=measure_coord).data
             else:
                 confidence_array = np.ones((nb_rows, nb_cols))
                 logging.warning(
-                    "User wants to use ambiguity confidence that was not computed previously \n "
-                    "Default is used : confidence values will be equal to 1, which is equivalent to not use confidence."
+                    "User wants to use %s that was not computed previously or an ambiguity confidence \n "
+                    "Default is used : confidence values will be equal to 1, which is equivalent to not use \n "
+                    "confidence.",
+                    use_confidence
                 )
         else:
             confidence_array = np.ones((nb_rows, nb_cols))
