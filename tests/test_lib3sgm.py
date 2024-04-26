@@ -30,10 +30,12 @@ import pandora
 import rasterio
 import xarray as xr
 from transitions import MachineError
-from pandora import optimization, check_conf, check_configuration
+from pandora import optimization
+from pandora.check_configuration import check_conf
 from pandora.margins import Margins
 from pandora.state_machine import PandoraMachine
 from tests import common
+
 
 # pylint: disable=too-many-lines, too-many-public-methods, redefined-outer-name
 
@@ -1075,7 +1077,7 @@ class TestPlugin3SGM:
 
         # check the configuration
         with pytest.raises(SystemExit):
-            _ = check_configuration.check_conf(cfg, pandora_machine)
+            _ = check_conf(cfg, pandora_machine)
 
     def test_user_initiate_3sgm_and_validation_with_one_geomprior_classification(self, user_cfg, inputs_path):
         """
@@ -1106,4 +1108,4 @@ class TestPlugin3SGM:
 
         # check the configuration
         with pytest.raises(SystemExit):
-            _ = check_configuration.check_conf(cfg, pandora_machine)
+            _ = check_conf(cfg, pandora_machine)
