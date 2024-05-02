@@ -420,7 +420,8 @@ class AbstractSGM(optimization.AbstractOptimization):
         # Invalid value must not exceed the maximum value of uint8 type (255)
         if cv.attrs["measure"] == "census" and invalid_value <= 255 and not confidence_is_int:
             invalid_value = int(invalid_value)
-            cv["cost_volume"].data = cv["cost_volume"].data.astype(np.uint8)
+            cost_volume = np.nan_to_num(cv["cost_volume"].data, nan=invalid_value)
+            cv["cost_volume"].data = np.floor(cost_volume).astype(np.uint8)
 
         p1_mat, p2_mat = (
             p1_mat.astype(cv["cost_volume"].data.dtype.type),
