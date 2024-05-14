@@ -369,112 +369,7 @@ class TestPluginSGM:
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["confidence_measure"].data[:, :, -1], gt_disp)
 
-    def test_apply_confidence_no_confidence(self, left_crafted, cost_volume, user_cfg):
-        """
-        Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
-        """
 
-        # Prepare the configuration
-
-        # Load plugins
-        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
-
-        # Test
-        use_confidence = False
-
-        # apply confidence
-        cv_updated, confidence_is_int = optimization_.apply_confidence(cost_volume, use_confidence)
-
-        # Ground Truth
-        optim_cv_gt = np.array(
-            [
-                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
-                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
-                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
-            ],
-            dtype=np.float32,
-        )
-
-        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
-        np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
-
-        # Check if confidence_is_int is right
-        assert confidence_is_int
-
-    def test_apply_confidence_no_confidence_dataarray(self, left_crafted, cost_volume, user_cfg):
-        """
-        Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
-        """
-
-        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
-
-        # Test
-        use_confidence = True
-
-        # apply confidence
-        cv_updated, confidence_is_int = optimization_.apply_confidence(cost_volume, use_confidence)
-
-        # Ground Truth
-        optim_cv_gt = np.array(
-            [
-                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
-                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
-                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
-            ],
-            dtype=np.float32,
-        )
-
-        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
-        np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
-
-        # Check if confidence_is_int is right
-        assert confidence_is_int
-
-    def test_apply_confidence_with_confidence_dataarray(self, left_crafted, cost_volume, user_cfg):
-        """
-        Test plugin_libsgm apply_confidence function, with user asking for confidence usage, without any in dataser
-        """
-        optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
-
-        # Test
-        use_confidence = True
-
-        data_confidence = np.expand_dims(
-            np.array([[1, 1, 1, 0.5], [1, 1, 0.5, 1], [1, 1, 1, 1]], dtype=np.float32),
-            axis=2,
-        )
-
-        cv_in = copy.deepcopy(cost_volume)
-        cv_in["confidence_measure"] = xr.DataArray(data_confidence, dims=["row", "col", "indicator"])
-
-        # apply confidence
-        cv_updated, confidence_is_int = optimization_.apply_confidence(cv_in, use_confidence)
-
-        # Ground Truth
-        optim_cv_gt = np.array(
-            [
-                [
-                    [1, 1, 1, 1, 1],
-                    [1, 1, 1, 1, 2],
-                    [1, 1, 1, 4, 3],
-                    [0.5, 0.5, 0.5, 0.5, 0.5],
-                ],
-                [
-                    [1, 1, 2, 1, 1],
-                    [1, 1, 1, 1, 2],
-                    [0.5, 0.5, 0.5, 2, 1.5],
-                    [1, 1, 1, 1, 7],
-                ],
-                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
-            ],
-            dtype=np.float32,
-        )
-
-        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
-        np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], optim_cv_gt)
-
-        # Check if confidence_is_int is right
-        assert confidence_is_int is False
 
     def test_optimization_layer_with_sgm(self, left_crafted, cost_volume, user_cfg):
         """
@@ -618,3 +513,169 @@ def test_get_band_values(band_name, expected):
     result = get_band_values(input_dataset, band_name)
 
     np.testing.assert_array_equal(result, expected)
+
+
+class TestUseConfidence():
+    """ Test use_confidence option on apply_confidence method """
+
+    @pytest.fixture()
+    def user_cfg_with_ambiguity_confidence(self, user_cfg, indicator_name):
+        """ User configuration with one ambiguity confidence measure """
+        user_cfg["pipeline"]["cost_volume_confidence"]["confidence_method"] = "ambiguity"
+        user_cfg["pipeline"]["optimization"]["use_confidence"] = indicator_name
+        return user_cfg
+    
+    @pytest.fixture()
+    def user_cfg_without_confidence(self, user_cfg):
+        """ User configuration without confidence measure """
+        del user_cfg["pipeline"]["cost_volume_confidence"]
+        return user_cfg
+    
+    @pytest.fixture()
+    def user_cfg_with_double_ambiguity_confidence(self, configurations_path):
+        """ User configuration with two ambiguity confidence measure """
+        return pandora.read_config_file(str(configurations_path / "sgm_confidence_double.json"))
+    
+    @pytest.fixture()
+    def user_cfg_with_complexe_ambiguity_confidence(self, user_cfg_with_ambiguity_confidence, indicator_name):
+        """ 
+        User configuration with one ambiguity confidence measure. 
+        The name is not "cost_volume_confidence" but more complexe
+        """
+        user_cfg_with_ambiguity_confidence["pipeline"][indicator_name] = user_cfg_with_ambiguity_confidence["pipeline"].pop("cost_volume_confidence")
+        return user_cfg_with_ambiguity_confidence
+    
+    @pytest.fixture()
+    def cost_volume_with_confidence(self, cost_volume, indicator_name):
+        """ Cost volume matriw with confidence measure """
+        data_confidence = np.expand_dims(
+            np.array([[1, 1, 1, 0.5], [1, 1, 0.5, 1], [1, 1, 1, 1]], dtype=np.float32),
+            axis=2,
+        )
+        cost_volume["indicator"] = [indicator_name]
+        cost_volume["confidence_measure"] = xr.DataArray(data_confidence, dims=["row", "col", "indicator"])
+        return cost_volume
+
+    @pytest.fixture()
+    def ground_truth_without_confidence(self):
+        """ Cost volume after apply_confidence methode without confidence measure """
+        return np.array(
+            [
+                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
+                [[1, 1, 2, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 7]],
+                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
+            ],
+            dtype=np.float32,
+        )
+
+    @pytest.fixture()
+    def ground_truth_with_confidence(self):
+        """ Cost volume after apply_confidence methode with confidence measure """
+        return np.array(
+            [
+                [
+                    [1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 2],
+                    [1, 1, 1, 4, 3],
+                    [0.5, 0.5, 0.5, 0.5, 0.5],
+                ],
+                [
+                    [1, 1, 2, 1, 1],
+                    [1, 1, 1, 1, 2],
+                    [0.5, 0.5, 0.5, 2, 1.5],
+                    [1, 1, 1, 1, 7],
+                ],
+                [[1, 4, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 12, 1, 1, 1]],
+            ],
+            dtype=np.float32,
+        )
+    
+    @pytest.mark.parametrize(
+        ["configuration"],
+        [
+            pytest.param("user_cfg_without_confidence", id="Without confidence measure"),
+            pytest.param("user_cfg", id="With a wrong confidence, does not an ambiguity measure")
+        ],
+    )
+    def test_with_no_confidence(
+        self, left_crafted, cost_volume, configuration, ground_truth_without_confidence, request
+    ):
+        """
+        Test plugin_libsgm apply_confidence function, with no or wrong confidence in user configuration
+        """
+
+        optim_cfg = request.getfixturevalue(configuration)["pipeline"]["optimization"]
+        optimization_ = optimization.AbstractOptimization(left_crafted, **optim_cfg)
+
+        # apply confidence
+        cv_updated, confidence_is_int = optimization_.apply_confidence(cost_volume, optimization_._use_confidence)
+
+        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
+        np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], ground_truth_without_confidence)
+        
+        # Check if confidence_is_int is right
+        assert confidence_is_int
+
+    def test_with_wrong_confidence_name(
+        self, left_crafted, cost_volume, user_cfg_with_double_ambiguity_confidence, ground_truth_without_confidence
+    ):
+        """
+        Test plugin_libsgm apply_confidence function, with double ambiguity confidence in user configuration
+        and use_confidence parameter does not match with ambiguity confidence step
+        """
+        # update indicator to fail the test
+        cost_volume["indicator"] = ["confidence_from_std_intensity"]
+
+        optim_cfg = user_cfg_with_double_ambiguity_confidence["pipeline"]["optimization"]
+        optimization_ = optimization.AbstractOptimization(left_crafted, **optim_cfg)
+
+        # apply confidence
+        cv_updated, confidence_is_int = optimization_.apply_confidence(cost_volume, optimization_._use_confidence)
+
+        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
+        np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], ground_truth_without_confidence)
+
+        # Check if confidence_is_int is right
+        assert confidence_is_int
+
+    @pytest.mark.parametrize(
+        ["configuration", "indicator_name"],
+        [
+            pytest.param(
+                "user_cfg_with_ambiguity_confidence",
+                "confidence_from_ambiguity",
+                id="With one confidence measure"
+            ),
+            pytest.param(
+                "user_cfg_with_double_ambiguity_confidence",
+                "confidence_from_ambiguity.before",
+                id="With two confidence measure"
+            ),
+            pytest.param(
+                "user_cfg_with_complexe_ambiguity_confidence",
+                "confidence_from_ambiguity.toto.tata",
+                id="With one complexe confidence measure"
+            )
+        ],
+    )
+    def test_with_ambiguity_confidence(
+        self, left_crafted, cost_volume_with_confidence, ground_truth_with_confidence, configuration, request
+    ):
+        """
+        Test plugin_libsgm apply_confidence function, with one/two ambiguity confidence in user configuration
+        and use_confidence parameter matches with ambiguity confidence step
+        """
+        optim_cfg = request.getfixturevalue(configuration)["pipeline"]["optimization"]
+        optimization_ = optimization.AbstractOptimization(left_crafted, **optim_cfg)
+        print(f'{optim_cfg=}')
+        print(f'{optimization_._use_confidence=}')
+
+        # apply confidence
+        cv_updated, confidence_is_int = optimization_.apply_confidence(cost_volume_with_confidence, optimization_._use_confidence)
+
+        # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
+        np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], ground_truth_with_confidence)
+
+        # Check if confidence_is_int is right
+        assert confidence_is_int is False
+
