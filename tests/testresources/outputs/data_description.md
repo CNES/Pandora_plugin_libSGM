@@ -53,8 +53,7 @@ Disparity maps computed by Pandora with this old configurations (no more availab
       "p2_method": "constant",
       "penalty_method": "sgm_penalty",
       "sgm_version": "c++",
-      "min_cost_paths": false,
-      "use_confidence": false
+      "min_cost_paths": false
     },
     "disparity": {
       "disparity_method": "wta",

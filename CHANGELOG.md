@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.1a1 (June 2024)
+
+### Changed
+- Change deprecated alias in setup.cfg. [#92]
+- Update use_confidence parameter type. [#101]
+
 ## 1.5.0 (January 2024)
 
 ### Added
