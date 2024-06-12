@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.1a2 (June 2024)
+- Update setup.cfg file with new pandora version.
+
 ## 1.5.1a1 (June 2024)
 
 ### Changed
