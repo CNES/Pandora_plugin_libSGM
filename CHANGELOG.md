@@ -1,6 +1,13 @@
 # Changelog
 
+## 1.5.1 (June 2024)
+
+### Changed
+- Fix numpy version.
+
 ## 1.5.1a2 (June 2024)
+
+### Changed
 - Update setup.cfg file with new pandora version.
 
 ## 1.5.1a1 (June 2024)
