@@ -119,7 +119,7 @@ class AbstractSGM(optimization.AbstractOptimization):
                 sys.exit(1)
 
         schema = {
-            "sgm_version": And(str, lambda x: is_method(x, ["c++", "python_libsgm", "python_libsgm_parall"])),
+            "sgm_version": And(str, lambda x: is_method(x, ["c++", "pylibsgm", "pylibsgm_parall"])),
             "optimization_method": And(str, lambda x: is_method(x, ["sgm", "3sgm"])),
             "overcounting": bool,
             "min_cost_paths": bool,
