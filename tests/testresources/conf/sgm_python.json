@@ -7,7 +7,7 @@
     },
     "optimization": {
       "optimization_method": "sgm",
-      "sgm_version": "python_libsgm",
+      "sgm_version": "pylibsgm",
       "overcounting": false,
       "penalty": {
         "P1": 8,
