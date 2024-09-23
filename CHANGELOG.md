@@ -1,5 +1,7 @@
 # Changelog
 
+## 1.5.2 (September 2024)
+
 ## 1.5.2a1 (September 2024)
 
 ### Changed
