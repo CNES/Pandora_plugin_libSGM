@@ -32,7 +32,7 @@ from typing import Dict, Union, Tuple, Optional, cast
 import numpy as np
 import xarray as xr
 from json_checker import Checker, And, OptionalKey
-from libSGM import sgm_wrapper
+import c_libsgm
 from pandora.common import is_method
 from pandora.cost_volume_confidence import AbstractCostVolumeConfidence
 from pandora.optimization import optimization
@@ -433,7 +433,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         cv["cost_volume"].data = np.ascontiguousarray(cv["cost_volume"].data)
 
         # LibSGM library takes as input a numpy array, and output a numpy array
-        cost_volumes_out = sgm_wrapper.sgm_api(
+        cost_volumes_out = c_libsgm.sgm_api(
             cv["cost_volume"].data,
             p1_mat,
             p2_mat,
