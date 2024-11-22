@@ -1,34 +1,48 @@
 # Changelog
 
+## 1.5.3 (November 2024)
+
+### Changed
+
+- Upgrade libsgm >0.5.0 with pybind evolution. works on python>3.10.
+
 ## 1.5.2 (September 2024)
+
+- no change from alpha1 after test.
 
 ## 1.5.2a1 (September 2024)
 
 ### Changed
+
 - Update numpy version. [#103]
 
 ## 1.5.1 (June 2024)
 
 ### Changed
+
 - Fix numpy version.
 
 ## 1.5.1a2 (June 2024)
 
 ### Changed
+
 - Update setup.cfg file with new pandora version.
 
 ## 1.5.1a1 (June 2024)
 
 ### Changed
+
 - Change deprecated alias in setup.cfg. [#92]
 - Update use_confidence parameter type. [#101]
 
 ## 1.5.0 (January 2024)
 
 ### Added
+
 - Added margin calculation for the treatment chain with ROI image. [#85]
 
 ### Changed
+
 - Update user configuration file with new keys : "left" & "right". [#84]
 - Updating information in the various xarrays. [#96]
 - Replacing sys.exit by raises. [#97]
@@ -39,17 +53,17 @@
 ## 1.5.0a1 (November 2023)
 
 ### Changed
+
 - Adding check for geometric_prior option in check_conf function. [#88]
 - New format for disparity in the user configuration file. [#87]
 - Change read_img function to create_dataset_from_inputs. [#83]
 - Update with new API of Pandora run and compute_cost_volume function. [#94]
 
-
 ## 1.4.0 (April 2023)
 
-### Added 
+### Added
 
-- Update warnings mentioning semantic_segmentation step in pipeline. 
+- Update warnings mentioning semantic_segmentation step in pipeline.
 - Adapt tests to new check conf pandora's format. [#77]
 - Add multiband classifications. [#76]
 
@@ -75,21 +89,20 @@
 
 ### Added
 
-- Add 3SGM (Semantic Segmentation for SGM) method. 
+- Add 3SGM (Semantic Segmentation for SGM) method.
 
 ### Changed
 
 - Force python version >= 3.7. [#63]
 - Delete MCCNN accurate penalties. [#67]
 - Change values for default penalties of MC CNN fast [#65]
-- Udpate dependency to Pandora 1.3.0 
+- Udpate dependency to Pandora 1.3.0
 
 ## 1.1.1 (December 2021)
 
 ### Changed
 
 Update python packaging.
-
 
 ## 1.1.0 (June 2021)
 
@@ -104,7 +117,7 @@ Update python packaging.
 ### BREAKING CHANGE
 
 - Penalties method : removes mc_cnn_penalty parameter, added mc_cnn_fast_penalty and mc_cnn_accurate_penalty parameters
-  to be able to automatically load the penalties according to the type of measure. 
+  to be able to automatically load the penalties according to the type of measure.
 - Change compute_penalty to take images datasets as input.
 - Update depency to Pandora 1.0.0 version.[#59]
 
@@ -136,5 +149,4 @@ Update python packaging.
 
 ### Fixed
 
--  min_cost_paths calculation: fix creation of temporary disparity map to avoid dangerous DataArray manipulation. [#43]
-
+- min_cost_paths calculation: fix creation of temporary disparity map to avoid dangerous DataArray manipulation. [#43]
