@@ -11,8 +11,7 @@ This file keeps track of authors contributions.
 
 ## Development Lead
 
-* Emmanuelle Sarrazin <emmanuelle.sarrazin@cnes.fr>
-* Natalia Jimenez <natalia.jimenez-diaz@csgroup.eu>
+* Emmanuel Dubois <emmanuel.dubois@cnes.fr>
 * Alice de Bardonnèche-Richard <alice.de-bardonneche-richard@csgroup.eu>
 * Marie Leconte <marie.leconte@csgroup.eu>
 * Elisa Duz <elisa.duz@csgroup.eu>
@@ -20,6 +19,7 @@ This file keeps track of authors contributions.
 
 ## Contributors
 
+* Emmanuelle Sarrazin <emmanuelle.sarrazin@cnes.fr>
 * Veronique Defonte <veronique.defonte@csgroup.eu>
 * Quentin Fardet <quentin.fardet@csgroup.eu>
 * Mannaïg L'Haridon <mannaig.lharidon@csgroup.eu>
@@ -28,6 +28,7 @@ This file keeps track of authors contributions.
 * Mathis Roux <mathis.roux@csgroup.eu>
 * David Youssefi <David.Youssefi@cnes.fr>
 * Roman Malinowski <roman.malinowski@hds.utc.fr>
+* Natalia Jimenez <natalia.jimenez-diaz@csgroup.eu>
 
 Update here with new contributors.
 
