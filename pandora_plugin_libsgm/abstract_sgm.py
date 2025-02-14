@@ -178,6 +178,9 @@ class AbstractSGM(optimization.AbstractOptimization):
         optimization_layer = self.compute_optimization_layer(cv, img_left, img_left_array.shape)
 
         if self._sgm_version == "c++":
+            # Quick fix: Force confidence_is_int to True to not optimize cost volume to int for now. 
+            # To be cleaned with cost volume optimization globally
+            confidence_is_int = True
             cost_volumes_out = self.sgm_cpp(
                 cv, invalid_value, confidence_is_int, p1_mat, p2_mat, optimization_layer, invalid_disp
             )
