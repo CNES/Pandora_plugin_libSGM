@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.4a1 (February 2025)
+
+### Changed
+
+- Updated refs with pandora cpp last version
+- Update github CI with python wheel (remove --sdist only)
+
+### Fixed
+
+- quick fix to not use int optimization of cost volume when confidence is used []
+
 ## 1.5.3 (November 2024)
 
 ### Changed
