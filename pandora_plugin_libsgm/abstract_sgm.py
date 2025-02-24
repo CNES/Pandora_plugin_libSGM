@@ -172,19 +172,15 @@ class AbstractSGM(optimization.AbstractOptimization):
         invalid_value, p1_mat, p2_mat = self._penalty.compute_penalty(cv, img_left_array, img_right_array)
 
         # Apply confidence to cost volume
-        cv, confidence_is_int = self.apply_confidence(cv, self._use_confidence)  # type:ignore
+        cv = self.apply_confidence(cv, self._use_confidence)  # type:ignore
 
         # get optimization layer and add optimization layer to cost volume if necessary
         optimization_layer = self.compute_optimization_layer(cv, img_left, img_left_array.shape)
 
         if self._sgm_version == "c++":
-            # Quick fix: Force confidence_is_int to True to not optimize cost volume to int for now. 
-            # To be cleaned with cost volume optimization globally
-            confidence_is_int = True
             cost_volumes_out = self.sgm_cpp(
-                cv, invalid_value, confidence_is_int, p1_mat, p2_mat, optimization_layer, invalid_disp
+                cv, invalid_value, p1_mat, p2_mat, optimization_layer, invalid_disp
             )
-
         else:
             run_sgm = self._method[0]
             cost_volumes_out = run_sgm(
@@ -197,11 +193,11 @@ class AbstractSGM(optimization.AbstractOptimization):
                 overcounting=self._overcounting,
             )
 
-        cv["cost_volume"].data = cost_volumes_out["cv"]
-
         # Allocate the number of paths given the min costs
         if self._min_cost_paths:
             cv = self.number_of_disp(cv, cost_volumes_out["cv_min"], invalid_disp)
+
+        cv["cost_volume"].data = cost_volumes_out["cv"]
 
         # The cost volume has to be multiplied by -1 to be re-considered as a similarity measure
         if cv.attrs["type_measure"] == "max":
@@ -340,7 +336,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         return cv
 
     @staticmethod
-    def apply_confidence(cv: xr.Dataset, use_confidence: str) -> Tuple[xr.Dataset, bool]:
+    def apply_confidence(cv: xr.Dataset, use_confidence: str) -> xr.Dataset:
         """
         Apply the confidence measure to cost volume,as weights.
 
@@ -360,14 +356,12 @@ class AbstractSGM(optimization.AbstractOptimization):
 
         nb_rows, nb_cols, _ = cv["cost_volume"].data.shape
         # Initialise confidence ( in [0, 1])
-        confidence_is_int = True
         if use_confidence is not None:
             measure_coord = "confidence_from_ambiguity"
             suffix_exists = use_confidence.find('.')
             if suffix_exists >= 0:
                 measure_coord += use_confidence[suffix_exists:]
             if "confidence_measure" in cv and measure_coord in cv.coords["indicator"]:
-                confidence_is_int = False
                 confidence_array = cv["confidence_measure"].sel(indicator=measure_coord).data
             else:
                 confidence_array = np.ones((nb_rows, nb_cols))
@@ -385,13 +379,12 @@ class AbstractSGM(optimization.AbstractOptimization):
         cv["cost_volume"].data *= np.expand_dims(confidence_array, axis=2)
         cv["cost_volume"].data = cv["cost_volume"].data.astype(np.float32)
 
-        return cv, confidence_is_int
+        return cv
 
     def sgm_cpp(
         self,
         cv: xr.Dataset,
         invalid_value: float,
-        confidence_is_int: bool,
         p1_mat: np.ndarray,
         p2_mat: np.ndarray,
         optim_layer: np.ndarray,
@@ -407,8 +400,6 @@ class AbstractSGM(optimization.AbstractOptimization):
         :type cv: xarray.Dataset
         :param invalid_value: invalid value for penalties
         :type invalid_value: float
-        :param confidence_is_int: confidence is int
-        :type confidence_is_int: bool
         :param p1_mat: P1 penalties
         :type p1_mat: np.array
         :param p2_mat: P2 penalties
@@ -418,14 +409,6 @@ class AbstractSGM(optimization.AbstractOptimization):
         :param invalid_disp: invalid disparities mask
         :type invalid_disp: np.array
         """
-        # If the cost volume is calculated with the census measure and the invalid value <= 255,
-        # the cost volume is converted to unint8 to optimize the memory
-        # Invalid value must not exceed the maximum value of uint8 type (255)
-        if cv.attrs["measure"] == "census" and invalid_value <= 255 and not confidence_is_int:
-            invalid_value = int(invalid_value)
-            cost_volume = np.nan_to_num(cv["cost_volume"].data, nan=invalid_value)
-            cv["cost_volume"].data = np.floor(cost_volume).astype(np.uint8)
-
         p1_mat, p2_mat = (
             p1_mat.astype(cv["cost_volume"].data.dtype.type),
             p2_mat.astype(cv["cost_volume"].data.dtype.type),

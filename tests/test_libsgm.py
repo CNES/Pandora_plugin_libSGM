@@ -453,14 +453,13 @@ class TestPluginSGM:
         ) = optimization_._penalty.compute_penalty(  # pylint:disable=protected-access
             cv_in, img_left_array, img_right_array
         )
-        cv_in, confidence_is_int = optimization_.apply_confidence(
+        cv_in = optimization_.apply_confidence(
             cv_in, optimization_._use_confidence  # pylint:disable=protected-access
         )
         optimization_layer = optimization_.compute_optimization_layer(cv_in, left_rgb, img_left_array.shape)
         cost_volumes_gt = optimization_.sgm_cpp(
             cv_in,
             invalid_value,
-            confidence_is_int,
             p1_mat,
             p2_mat,
             optimization_layer,
@@ -608,13 +607,10 @@ class TestUseConfidence():
         optimization_ = optimization.AbstractOptimization(left_crafted, **optim_cfg)
 
         # apply confidence
-        cv_updated, confidence_is_int = optimization_.apply_confidence(cost_volume, optimization_._use_confidence)
+        cv_updated = optimization_.apply_confidence(cost_volume, optimization_._use_confidence)
 
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], ground_truth_without_confidence)
-        
-        # Check if confidence_is_int is right
-        assert confidence_is_int
 
     def test_with_wrong_confidence_name(
         self, left_crafted, cost_volume, user_cfg_with_double_ambiguity_confidence, ground_truth_without_confidence
@@ -630,13 +626,10 @@ class TestUseConfidence():
         optimization_ = optimization.AbstractOptimization(left_crafted, **optim_cfg)
 
         # apply confidence
-        cv_updated, confidence_is_int = optimization_.apply_confidence(cost_volume, optimization_._use_confidence)
+        cv_updated = optimization_.apply_confidence(cost_volume, optimization_._use_confidence)
 
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], ground_truth_without_confidence)
-
-        # Check if confidence_is_int is right
-        assert confidence_is_int
 
     @pytest.mark.parametrize(
         ["configuration", "indicator_name"],
@@ -671,11 +664,9 @@ class TestUseConfidence():
         print(f'{optimization_._use_confidence=}')
 
         # apply confidence
-        cv_updated, confidence_is_int = optimization_.apply_confidence(cost_volume_with_confidence, optimization_._use_confidence)
+        cv_updated = optimization_.apply_confidence(cost_volume_with_confidence, optimization_._use_confidence)
 
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], ground_truth_with_confidence)
 
-        # Check if confidence_is_int is right
-        assert confidence_is_int is False
 
