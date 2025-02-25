@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.4 (February 2025)
+
+### Changed
+
+- remove numpy<2 dependency
+
+### Fixed
+
+- remove condition to cast cost volume on int
+- github CI to work
+
+
 ## 1.5.4a1 (February 2025)
 
 ### Changed
