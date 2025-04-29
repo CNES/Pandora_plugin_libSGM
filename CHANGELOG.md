@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.5 (April 2025)
+
+### Changed
+
+- update pandora version
+
 ## 1.5.4 (February 2025)
 
 ### Changed
