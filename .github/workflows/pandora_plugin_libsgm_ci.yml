@@ -36,7 +36,7 @@ jobs:
           git clone https://github.com/cnes/pandora --branch ${pandora_version} --depth 1
       - name: Test with pytest
         run: |
-          pytest --junitxml=pytest-report.xml --cov-config=.coveragerc --cov-report xml --cov
+          pytest -m "not functional_tests" --junitxml=pytest-report.xml --cov-config=.coveragerc --cov-report xml --cov
       - name: Test with pytest pandora's notebooks
         run: |
           cd submodule/pandora
@@ -45,7 +45,9 @@ jobs:
           hash -r
           pytest -m notebook_tests
           cd ../..
-
+      - name: Test libsgm wheel
+        run: |
+          pytest -m "functional_tests"
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
       - name: Create source distrubition
