@@ -26,6 +26,9 @@ import numpy as np
 import rasterio
 import xarray as xr
 
+@pytest.fixture(scope="session")
+def root_dir(request):
+    return request.session.path
 
 @pytest.fixture()
 def inputs_path(resource_path_root):
