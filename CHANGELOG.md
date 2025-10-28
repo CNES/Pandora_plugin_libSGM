@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.6a1 (October 2025)
+
+### Added
+
+- Add a functional test to check the plugin wheel in the GitHub CI. [#110]
+- Add a profiling. 
+
 ## 1.5.5 (April 2025)
 
 ### Changed
