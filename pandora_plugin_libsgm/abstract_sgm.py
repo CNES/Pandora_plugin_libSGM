@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf8
 #
-# Copyright (c) 2024 Centre National d'Etudes Spatiales (CNES).
+# Copyright (c) 2025 Centre National d'Etudes Spatiales (CNES).
 #
 # This file is part of PANDORA
 #
@@ -36,6 +36,7 @@ import c_libsgm
 from pandora.common import is_method
 from pandora.cost_volume_confidence import AbstractCostVolumeConfidence
 from pandora.optimization import optimization
+from pandora.profiler import profile
 
 from pandora_plugin_libsgm import penalty
 
@@ -58,6 +59,7 @@ class AbstractSGM(optimization.AbstractOptimization):
     _DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]]
     _USE_CONFIDENCE = None
 
+    @profile("sgm.__init__")
     def __init__(self, img: xr.Dataset, **cfg: Union[str, int, float, bool, dict]):
         """
         :param img: xarray.Dataset of image with metadata
@@ -132,6 +134,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         checker.validate(cfg)
         return cfg
 
+    @profile("sgm.optimize_cv")
     def optimize_cv(self, cv: xr.Dataset, img_left: xr.Dataset, img_right: xr.Dataset) -> xr.Dataset:
         """
         Optimizes the cost volume with the SGM method
