@@ -52,6 +52,10 @@ endif
 
 ################ MAKE targets by sections ######################
 
+.PHONY: reports_dir
+reports_dir:
+	mkdir -p reports
+
 .PHONY: help
 help: ## this help
 	@echo "      plugin_libSGM MAKE HELP"
@@ -85,14 +89,13 @@ check-library: ## check if the plugin is already installed in the PLUGIN_LIBSGM_
 ## Test section
 
 .PHONY: test
-test: install ## run all tests (
-	@${PLUGIN_LIBSGM_VENV}/bin/pytest -m "not functional_tests" --junitxml=pytest-report.xml --cov-config=.coveragerc --cov-report xml --cov
+test: install reports_dir ## run all tests (
+	@${PLUGIN_LIBSGM_VENV}/bin/pytest -m "not functional_tests" --junitxml=reports/pytest-report.xml --cov-config=.coveragerc --cov-report=xml:reports/py-coverage.cobertura.xml --cov-report term --cov
 
 .PHONY: test-functional
-test-functional: install ## run functional tests only
+test-functional: install reports_dir ## run functional tests only
 	@echo "Run functional tests"
-	@${PLUGIN_LIBSGM_VENV}/bin/pytest -m "functional_tests"
-
+	@${PLUGIN_LIBSGM_VENV}/bin/pytest -m "functional_tests" --html=functional-test-report.html --cov-config=.coveragerc --cov-report=xml:reports/py-coverage-functional.cobertura.xml --cov-report term --cov
 
 ## Documentation section
 

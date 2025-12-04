@@ -19,16 +19,19 @@
 """Fixtures."""
 # pylint: disable=redefined-outer-name
 
-import pandora
-import pytest
 
 import numpy as np
+import pytest
 import rasterio
 import xarray as xr
+
+import pandora
+
 
 @pytest.fixture(scope="session")
 def root_dir(request):
     return request.session.path
+
 
 @pytest.fixture()
 def inputs_path(resource_path_root):
@@ -174,7 +177,7 @@ def left_crafted():
             "no_data_mask": 1,
             "crs": None,
             "transform": None,
-            "disparity_source": [-60, 0]
+            "disparity_source": [-60, 0],
         },
     )
     return result
@@ -196,7 +199,7 @@ def right_crafted():
             "no_data_mask": 1,
             "crs": None,
             "transform": None,
-            "disparity_source": [0, 60]
+            "disparity_source": [0, 60],
         },
     )
     return result

@@ -22,6 +22,9 @@
 """
 This module provides functions to test Pandora + plugin_LibSGM
 """
+
+# pylint: disable=too-many-function-args
+
 import pytest
 import numpy as np
 

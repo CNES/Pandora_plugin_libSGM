@@ -20,19 +20,22 @@
 This module contains functions to test all plugin configurations.
 """
 
-import pytest
 import json_checker
+import pytest
 
 from pandora import optimization
 
 pytestmark = pytest.mark.usefixtures("import_plugin")
 
-class TestCheckConf():
+
+class TestCheckConf:
+    """Test configuration"""
 
     @pytest.fixture()
     def optimization_cfg(self, use_confidence_value):
+        """Test nominal configuration with use_confidence"""
         return {"optimization_method": "sgm", "use_confidence": use_confidence_value}
-    
+
     @pytest.mark.parametrize(
         "use_confidence_value",
         [
@@ -44,14 +47,17 @@ class TestCheckConf():
         ],
     )
     def test_with_wrong_use_confidence_parameter(self, left_crafted, optimization_cfg):
+        """Test with incorrect value for use_confidence parameter"""
         with pytest.raises(json_checker.core.exceptions.DictCheckerError):
             optimization.AbstractOptimization(left_crafted, **optimization_cfg)
 
     @pytest.mark.parametrize("use_confidence_value", ["cost_volume_confidence"])
     def test_with_nominal_use_confidence_parameter(self, left_crafted, optimization_cfg):
+        """Test nominal value of use_confidence parameter"""
         optimization.AbstractOptimization(left_crafted, **optimization_cfg)
 
     @pytest.mark.parametrize("use_confidence_value", ["cost_volume_confidence"])
     def test_without_use_confidence_parameter(self, left_crafted, optimization_cfg):
+        """Test without use_confidence parameter"""
         del optimization_cfg["use_confidence"]
         optimization.AbstractOptimization(left_crafted, **optimization_cfg)
