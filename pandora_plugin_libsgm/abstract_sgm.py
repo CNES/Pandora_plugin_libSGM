@@ -32,7 +32,7 @@ from typing import Dict, Union, Tuple, Optional, cast
 import numpy as np
 import xarray as xr
 from json_checker import Checker, And, OptionalKey
-import c_libsgm
+import c_libsgm  # pylint: disable=import-error
 from pandora.common import is_method
 from pandora.cost_volume_confidence import AbstractCostVolumeConfidence
 from pandora.optimization import optimization
@@ -361,7 +361,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         # Initialise confidence ( in [0, 1])
         if use_confidence is not None:
             measure_coord = "confidence_from_ambiguity"
-            suffix_exists = use_confidence.find('.')
+            suffix_exists = use_confidence.find(".")
             if suffix_exists >= 0:
                 measure_coord += use_confidence[suffix_exists:]
             if "confidence_measure" in cv and measure_coord in cv.coords["indicator"]:

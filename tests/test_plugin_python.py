@@ -25,9 +25,9 @@ This module provides functions to test Pandora + plugin_LibSGM
 # pylint: disable=redefined-outer-name
 
 import numpy as np
+import pytest
 
 import pandora
-import pytest
 from pandora.state_machine import PandoraMachine
 from tests import common
 

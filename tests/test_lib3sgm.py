@@ -24,12 +24,13 @@ This module provides functions to test Pandora + plugin_LibSGM
 """
 
 import copy
-import pytest
 import numpy as np
-import pandora
+import pytest
 import rasterio
 import xarray as xr
+
 from transitions import MachineError
+import pandora
 from pandora import optimization
 from pandora.check_configuration import check_conf
 from pandora.margins import Margins
