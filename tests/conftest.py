@@ -32,6 +32,9 @@ import pandora
 def root_dir(request):
     return request.session.path
 
+@pytest.fixture()
+def resource_path_root(root_dir):
+    return root_dir / "tests" / "testresources"  # adjust as needed
 
 @pytest.fixture()
 def inputs_path(resource_path_root):

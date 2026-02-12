@@ -377,7 +377,7 @@ class TestPluginSGM:
 
         cv_in = copy.deepcopy(cost_volume)
 
-        prior_array_out = optimization_.compute_optimization_layer(cv_in, left_crafted, left_crafted["im"].shape)
+        prior_array_out, mode = optimization_.compute_optimization_layer(cv_in, left_crafted, left_crafted["im"].shape)
 
         # Check that cost volume isn't changed
         with pytest.raises(KeyError):
@@ -452,7 +452,7 @@ class TestPluginSGM:
             cv_in, img_left_array, img_right_array
         )
         cv_in = optimization_.apply_confidence(cv_in, optimization_._use_confidence)  # pylint:disable=protected-access
-        optimization_layer = optimization_.compute_optimization_layer(cv_in, left_rgb, img_left_array.shape)
+        optimization_layer, mode = optimization_.compute_optimization_layer(cv_in, left_rgb, img_left_array.shape)
         cost_volumes_gt = optimization_.sgm_cpp(
             cv_in,
             invalid_value,
@@ -460,6 +460,7 @@ class TestPluginSGM:
             p2_mat,
             optimization_layer,
             invalid_disp,
+            mode,
         )
         # Invalid disparities of the cost volume as set as -9999
         cost_volumes_gt["cv"][invalid_disp] = -9999
