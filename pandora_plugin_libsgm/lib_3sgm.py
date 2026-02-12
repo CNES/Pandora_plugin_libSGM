@@ -45,7 +45,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
 
     # Default configuration, do not change these values
     _GEOMETRIC_PRIOR = {"source": "internal"}
-    _AVAILABLE_GEOMETRIC_PRIOR = ["internal", "classif", "segm"]
+    _AVAILABLE_GEOMETRIC_PRIOR = ["internal", "classif", "segm", "edges"]
 
     def __init__(self, img: xr.Dataset, **cfg: Union[str, int, float, bool]):
         """
@@ -77,7 +77,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
             if not cfg["geometric_prior"]["source"] in self._AVAILABLE_GEOMETRIC_PRIOR:
                 logging.error("%s is not available as a geometric prior", cfg["geometric_prior"]["source"])
 
-        # Must be classif, segm or internal
+        # Must be classif, segm, edges or internal
         if cfg["geometric_prior"]["source"] not in self._AVAILABLE_GEOMETRIC_PRIOR:
             logging.error("%s is not available as a geometric prior source", cfg["geometric_prior"]["source"])
             sys.exit(1)
@@ -99,6 +99,10 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
             if "classes" in cfg["geometric_prior"]:
                 logging.error("Classes can't be instantiated if source is segm")
                 sys.exit(1)
+        if cfg["geometric_prior"]["source"] == "edges":
+            if "classes" in cfg["geometric_prior"]:
+                logging.error("Classes can't be instantiated if source is edges")
+                sys.exit(1)
 
         return cfg
 
@@ -110,7 +114,7 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
 
     def compute_optimization_layer(
         self, cv: xr.Dataset, img_left: xr.Dataset, img_shape: Tuple[int, ...]
-    ) -> np.ndarray:
+    ) -> (np.ndarray, str):
         """
         Compute optimization layer for optimization method
 
@@ -126,13 +130,13 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         :type img_left: xarray
         :param img_shape: shape of the input image
         :type img_shape: Tuple[int, ...]
-        :return: the optimization layer array
-        :rtype: np.ndarray
+        :return: the optimization layer array and the mode used
+        :rtype: Tuple(np.ndarray, str)
         """
         # internal (from cv), segm or classif (from image)
         mode = self._geometric_prior["source"]  # type: ignore
 
-        if mode in ["segm", "classif"]:
+        if mode in ["segm", "classif", "edges"]:
             # if geometric_prior comes from the image (segm or classif)
             if mode in img_left:
                 geometric_prior_array = img_left[mode].data
@@ -172,4 +176,4 @@ class SEGSEMSGM(abstract_sgm.AbstractSGM):
         geometric_prior_array = geometric_prior_array.astype(np.float32)
         geometric_prior_array[np.isnan(geometric_prior_array)] = -9999
 
-        return geometric_prior_array
+        return geometric_prior_array, mode
