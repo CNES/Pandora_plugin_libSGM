@@ -181,9 +181,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         optimization_layer, mode = self.compute_optimization_layer(cv, img_left, img_left_array.shape)
 
         if self._sgm_version == "c++":
-            cost_volumes_out = self.sgm_cpp(
-                cv, invalid_value, p1_mat, p2_mat, optimization_layer, invalid_disp, mode
-            )
+            cost_volumes_out = self.sgm_cpp(cv, invalid_value, p1_mat, p2_mat, optimization_layer, invalid_disp, mode)
         else:
             run_sgm = self._method[0]
             cost_volumes_out = run_sgm(
@@ -372,7 +370,7 @@ class AbstractSGM(optimization.AbstractOptimization):
                     "User wants to use %s that was not computed previously or an ambiguity confidence \n "
                     "Default is used : confidence values will be equal to 1, which is equivalent to not use \n "
                     "confidence.",
-                    use_confidence
+                    use_confidence,
                 )
         else:
             confidence_array = np.ones((nb_rows, nb_cols))
@@ -434,7 +432,7 @@ class AbstractSGM(optimization.AbstractOptimization):
             optim_layer,
             self._min_cost_paths,
             self._overcounting,
-            mode=="edges",
+            mode == "edges",
         )
 
         return cost_volumes_out

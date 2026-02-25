@@ -377,7 +377,7 @@ class TestPluginSGM:
 
         cv_in = copy.deepcopy(cost_volume)
 
-        prior_array_out, mode = optimization_.compute_optimization_layer(cv_in, left_crafted, left_crafted["im"].shape)
+        prior_array_out, _ = optimization_.compute_optimization_layer(cv_in, left_crafted, left_crafted["im"].shape)
 
         # Check that cost volume isn't changed
         with pytest.raises(KeyError):

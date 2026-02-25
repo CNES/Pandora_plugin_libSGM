@@ -218,7 +218,9 @@ class TestPlugin3SGM:
         # Load plugins
         optimization_ = optimization.AbstractOptimization(left_crafted, **user_cfg["pipeline"]["optimization"])
 
-        classif_arr, mode = optimization_.compute_optimization_layer(cost_volume, left_crafted, left_crafted["im"].data.shape)
+        classif_arr, _ = optimization_.compute_optimization_layer(
+            cost_volume, left_crafted, left_crafted["im"].data.shape
+        )
 
         gt_classif = np.ones((4, 5))
         np.testing.assert_array_equal(classif_arr, gt_classif)
@@ -247,7 +249,7 @@ class TestPlugin3SGM:
 
         cv_in = copy.deepcopy(cost_volume)
 
-        prior_array_out, mode = optimization_.compute_optimization_layer(cv_in, left, left["im"].data.shape)
+        prior_array_out, _ = optimization_.compute_optimization_layer(cv_in, left, left["im"].data.shape)
 
         # check that added array in cv is correct
         np.testing.assert_array_equal(cv_in["internal"], gt_default_prior_array)
@@ -1110,3 +1112,27 @@ class TestPlugin3SGM:
         # check the configuration
         with pytest.raises(SystemExit):
             _ = check_conf(cfg, pandora_machine)
+
+    def test_edges_with_classes(self, user_cfg, inputs_with_classif):
+        """
+        Optimization left and right edges with validation step and classes instantiated.
+        Classes are not available for edges step
+        Check that the check_conf function raises an error.
+        """
+
+        # Prepare the SGM configuration
+        # Add a classification and classes
+        user_cfg["pipeline"]["optimization"]["geometric_prior"] = {
+            "source": "edges",
+            "classes": ["cornfields"],
+        }
+
+        # Add inputs
+        user_cfg["input"] = inputs_with_classif
+
+        # Instantiate machine
+        pandora_machine = PandoraMachine()
+
+        # Check configuration
+        with pytest.raises(SystemExit):
+            _ = check_conf(user_cfg, pandora_machine)
