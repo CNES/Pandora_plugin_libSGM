@@ -34,6 +34,11 @@ def root_dir(request):
 
 
 @pytest.fixture()
+def resource_path_root(root_dir):
+    return root_dir / "tests" / "testresources"  # adjust as needed
+
+
+@pytest.fixture()
 def inputs_path(resource_path_root):
     return resource_path_root / "inputs"
 

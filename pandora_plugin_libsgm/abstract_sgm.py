@@ -114,7 +114,7 @@ class AbstractSGM(optimization.AbstractOptimization):
 
         if "geometric_prior" in cfg:
             source = cfg["geometric_prior"]["source"]  # type: ignore[index]
-            if source in ["classif", "segm"] and not source in img.data_vars:
+            if source in ["classif", "segm", "edges"] and not source in img.data_vars:
                 logging.error(
                     "For performing the 3SGM optimization step in the pipeline, left %s must be present.", source
                 )
@@ -178,12 +178,10 @@ class AbstractSGM(optimization.AbstractOptimization):
         cv = self.apply_confidence(cv, self._use_confidence)  # type:ignore
 
         # get optimization layer and add optimization layer to cost volume if necessary
-        optimization_layer = self.compute_optimization_layer(cv, img_left, img_left_array.shape)
+        optimization_layer, mode = self.compute_optimization_layer(cv, img_left, img_left_array.shape)
 
         if self._sgm_version == "c++":
-            cost_volumes_out = self.sgm_cpp(
-                cv, invalid_value, p1_mat, p2_mat, optimization_layer, invalid_disp
-            )
+            cost_volumes_out = self.sgm_cpp(cv, invalid_value, p1_mat, p2_mat, optimization_layer, invalid_disp, mode)
         else:
             run_sgm = self._method[0]
             cost_volumes_out = run_sgm(
@@ -372,7 +370,7 @@ class AbstractSGM(optimization.AbstractOptimization):
                     "User wants to use %s that was not computed previously or an ambiguity confidence \n "
                     "Default is used : confidence values will be equal to 1, which is equivalent to not use \n "
                     "confidence.",
-                    use_confidence
+                    use_confidence,
                 )
         else:
             confidence_array = np.ones((nb_rows, nb_cols))
@@ -392,6 +390,7 @@ class AbstractSGM(optimization.AbstractOptimization):
         p2_mat: np.ndarray,
         optim_layer: np.ndarray,
         invalid_disp: np.ndarray,
+        mode: str,
     ):
         """
         Compute aggregated cost volume using C++ library where sgm method is implemented
@@ -411,6 +410,8 @@ class AbstractSGM(optimization.AbstractOptimization):
         :type optim_layer: np.array
         :param invalid_disp: invalid disparities mask
         :type invalid_disp: np.array
+        :param mode: mode of the optimization layer
+        :type mode: str
         """
         p1_mat, p2_mat = (
             p1_mat.astype(cv["cost_volume"].data.dtype.type),
@@ -431,6 +432,7 @@ class AbstractSGM(optimization.AbstractOptimization):
             optim_layer,
             self._min_cost_paths,
             self._overcounting,
+            mode == "edges",
         )
 
         return cost_volumes_out

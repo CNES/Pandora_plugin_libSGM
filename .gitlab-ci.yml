@@ -22,17 +22,17 @@ spec:
       default: true
 ---
 include:
-  - component: $CI_SERVER_FQDN/to-be-continuous/python/gitlab-ci-python@8.1.3  # TBC Python component version
+  - component: $CI_SERVER_FQDN/to-be-continuous/python/gitlab-ci-python@8.6.0  # TBC Python component version
     # Default stage for jobs is build.
     # Below is the list of items to contains.
     inputs:
-      image: ${UL_ARTIFACTORY_HOST}/publicremotes-docker/python:3.9
+      image: ${UL_ARTIFACTORY_HOST}/publicremotes-docker/python:3.10
       pytest-enabled: true
       pylint-enabled: true
       black-enabled: false
       mypy-enabled: false
       build-system: setuptools
-      # Install pandora2d test dependencies (see pyproject.toml file)
+      # Install pandora2d test dependencies (see setup.cfg file)
       extra-deps: test
   - component: $CI_SERVER_FQDN/to-be-continuous/sonar/gitlab-ci-sonar@5.0.1
     inputs:
@@ -50,6 +50,11 @@ variables:
   # Decomment to add new branch TickerNumber-XXX
   #INTEG_REF: /^(develop|release|TickerNumber-XXX)$/
   INTEG_REF: /^(develop|release)$/
+
+  # LibSGM's branch to integrate with
+  # Override from pipeline GUI/Schedule if needed
+  LIBSGM_BRANCH: release
+
   # Python
   PIP_INDEX_URL: "https://${PANDORA_ARTIFACTORY_USERNAME}:${PANDORA_ARTIFACTORY_KEY}@${UL_ARTIFACTORY_HOST}/artifactory/api/pypi/pypi/simple"
   # Runs Pylint only on the following directories
@@ -84,6 +89,22 @@ py-lint:
   variables:
     # The image follow PEP 668
     PIP_OPTS: "--break-system-packages"
+
+# Set the version of LibSGM to use
+libsgm-version:
+  stage: .pre
+  image: $PYTHON_IMAGE
+  extends: .python-base
+  script:
+    # Use CI job token to authenticate
+    - echo "LIBSGM_BRANCH=$LIBSGM_BRANCH"
+    - sed -i "s#libsgm[>=<].*#libsgm @ git+https://gitlab-ci-token@${CI_SERVER_HOST}/dali/PandoraBox/libsgm.git@${LIBSGM_BRANCH}#" setup.cfg
+  artifacts:
+    paths:
+      - setup.cfg
+  rules:
+    # Run this job only if LIBSGM_BRANCH is valued
+    - if: $LIBSGM_BRANCH
 
 # Override to use the Makefile rules
 py-pytest:
