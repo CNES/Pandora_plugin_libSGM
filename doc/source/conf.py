@@ -1,7 +1,7 @@
 # pylint: skip-file
 #
 # coding: utf8
-# Copyright (c) 2025 Centre National d'Etudes Spatiales (CNES).
+# Copyright (c) 2026 Centre National d'Etudes Spatiales (CNES).
 #
 # This file is part of Pandora plugin LibSGM
 #
@@ -39,9 +39,9 @@
 # -- Project information -----------------------------------------------------
 
 project = "Pandora Plugin Libsgm"
-copyright = "2020, CNES"
+copyright = "2026, CNES"
 author = "CNES"
-version = "0.6.0"
+version = "1.5.7a1"
 # The full version, including alpha/beta/rc tags
 # not useful at the moment :  see  https://gitlab.cnes.fr/OutilsCommuns/CorrelateurChaine3D/pandora/issues/124
 # release = '0.2.0'
