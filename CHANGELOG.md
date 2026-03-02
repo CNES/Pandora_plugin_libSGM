@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.7a1 (March 2026)
+
+### Added
+
+- Added CI on Gitlab.
+
+### Changed
+
+- Updated minimal Python version from 3.9 to 3.10.
+- Updated classification with edge map.
+
 ## 1.5.6 (November 2025)
 
 ## 1.5.6a1 (October 2025)
