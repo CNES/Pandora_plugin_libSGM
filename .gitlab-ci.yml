@@ -70,7 +70,7 @@ variables:
 # Default configuration for all jobs
 default:
   tags:
-    - Usine_Logicielle
+    - Usine_Logicielle_Podman
 
 py-black:
   stage: test
