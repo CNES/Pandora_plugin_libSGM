@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf8
 #
-# Copyright (c) 2025 Centre National d'Etudes Spatiales (CNES).
+# Copyright (c) 2026 Centre National d'Etudes Spatiales (CNES).
 #
 # This file is part of Pandora plugin LibSGM
 #
@@ -22,6 +22,9 @@
 """
 This module provides functions to test Pandora + plugin_LibSGM
 """
+
+# pylint: disable=too-many-function-args
+
 import pytest
 import numpy as np
 

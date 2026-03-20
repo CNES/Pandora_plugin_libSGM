@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf8
 #
-# Copyright (c) 2025 Centre National d'Etudes Spatiales (CNES).
+# Copyright (c) 2026 Centre National d'Etudes Spatiales (CNES).
 #
 # This file is part of Pandora plugin LibSGM
 #
@@ -24,11 +24,11 @@ This module provides functions to test Pandora + plugin_LibSGM
 """
 
 import copy
-
 import numpy as np
-import pandora
 import pytest
 import xarray as xr
+
+import pandora
 from pandora import matching_cost, optimization, cost_volume_confidence
 from pandora.img_tools import add_disparity
 from pandora.state_machine import PandoraMachine
@@ -369,8 +369,6 @@ class TestPluginSGM:
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["confidence_measure"].data[:, :, -1], gt_disp)
 
-
-
     def test_optimization_layer_with_sgm(self, left_crafted, cost_volume, user_cfg):
         """
         Test the optimization layer function with sgm default configuration
@@ -379,7 +377,7 @@ class TestPluginSGM:
 
         cv_in = copy.deepcopy(cost_volume)
 
-        prior_array_out = optimization_.compute_optimization_layer(cv_in, left_crafted, left_crafted["im"].shape)
+        prior_array_out, _ = optimization_.compute_optimization_layer(cv_in, left_crafted, left_crafted["im"].shape)
 
         # Check that cost volume isn't changed
         with pytest.raises(KeyError):
@@ -453,10 +451,8 @@ class TestPluginSGM:
         ) = optimization_._penalty.compute_penalty(  # pylint:disable=protected-access
             cv_in, img_left_array, img_right_array
         )
-        cv_in = optimization_.apply_confidence(
-            cv_in, optimization_._use_confidence  # pylint:disable=protected-access
-        )
-        optimization_layer = optimization_.compute_optimization_layer(cv_in, left_rgb, img_left_array.shape)
+        cv_in = optimization_.apply_confidence(cv_in, optimization_._use_confidence)  # pylint:disable=protected-access
+        optimization_layer, mode = optimization_.compute_optimization_layer(cv_in, left_rgb, img_left_array.shape)
         cost_volumes_gt = optimization_.sgm_cpp(
             cv_in,
             invalid_value,
@@ -464,6 +460,7 @@ class TestPluginSGM:
             p2_mat,
             optimization_layer,
             invalid_disp,
+            mode,
         )
         # Invalid disparities of the cost volume as set as -9999
         cost_volumes_gt["cv"][invalid_disp] = -9999
@@ -514,39 +511,41 @@ def test_get_band_values(band_name, expected):
     np.testing.assert_array_equal(result, expected)
 
 
-class TestUseConfidence():
-    """ Test use_confidence option on apply_confidence method """
+class TestUseConfidence:
+    """Test use_confidence option on apply_confidence method"""
 
     @pytest.fixture()
     def user_cfg_with_ambiguity_confidence(self, user_cfg, indicator_name):
-        """ User configuration with one ambiguity confidence measure """
+        """User configuration with one ambiguity confidence measure"""
         user_cfg["pipeline"]["cost_volume_confidence"]["confidence_method"] = "ambiguity"
         user_cfg["pipeline"]["optimization"]["use_confidence"] = indicator_name
         return user_cfg
-    
+
     @pytest.fixture()
     def user_cfg_without_confidence(self, user_cfg):
-        """ User configuration without confidence measure """
+        """User configuration without confidence measure"""
         del user_cfg["pipeline"]["cost_volume_confidence"]
         return user_cfg
-    
+
     @pytest.fixture()
     def user_cfg_with_double_ambiguity_confidence(self, configurations_path):
-        """ User configuration with two ambiguity confidence measure """
+        """User configuration with two ambiguity confidence measure"""
         return pandora.read_config_file(str(configurations_path / "sgm_confidence_double.json"))
-    
+
     @pytest.fixture()
     def user_cfg_with_complexe_ambiguity_confidence(self, user_cfg_with_ambiguity_confidence, indicator_name):
-        """ 
-        User configuration with one ambiguity confidence measure. 
+        """
+        User configuration with one ambiguity confidence measure.
         The name is not "cost_volume_confidence" but more complexe
         """
-        user_cfg_with_ambiguity_confidence["pipeline"][indicator_name] = user_cfg_with_ambiguity_confidence["pipeline"].pop("cost_volume_confidence")
+        user_cfg_with_ambiguity_confidence["pipeline"][indicator_name] = user_cfg_with_ambiguity_confidence[
+            "pipeline"
+        ].pop("cost_volume_confidence")
         return user_cfg_with_ambiguity_confidence
-    
+
     @pytest.fixture()
     def cost_volume_with_confidence(self, cost_volume, indicator_name):
-        """ Cost volume matriw with confidence measure """
+        """Cost volume matriw with confidence measure"""
         data_confidence = np.expand_dims(
             np.array([[1, 1, 1, 0.5], [1, 1, 0.5, 1], [1, 1, 1, 1]], dtype=np.float32),
             axis=2,
@@ -557,7 +556,7 @@ class TestUseConfidence():
 
     @pytest.fixture()
     def ground_truth_without_confidence(self):
-        """ Cost volume after apply_confidence methode without confidence measure """
+        """Cost volume after apply_confidence methode without confidence measure"""
         return np.array(
             [
                 [[1, 1, 1, 1, 1], [1, 1, 1, 1, 2], [1, 1, 1, 4, 3], [1, 1, 1, 1, 1]],
@@ -569,7 +568,7 @@ class TestUseConfidence():
 
     @pytest.fixture()
     def ground_truth_with_confidence(self):
-        """ Cost volume after apply_confidence methode with confidence measure """
+        """Cost volume after apply_confidence methode with confidence measure"""
         return np.array(
             [
                 [
@@ -588,12 +587,12 @@ class TestUseConfidence():
             ],
             dtype=np.float32,
         )
-    
+
     @pytest.mark.parametrize(
         ["configuration"],
         [
             pytest.param("user_cfg_without_confidence", id="Without confidence measure"),
-            pytest.param("user_cfg", id="With a wrong confidence, does not an ambiguity measure")
+            pytest.param("user_cfg", id="With a wrong confidence, does not an ambiguity measure"),
         ],
     )
     def test_with_no_confidence(
@@ -607,7 +606,9 @@ class TestUseConfidence():
         optimization_ = optimization.AbstractOptimization(left_crafted, **optim_cfg)
 
         # apply confidence
-        cv_updated = optimization_.apply_confidence(cost_volume, optimization_._use_confidence)
+        cv_updated = optimization_.apply_confidence(
+            cost_volume, optimization_._use_confidence  # pylint: disable=W0212 protected-access
+        )
 
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], ground_truth_without_confidence)
@@ -625,8 +626,9 @@ class TestUseConfidence():
         optim_cfg = user_cfg_with_double_ambiguity_confidence["pipeline"]["optimization"]
         optimization_ = optimization.AbstractOptimization(left_crafted, **optim_cfg)
 
-        # apply confidence
-        cv_updated = optimization_.apply_confidence(cost_volume, optimization_._use_confidence)
+        cv_updated = optimization_.apply_confidence(
+            cost_volume, optimization_._use_confidence  # pylint: disable=protected-access
+        )
 
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], ground_truth_without_confidence)
@@ -635,20 +637,18 @@ class TestUseConfidence():
         ["configuration", "indicator_name"],
         [
             pytest.param(
-                "user_cfg_with_ambiguity_confidence",
-                "confidence_from_ambiguity",
-                id="With one confidence measure"
+                "user_cfg_with_ambiguity_confidence", "confidence_from_ambiguity", id="With one confidence measure"
             ),
             pytest.param(
                 "user_cfg_with_double_ambiguity_confidence",
                 "confidence_from_ambiguity.before",
-                id="With two confidence measure"
+                id="With two confidence measure",
             ),
             pytest.param(
                 "user_cfg_with_complexe_ambiguity_confidence",
                 "confidence_from_ambiguity.toto.tata",
-                id="With one complexe confidence measure"
-            )
+                id="With one complexe confidence measure",
+            ),
         ],
     )
     def test_with_ambiguity_confidence(
@@ -660,13 +660,11 @@ class TestUseConfidence():
         """
         optim_cfg = request.getfixturevalue(configuration)["pipeline"]["optimization"]
         optimization_ = optimization.AbstractOptimization(left_crafted, **optim_cfg)
-        print(f'{optim_cfg=}')
-        print(f'{optimization_._use_confidence=}')
 
         # apply confidence
-        cv_updated = optimization_.apply_confidence(cost_volume_with_confidence, optimization_._use_confidence)
+        cv_updated = optimization_.apply_confidence(
+            cost_volume_with_confidence, optimization_._use_confidence  # pylint: disable=W0212 protected-access
+        )
 
         # Check if the calculated confidence_measure is equal to the ground truth (same shape and all elements equals)
         np.testing.assert_array_equal(cv_updated["cost_volume"].data[:, :, :], ground_truth_with_confidence)
-
-

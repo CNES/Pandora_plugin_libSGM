@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2025 Centre National d'Etudes Spatiales (CNES).
+# Copyright (c) 2026 Centre National d'Etudes Spatiales (CNES).
 #
 # This file is part of plugin_libSGM
 #
@@ -43,7 +43,7 @@ ifeq (, $(PYTHON))
 endif
 
 # Check Python version supported globally
-PYTHON_VERSION_MIN = 3.8
+PYTHON_VERSION_MIN = 3.10
 PYTHON_VERSION_CUR=$(shell $(PYTHON) -c 'import sys; print("%d.%d"% sys.version_info[0:2])')
 PYTHON_VERSION_OK=$(shell $(PYTHON) -c 'import sys; cur_ver = sys.version_info[0:2]; min_ver = tuple(map(int, "$(PYTHON_VERSION_MIN)".split("."))); print(int(cur_ver >= min_ver))')
 ifeq ($(PYTHON_VERSION_OK), 0)
@@ -51,6 +51,10 @@ ifeq ($(PYTHON_VERSION_OK), 0)
 endif
 
 ################ MAKE targets by sections ######################
+
+.PHONY: reports_dir
+reports_dir:
+	mkdir -p reports
 
 .PHONY: help
 help: ## this help
@@ -85,14 +89,13 @@ check-library: ## check if the plugin is already installed in the PLUGIN_LIBSGM_
 ## Test section
 
 .PHONY: test
-test: install ## run all tests (
-	@${PLUGIN_LIBSGM_VENV}/bin/pytest -m "not functional_tests" --junitxml=pytest-report.xml --cov-config=.coveragerc --cov-report xml --cov
+test: install reports_dir ## run all tests (
+	@${PLUGIN_LIBSGM_VENV}/bin/pytest -m "not functional_tests" --junitxml=reports/pytest-report.xml --cov-config=.coveragerc --cov-report=xml:reports/py-coverage.cobertura.xml --cov-report term --cov
 
 .PHONY: test-functional
-test-functional: install ## run functional tests only
+test-functional: install reports_dir ## run functional tests only
 	@echo "Run functional tests"
-	@${PLUGIN_LIBSGM_VENV}/bin/pytest -m "functional_tests"
-
+	@${PLUGIN_LIBSGM_VENV}/bin/pytest -m "functional_tests" --html=functional-test-report.html --cov-config=.coveragerc --cov-report=xml:reports/py-coverage-functional.cobertura.xml --cov-report term --cov
 
 ## Documentation section
 

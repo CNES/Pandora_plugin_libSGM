@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf8
 #
-# Copyright (c) 2025 Centre National d'Etudes Spatiales (CNES).
+# Copyright (c) 2026 Centre National d'Etudes Spatiales (CNES).
 #
 # This file is part of Pandora plugin LibSGM
 #
@@ -47,7 +47,7 @@ class SGM(abstract_sgm.AbstractSGM):
 
     def compute_optimization_layer(
         self, cv: xr.Dataset, img_left: xr.Dataset, img_shape: Tuple[int, ...]
-    ) -> np.ndarray:
+    ) -> (np.ndarray, str):
         """
         Compute optimization layer for optimization method
 
@@ -63,11 +63,11 @@ class SGM(abstract_sgm.AbstractSGM):
         :type img_left: xarray
         :param img_shape: shape of the input image
         :type img_shape: Tuple[int, ...]
-        :return: the optimization layer array
-        :rtype: np.ndarray
+        :return: the optimization layer array and the mode used
+        :rtype: Tuple(np.ndarray, str)
         """
 
         # Default optimization layer, for a piecewise optimization layer array use 3sgm method
         optimization_layer = np.ones(img_shape, dtype=np.float32)
 
-        return optimization_layer
+        return optimization_layer, None
