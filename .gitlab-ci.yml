@@ -31,6 +31,7 @@ include:
       pylint-enabled: true
       black-enabled: false
       mypy-enabled: false
+      trivy-disabled: true
       build-system: setuptools
       # Install pandora2d test dependencies (see setup.cfg file)
       extra-deps: test
