@@ -41,7 +41,7 @@
 project = "Pandora Plugin Libsgm"
 copyright = "2026, CNES"
 author = "CNES"
-version = "1.5.7a1"
+version = "1.5.8"
 # The full version, including alpha/beta/rc tags
 # not useful at the moment :  see  https://gitlab.cnes.fr/OutilsCommuns/CorrelateurChaine3D/pandora/issues/124
 # release = '0.2.0'
